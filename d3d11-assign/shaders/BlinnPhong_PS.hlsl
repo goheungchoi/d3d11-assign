@@ -18,26 +18,6 @@ SamplerState specularSampler : register(s1);
 Texture2D normalTexture : register(t2);
 SamplerState normalSampler : register(s2);
 
-struct _Material
-{
-	float4 Emissive; // 16 bytes
-  //----------------------------------- (16 byte boundary)
-	float4 Ambient; // 16 bytes
-  //------------------------------------(16 byte boundary)
-	float4 Diffuse; // 16 bytes
-  //----------------------------------- (16 byte boundary)
-	float4 Specular; // 16 bytes
-  //----------------------------------- (16 byte boundary)
-	float Shininess; // 4 bytes
-	float3 Padding; // 8 bytes
-  //----------------------------------- (16 byte boundary)
-}; // Total:               // 80 bytes ( 5 * 16 )
-
-cbuffer MaterialProperties : register(b0)
-{
-	_Material Material;
-};
-
 struct Light
 {
 	float4 Position; // 16 bytes
@@ -70,10 +50,12 @@ cbuffer LightProperties : register(b1)
 struct PS_INPUT
 {
 	float4 Position : SV_POSITION;
-	float2 UV : TEXCOORD0;
+	float3 Normal : NORMAL;
+	float2 TexCoord : TEXCOORD;
 };
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
+	float4 color = diffuseTexture.Sample(diffuseSampler, input.TexCoord);
+	return color;
 }

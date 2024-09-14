@@ -1,8 +1,11 @@
-cbuffer MatrixBuffer : register( b0 )
+cbuffer PerFrame : register(b0)
+{
+	matrix viewProjection;
+}
+
+cbuffer PerObject : register(b1)
 {
 	matrix model;
-	matrix view;
-	matrix proj;
 };
 
 struct VS_INPUT
@@ -21,8 +24,12 @@ struct PS_OUTPUT
 
 PS_OUTPUT main(VS_INPUT input)
 {
+	float4 pos = float4(input.Position, 1.f);
+	matrix mvp = mul(viewProjection, model);
+	pos = mul(pos, mvp);
+	
 	PS_OUTPUT output;
-	output.Position = input.Position;
+	output.Position = pos;
 	output.Normal = input.Normal;
 	output.TexCoord = input.TexCoord;
 	return output;

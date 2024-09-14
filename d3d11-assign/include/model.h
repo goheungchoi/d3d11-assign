@@ -37,7 +37,7 @@ public:
 	Model(ID3D11Device* device, ID3D11DeviceContext* context, const char* path);
 	~Model();
 
-	void Draw(/* Renderer */);
+	void Draw(XMMATRIX topMat);
 
 private:
 	std::vector<Mesh> _meshes;

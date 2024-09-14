@@ -28,10 +28,10 @@ void GameEngine::Shutdown()
 void GameEngine::Run() {
 	// Set timer
 	Timer::InitTimer();
-	double prevTime = Timer::GetTick();
-	double currTime = 0.0;
-	double frameTime = 0.0;
-	double accumulator = 0.0;	// Helps keep track of fixed frame rate
+	float prevTime = Timer::GetTick();
+	float currTime = 0.0;
+	float frameTime = 0.0;
+	float accumulator = 0.0;	// Helps keep track of fixed frame rate
 
 	MSG msg = { };
 	bool bQuit = false;

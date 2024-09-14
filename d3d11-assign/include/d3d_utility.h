@@ -24,6 +24,8 @@ struct Vertex {
 	Vector2 uv;
 };
 
+using Index = uint32_t;
+
 // Transform struct
 struct Transform {
 	// Local space transform
@@ -72,10 +74,12 @@ struct Material {
 };
 
 // MVP Transform Constant buffer
-struct ConstantBuffer {
+struct cbPerFrame {
+	Matrix viewProj;
+};
+
+struct cbPerObject {
 	Matrix model;
-	Matrix view;
-	Matrix proj;
 };
 
 // Utility class for COM exception

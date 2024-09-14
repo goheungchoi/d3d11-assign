@@ -4,10 +4,44 @@ Mesh::~Mesh()
 {
 }
 
-void Mesh::Draw()
+void Mesh::Draw(XMMATRIX topMat)
 {
-	/*d3d11DevCon->PSSetShaderResources(0, 1, &CubesTexture);
-	d3d11DevCon->PSSetSamplers(0, 1, &CubesTexSamplerState);*/
+	_cbPerFrame.viewProj = XMMatrixTranspose(topMat);
+	_cbPerObject.model = XMMatrixTranspose(_cbPerObject.model);
+
+	/* INPUT ASSEMBLER STAGE */
+	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	_context->IASetVertexBuffers(0, 1, &_vbo, &_vbStride, &_vbOffset);
+	_context->IASetIndexBuffer(_ibo, DXGI_FORMAT_R32_UINT, _ibOffset);
+	_context->IASetInputLayout(_inputLayout);
+
+	/* VERTEX STAGE */
+	_context->VSSetShader(_vs, nullptr, 0);
+	D3D11_MAPPED_SUBRESOURCE cbPerFrameSubresource;
+	_context->Map(_cboPerFrame, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &cbPerFrameSubresource);
+	memcpy(cbPerFrameSubresource.pData, &_cbPerFrame, sizeof(cbPerFrame));
+	_context->Unmap(_cboPerFrame, NULL);
+	_context->VSSetConstantBuffers(0, 1, &_cboPerFrame);
+	D3D11_MAPPED_SUBRESOURCE cbPerObjectSubresource;
+	_context->Map(_cboPerObject, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &cbPerObjectSubresource);
+	memcpy(cbPerObjectSubresource.pData, &_cbPerObject, sizeof(cbPerObject));
+	_context->Unmap(_cboPerObject, NULL);
+	_context->VSSetConstantBuffers(1, 1, &_cboPerObject);
+
+	/* PIXEL STAGE */
+	// Diffuse
+	_context->PSSetShader(_ps, nullptr, 0);
+	_context->PSSetShaderResources(0, 1, &textures[0].textureView);
+	_context->PSSetSamplers(0, 1, &textures[0].samplerState);
+	// Specular
+	_context->PSSetShaderResources(1, 1, &textures[1].textureView);
+	_context->PSSetSamplers(1, 1, &textures[1].samplerState);
+	// Normal
+	_context->PSSetShaderResources(2, 1, &textures[2].textureView);
+	_context->PSSetSamplers(2, 1, &textures[2].samplerState);
+
+	// Start sending commands to the gpu.
+	_context->DrawIndexed(_indexCount, 0, 0);
 }
 
 bool Mesh::InitPipeline()
@@ -110,5 +144,99 @@ bool Mesh::InitPipeline()
 
 bool Mesh::InitBuffers()
 {
-	return false;
+	// Vertex buffer info
+	D3D11_BUFFER_DESC vertexBufferInfo{
+		.ByteWidth = (UINT)(sizeof(Vertex) * std::size(vertices)),
+		.Usage = D3D11_USAGE_IMMUTABLE,		// Only read access from GPU
+		.BindFlags = D3D11_BIND_VERTEX_BUFFER,	// Vertex buffer
+		.CPUAccessFlags = 0	// No access from CPU
+	};
+
+	// Vertex data
+	D3D11_SUBRESOURCE_DATA vertexBufferSubresource{
+		.pSysMem = vertices.data()
+	};
+
+	// Create the vertex buffer.
+	CHECK(
+		_device->CreateBuffer(
+			&vertexBufferInfo, 
+			&vertexBufferSubresource,
+			&_vbo
+		)
+	);
+
+	// Copy the vertices into the buffer
+	// NOTE: You can technically use ID3D11DeviceContext::UpdateSubresource 
+	// to copy to a resource with any usage except D3D11_USAGE_IMMUTABLE. 
+	// However, we recommend to use ID3D11DeviceContext::UpdateSubresource 
+	// to update only a resource with D3D11_USAGE_DEFAULT. 
+	// We recommend to use ID3D11DeviceContext::Map and 
+	// ID3D11DeviceContext::Unmap to update resources with 
+	// D3D11_USAGE_DYNAMIC because that is the specific purpose of 
+	// D3D11_USAGE_DYNAMIC resources, and is therefore the most optimized path.
+	/*D3D11_MAPPED_SUBRESOURCE vertexBufferSubresource;
+	_context->Map(_vbo, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &vertexBufferSubresource);
+	memcpy(vertexBufferSubresource.pData, vertices, sizeof(vertices));
+	_context->Unmap(_vbo, NULL);*/
+
+	_vbStride = sizeof(Vertex);
+	_vbOffset = 0U;
+	_vertexCount = static_cast<UINT>(std::size(vertices));
+
+	// Index buffer info
+	D3D11_BUFFER_DESC indexBufferDescriptor{
+		.ByteWidth = (UINT)(sizeof(Index) * std::size(indices)),
+		.Usage = D3D11_USAGE_IMMUTABLE,
+		.BindFlags = D3D11_BIND_INDEX_BUFFER,
+	};
+
+	// Index buffer data
+	D3D11_SUBRESOURCE_DATA indexBufferData{
+		.pSysMem = indices.data()
+	};
+
+	// Create the index buffer
+	CHECK(
+		_device->CreateBuffer(
+			&indexBufferDescriptor,
+			&indexBufferData,
+			&_ibo
+		)
+	);
+
+	_ibStride = sizeof(Index);
+	_ibOffset = 0U;
+	_indexCount = static_cast<UINT>(std::size(indices));
+
+	// Create the constant buffers
+	D3D11_BUFFER_DESC cboPerFrameDesc{
+		.ByteWidth = sizeof(_cbPerFrame),
+		.Usage = D3D11_USAGE_DYNAMIC,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE
+	};
+	CHECK(
+		_device->CreateBuffer(
+			&cboPerFrameDesc,
+			nullptr,
+			&_cboPerFrame
+		)
+	);
+
+	D3D11_BUFFER_DESC cboPerObjectDesc{
+		.ByteWidth = sizeof(cbPerObject),
+		.Usage = D3D11_USAGE_DYNAMIC,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE
+	};
+	CHECK(
+		_device->CreateBuffer(
+			&cboPerObjectDesc,
+			nullptr,
+			&_cboPerObject
+		)
+	);
+
+	return true;
 }

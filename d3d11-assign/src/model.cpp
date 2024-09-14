@@ -16,10 +16,10 @@ Model::~Model()
 
 }
 
-void Model::Draw(/* TODO: Renderer */)
+void Model::Draw(XMMATRIX topMat)
 {
 	for (Mesh& mesh : _meshes)
-		mesh.Draw();
+		mesh.Draw(topMat);
 }
 
 void Model::LoadModel(const char* path)
@@ -64,7 +64,7 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene)
 Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
 	std::vector<Vertex> vertices(mesh->mNumVertices);
-	std::vector<uint32_t> indices(mesh->mNumFaces * 3);
+	std::vector<Index> indices(mesh->mNumFaces * 3);
 	std::vector<Texture> textures;
 
 	for (std::size_t i = 0; i < mesh->mNumVertices; i++) {
@@ -85,7 +85,7 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		if (mesh->mTextureCoords[0]) {
 			Vector2 uv;
 			uv.x = mesh->mTextureCoords[0][i].x;
-			uv.y = mesh->mTextureCoords[0][i].y;
+			uv.y = 1.f - mesh->mTextureCoords[0][i].y;
 			vertex.uv = uv;
 		}
 		else {
@@ -130,7 +130,7 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		// Normal maps
 		std::vector<Texture> normalMaps = LoadMaterialTextures(
 			material, 
-			aiTextureType_NORMALS,
+			aiTextureType_HEIGHT,
 			TEXTURE_TYPE::NORMALS,
 			scene
 		);

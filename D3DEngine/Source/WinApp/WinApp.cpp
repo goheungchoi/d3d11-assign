@@ -20,11 +20,11 @@ LRESULT WinApp::handleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 		// Close the window when user alt-f4s or clicks the X button
 	case WM_CLOSE:
-		OutputDebugString(L"\WinApp: Destroying this window...\n");
+		OutputDebugString(L"WinApp: Destroying this window...\n");
 		DestroyWindow(GetWindow());
 		return 0;
 	case WM_DESTROY:
-		OutputDebugString(L"\WinApp: Post Quit Message...\n");
+		OutputDebugString(L"WinApp: Post Quit Message...\n");
 		PostQuitMessage(0);
 		return 0;
 	}

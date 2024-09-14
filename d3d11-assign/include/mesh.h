@@ -20,7 +20,7 @@ class Mesh {
 
 	// Mesh data
 	std::vector<Vertex> vertices;
-	std::vector<uint32_t> indices;
+	std::vector<Index> indices;
 	std::vector<Texture> textures;
 
 	Transform transform{};
@@ -29,22 +29,25 @@ public:
 	Mesh(ID3D11Device* device,
 		ID3D11DeviceContext* context,
 		const std::vector<Vertex>& vertices,
-		const std::vector<uint32_t>& indices,
+		const std::vector<Index>& indices,
 		const std::vector<Texture>& textures) = delete;
 	Mesh(ID3D11Device* device,
 		ID3D11DeviceContext* context, 
 		std::vector<Vertex>&& vertices,
-		std::vector<uint32_t>&& indices,
+		std::vector<Index>&& indices,
 		std::vector<Texture>&& textures) :
 		_device{ device },
 		_context{ context },
 		vertices(std::move(vertices)),
 		indices(std::move(indices)),
-		textures(std::move(textures)) {}
+		textures(std::move(textures)) {
+		InitPipeline();
+		InitBuffers();
+	}
 
 	~Mesh();
 
-	void Draw(/* Renderer */);
+	void Draw(XMMATRIX topMat);
 
 private:
 
@@ -56,17 +59,19 @@ private:
 
 private:
 	ID3D11Buffer* _vbo{ nullptr };
-	UINT _vertexBufferStride{ 0U };
-	UINT _vertexBufferOffset{ 0U };
+	UINT _vbStride{ 0U };
+	UINT _vbOffset{ 0U };
 	UINT _vertexCount{ 0U };
 
 	ID3D11Buffer* _ibo{ nullptr };
-	UINT _indexBufferStride{ 0U };
-	UINT _indexBufferOffset{ 0U };
+	UINT _ibStride{ 0U };
+	UINT _ibOffset{ 0U };
 	UINT _indexCount{ 0U };
 
-	ID3D11Buffer* _cbo{ nullptr };
-	ConstantBuffer _cbData{};
+	ID3D11Buffer* _cboPerFrame{ nullptr };
+	cbPerFrame _cbPerFrame{};
+	ID3D11Buffer* _cboPerObject{ nullptr };
+	cbPerObject _cbPerObject{};
 
 	bool InitBuffers();
 };

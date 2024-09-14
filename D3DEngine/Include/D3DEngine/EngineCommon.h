@@ -64,7 +64,7 @@ consteval std::size_t GB(std::size_t gb) { return MB(gb * 1024); }
 using Flags = uint32_t;
 
 // Fixed update updating rate
-constexpr double FIXED_RATE = 1.0 / 60.0;
+constexpr float FIXED_RATE = 1.f / 60.f;
 
 template<class Interface>
 inline void SafeRelease(Interface** ppInterface) {
@@ -85,6 +85,6 @@ inline void SafeRelease(std::unique_ptr<Interface>& upInterface) {
 constexpr float FLOAT_MIN = (std::numeric_limits<float>::min)();
 constexpr float FLOAT_MAX = (std::numeric_limits<float>::max)();
 constexpr float PI_F = std::numbers::pi_v<float>;
-constexpr float PI = std::numbers::pi_v<double>;
+constexpr double PI = std::numbers::pi_v<double>;
 constexpr float SQRT2_F = std::numbers::sqrt2_v<float>;
 constexpr double SQRT2 = std::numbers::sqrt2_v<double>;

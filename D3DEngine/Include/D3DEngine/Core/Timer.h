@@ -4,8 +4,8 @@
 #include "D3DEngine/EngineCommon.h"
 
 class Timer {
-	static double _precision;
+	static float _precision;
 public:
 	static void InitTimer();
-	static double GetTick();
+	static float GetTick();
 };
