@@ -17,11 +17,14 @@ using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
+#define DECLSPEC_CBUFFER_ALIGN __declspec(align(16))
+
 // Vertex struct
 struct Vertex {
 	Vector3 position;
-	Vector3 normal;	// TODO: Update color -> normal
 	Vector2 uv;
+	Vector3 normal;
+	Vector3 tangent;
 };
 
 using Index = uint32_t;
@@ -66,12 +69,81 @@ struct Texture {
 };
 
 // Material
-struct Material {
-	Texture diffuse;
-	Texture specular;
-	Texture normal;
+struct _Material {
+	Vector4 emissive;
+	Vector4 diffuse;
+	Vector4 specular;
+	Vector4 normal;
+	//-----------------------
 	float shininess;
+	uint32_t useTexture;
+	float padding[2];
 };
+
+DECLSPEC_CBUFFER_ALIGN
+struct cbMaterialProperties {
+	_Material material;
+};
+
+constexpr uint32_t MAX_LIGHTS = 8;
+enum LightType {
+	Undefined = 0,
+	Directional = 1,
+	Point = 2,
+	Spot = 3,
+	NUM_LIGHT_TYPES
+};
+
+struct Light
+{
+	Vector4 position; // 16 bytes
+	//----------------------------------- (16 byte boundary)
+	Vector4 direction; // 16 bytes
+	//----------------------------------- (16 byte boundary)
+	Vector4 color; // 16 bytes
+	//----------------------------------- (16 byte boundary)
+	float spotAngle; // 4 bytes
+	float constAtt; // 4 bytes
+	float linearAtt; // 4 bytes
+	float quadAtt; // 4 bytes
+	//----------------------------------- (16 byte boundary)
+	uint32_t lightType; // 4 bytes
+	uint32_t enabled; // 4 bytes
+	float padding[2]; // 8 bytes
+	//----------------------------------- (16 byte boundary)
+}; // Total: 80
+
+DECLSPEC_CBUFFER_ALIGN
+struct cbLightProperties {
+	Vector4 eyePosition;
+	Vector4 globalAmbient;
+	Light lights[MAX_LIGHTS];
+
+	void PushBackLight(const Light* light) {
+		if (curr_light_index >= int(MAX_LIGHTS)-1) return;
+		lights[++curr_light_index] = *light;
+	}
+
+	void PopBackLight() {
+		if (curr_light_index < 0) return;
+		lights[curr_light_index--] = {};
+	}
+
+private:
+	int curr_light_index{ -1 };
+};
+
+inline cbLightProperties g_lightProperties;
+
+inline 
+void SetGlobalEyePosition(const Vector4& eyePosition) {
+	g_lightProperties.eyePosition = eyePosition;
+}
+
+inline
+void SetGlobalAmbient(const Vector4& globalAmbient) {
+	g_lightProperties.globalAmbient = globalAmbient;
+}
 
 // MVP Transform Constant buffer
 struct cbPerFrame {
@@ -81,6 +153,9 @@ struct cbPerFrame {
 struct cbPerObject {
 	Matrix model;
 };
+
+// Camera properties
+inline Vector4 g_camPos{ 0.f, 0.f, -3.f , 0.f };
 
 // Utility class for COM exception
 class COMException : public std::exception {
@@ -102,6 +177,9 @@ LPCWSTR GetComErrorString(HRESULT hr);
 
 // Utility function to compile shaders with D3DCompile
 HRESULT CompileShaderFromFile(const WCHAR* filename, LPCSTR entryPoint, LPCSTR shaderModel, ID3DBlob** outShaderBlob, ID3DBlob** outErrorBlob = nullptr);
+
+// Utility function to read the data and size of a binary file
+HRESULT ReadBinaryFile(const WCHAR* filename, std::vector<uint8_t>* data, std::size_t* size);
 
 // Utility function to load textures from a file
 HRESULT CreateTextureFromFile(ID3D11Device* d3dDevice, const wchar_t* szFileName, ID3D11ShaderResourceView** outTextureView);

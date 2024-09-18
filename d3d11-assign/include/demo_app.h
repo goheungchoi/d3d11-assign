@@ -41,5 +41,6 @@ private:
 	void InitTransformMatrices();
 	void InitCamera();
 	void InitModels();
+	void InitLights();
 
 };

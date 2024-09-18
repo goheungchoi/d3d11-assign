@@ -14,7 +14,7 @@ int WINAPI wWinMain(
 ) {
 	// COM initialize
 	if (!SUCCEEDED(CoInitializeEx(NULL, COINIT_MULTITHREADED)))
-		throw std::exception("CoInitialize failed!");
+		return -1;
 
 	DemoApp app;
 	app.Initialize();

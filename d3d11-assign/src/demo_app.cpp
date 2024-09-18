@@ -43,6 +43,7 @@ void DemoApp::Initialize() {
 	InitTransformMatrices();
 	InitCamera();
 	InitModels();
+	InitLights();
 
 	// ÃÊ±âÈ­ True
 	isInitialized = true;
@@ -124,7 +125,7 @@ void DemoApp::InitTransformMatrices()
 
 void DemoApp::InitCamera()
 {
-	XMVECTOR eye{ 0.f, 0.f, -8.f };
+	XMVECTOR eye = g_camPos;
 	XMVECTOR viewDir{ 0.f, 0.f, 1.f };
 	XMVECTOR upDir{ 0.f, 1.f, 0.f };
 	_view = XMMatrixLookToLH(eye, viewDir, upDir);
@@ -138,4 +139,37 @@ void DemoApp::InitModels()
 		_renderer->_deviceContext,
 		"assets/backpack/backpack.obj"
 	);
+}
+
+void DemoApp::InitLights()
+{
+	g_lightProperties = {};
+
+	SetGlobalEyePosition(g_camPos);
+	SetGlobalAmbient({ 0.01f, 0.01f, 0.01f, 1.f });
+
+	/*Vector4 sunDir{ -1.f, -4.f, -7.f, 0.f };
+	sunDir.Normalize();
+	Light sunLight{
+		.direction = sunDir,
+		.color = {.9f, .9f, .9f, 1.f},
+		.lightType = LightType::Directional,
+		.enabled = true,
+	};
+	g_lightProperties.PushBackLight(&sunLight);*/
+
+
+	//Vector4 pointPosition{ -3.f, 5.f, 3.f, 0.f };
+	Vector4 pointPosition{ 0.f, 0.f, -5.f, 0.f };
+	pointPosition.Normalize();
+	Light pointLight{
+		.position = pointPosition,
+		.color = { 1.f, 1.f, 1.f, 1.f },
+		.constAtt = 1.f,
+		.lightType = LightType::Point,
+		.enabled = true
+	};
+	g_lightProperties.PushBackLight(&pointLight);
+
+
 }

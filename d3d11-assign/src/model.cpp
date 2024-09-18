@@ -29,7 +29,8 @@ void Model::LoadModel(const char* path)
 		path,
 		aiProcess_Triangulate | 
 		aiProcess_ConvertToLeftHanded |
-		aiProcess_GenNormals
+		aiProcess_GenNormals |
+		aiProcess_CalcTangentSpace
 	);
 	
 	// Scene loading error
@@ -69,28 +70,38 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 
 	for (std::size_t i = 0; i < mesh->mNumVertices; i++) {
 		Vertex vertex;
+
 		// Process vertex position
 		Vector3 vector;
 		vector.x = mesh->mVertices[i].x;
 		vector.y = mesh->mVertices[i].y;
 		vector.z = mesh->mVertices[i].z;
 		vertex.position = vector;
+
+		// Process vertex texture coordinate
+		if (mesh->mTextureCoords[0]) {
+			Vector2 uv;
+			uv.x = mesh->mTextureCoords[0][i].x;
+			uv.y = mesh->mTextureCoords[0][i].y;
+			vertex.uv = uv;
+		}
+		else {
+			vertex.uv = Vector2::Zero;
+		}
+
 		// Process vertex normal
 		Vector3 normal;
 		normal.x = mesh->mNormals[i].x;
 		normal.y = mesh->mNormals[i].y;
 		normal.z = mesh->mNormals[i].z;
 		vertex.normal = normal;
-		// Process vertex texture coordinate
-		if (mesh->mTextureCoords[0]) {
-			Vector2 uv;
-			uv.x = mesh->mTextureCoords[0][i].x;
-			uv.y = 1.f - mesh->mTextureCoords[0][i].y;
-			vertex.uv = uv;
-		}
-		else {
-			vertex.uv = Vector2::Zero;
-		}
+		
+		// Process tangent
+		Vector3 tangent;
+		tangent.x = mesh->mTangents[i].x;
+		tangent.y = mesh->mTangents[i].y;
+		tangent.z = mesh->mTangents[i].z;
+		vertex.tangent = tangent;
 
 		// Store the vertex
 		vertices[i] = vertex;
@@ -108,7 +119,7 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	// Process materials
 	if (mesh->mMaterialIndex >= 0) {
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
+		
 		// Diffuse maps
 		std::vector<Texture> diffuseMaps = LoadMaterialTextures(
 			material, 
@@ -147,13 +158,13 @@ std::vector<Texture> Model::LoadMaterialTextures(
 	const aiScene* scene)
 {
 	std::vector<Texture> textures;
-	for (std::size_t i = 0; i < material->GetTextureCount(type); ++i) {
+	for (UINT i = 0; i < material->GetTextureCount(type); ++i) {
 		aiString str;
 		material->GetTexture(type, i, &str);
 
 		// Check if this texture is already loaded
 		bool skip = false;
-		for (std::size_t j = 0; j < _loadedTextures.size(); j++) {
+		for (UINT j = 0; j < _loadedTextures.size(); j++) {
 			if (std::strcmp(_loadedTextures[j].path.data(), str.C_Str()) == 0) {
 				textures.push_back(_loadedTextures[j]);
 				skip = true;

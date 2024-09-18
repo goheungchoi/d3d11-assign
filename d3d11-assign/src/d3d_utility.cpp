@@ -41,6 +41,32 @@ HRESULT CompileShaderFromFile(
 	return res;
 }
 
+HRESULT ReadBinaryFile(const WCHAR* filename, std::vector<uint8_t>* outData, std::size_t* outSize)
+{
+	std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+	if (!file.is_open()) {
+		return E_INVALIDARG;
+	}
+
+	std::size_t filesize = static_cast<std::size_t>(file.tellg());
+	// Return file size.
+	*outSize = filesize;
+
+	if (outData == nullptr) 
+		return S_OK;
+
+	std::vector<uint8_t> buffer(filesize);
+
+	file.seekg(0);
+	file.read((char*)buffer.data(), filesize);
+	file.close();
+
+	*outData = std::move(buffer);
+
+	return S_OK;
+}
+
 HRESULT CreateTextureFromFile(ID3D11Device* d3dDevice, const wchar_t* szFileName, ID3D11ShaderResourceView** outTextureView)
 {
 	return E_NOTIMPL;

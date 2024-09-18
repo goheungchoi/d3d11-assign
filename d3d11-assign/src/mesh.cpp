@@ -39,6 +39,19 @@ void Mesh::Draw(XMMATRIX topMat)
 	// Normal
 	_context->PSSetShaderResources(2, 1, &textures[2].textureView);
 	_context->PSSetSamplers(2, 1, &textures[2].samplerState);
+	// Bind constant buffers
+	// Material properties
+	D3D11_MAPPED_SUBRESOURCE cbMaterialPropertiesSubresource;
+	_context->Map(_cboMaterialProperties, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &cbMaterialPropertiesSubresource);
+	memcpy(cbMaterialPropertiesSubresource.pData, &_cbMaterialProperties, sizeof(cbMaterialProperties));
+	_context->Unmap(_cboMaterialProperties, NULL);
+	_context->PSSetConstantBuffers(0, 1, &_cboMaterialProperties);
+	// Light properties
+	D3D11_MAPPED_SUBRESOURCE cbLightPropertiesSubresource;
+	_context->Map(_cboLightProperties, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &cbLightPropertiesSubresource);
+	memcpy(cbLightPropertiesSubresource.pData, &g_lightProperties, sizeof(cbLightProperties));
+	_context->Unmap(_cboLightProperties, NULL);
+	_context->PSSetConstantBuffers(1, 1, &_cboLightProperties);
 
 	// Start sending commands to the gpu.
 	_context->DrawIndexed(_indexCount, 0, 0);
@@ -48,13 +61,23 @@ bool Mesh::InitPipeline()
 {
 	/* Vertex Shader */
 	// Compile the vertex shader
-	ID3DBlob* vsBlob;
+	/*ID3DBlob* vsBlob;
 	CHECK(
 		CompileShaderFromFile(
 			L"shaders/BlinnPhong_VS.hlsl",
 			"main",
 			"vs_5_0",
 			&vsBlob
+		)
+	);*/
+
+	std::size_t vsByteSize;
+	std::vector<uint8_t> vsByteData;
+	CHECK(
+		ReadBinaryFile(
+			L"shaders/BlinnPhong_VS.cso",
+			&vsByteData,
+			&vsByteSize
 		)
 	);
 
@@ -71,6 +94,16 @@ bool Mesh::InitPipeline()
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
 			.InstanceDataStepRate = 0
 		},
+		// Texture coordinate
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "TEXCOORD",
+			.SemanticIndex = 0U,
+			.Format = DXGI_FORMAT_R32G32_FLOAT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
 		// Normal layout
 		D3D11_INPUT_ELEMENT_DESC{
 			.SemanticName = "NORMAL",
@@ -81,23 +114,23 @@ bool Mesh::InitPipeline()
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
 			.InstanceDataStepRate = 0
 		},
-		// Texture coordinate
+		// Tangent layout
 		D3D11_INPUT_ELEMENT_DESC{
-			.SemanticName = "TEXCOORD",
+			.SemanticName = "TANGENT",
 			.SemanticIndex = 0U,
-			.Format = DXGI_FORMAT_R32G32_FLOAT,
+			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
 			.InputSlot = 0,
 			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
 			.InstanceDataStepRate = 0
-		}
+		},
 	};
 	CHECK(
 		_device->CreateInputLayout(
 			vsInputLayoutDescriptors,
 			(UINT)std::size(vsInputLayoutDescriptors),
-			vsBlob->GetBufferPointer(),
-			vsBlob->GetBufferSize(),
+			vsByteData.data(),
+			vsByteSize,
 			&_inputLayout
 		)
 	);
@@ -105,18 +138,18 @@ bool Mesh::InitPipeline()
 	// Create the vertex shader object
 	CHECK(
 		_device->CreateVertexShader(
-			vsBlob->GetBufferPointer(),
-			vsBlob->GetBufferSize(),
+			vsByteData.data(),
+			vsByteSize,
 			NULL,
 			&_vs
 		)
 	);
 
-	// Release the blob
-	SafeRelease(&vsBlob);
+	//// Release the blob
+	//SafeRelease(&vsBlob);
 
 	/* Pixel Shader */
-	ID3DBlob* psBlob;
+	/*ID3DBlob* psBlob;
 	CHECK(
 		CompileShaderFromFile(
 			L"shaders/BlinnPhong_PS.hlsl",
@@ -124,20 +157,30 @@ bool Mesh::InitPipeline()
 			"ps_5_0",
 			&psBlob
 		)
+	);*/
+
+	std::size_t psByteSize;
+	std::vector<uint8_t> psByteData;
+	CHECK(
+		ReadBinaryFile(
+			L"shaders/BlinnPhong_PS.cso",
+			&psByteData,
+			&psByteSize
+		)
 	);
 
 	// Create the pixel shader object
 	CHECK(
 		_device->CreatePixelShader(
-			psBlob->GetBufferPointer(),
-			psBlob->GetBufferSize(),
+			psByteData.data(),
+			psByteSize,
 			NULL,
 			&_ps
 		)
 	);
 
 	// Release the blob
-	SafeRelease(&psBlob);
+	//SafeRelease(&psBlob);
 
 	return true;
 }
@@ -209,7 +252,7 @@ bool Mesh::InitBuffers()
 	_ibOffset = 0U;
 	_indexCount = static_cast<UINT>(std::size(indices));
 
-	// Create the constant buffers
+	// Create the vertex shader constant buffers
 	D3D11_BUFFER_DESC cboPerFrameDesc{
 		.ByteWidth = sizeof(_cbPerFrame),
 		.Usage = D3D11_USAGE_DYNAMIC,
@@ -237,6 +280,40 @@ bool Mesh::InitBuffers()
 			&_cboPerObject
 		)
 	);
+
+	// Create the pixel shader constant buffers
+	D3D11_BUFFER_DESC cboMaterialPropertiesDesc{
+		.ByteWidth = sizeof(cbMaterialProperties),
+		.Usage = D3D11_USAGE_DYNAMIC,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE
+	};
+	CHECK(
+		_device->CreateBuffer(
+			&cboMaterialPropertiesDesc,
+			nullptr,
+			&_cboMaterialProperties
+		)
+	);
+
+	D3D11_BUFFER_DESC cboLightPropertiesDesc{
+		.ByteWidth = sizeof(cbLightProperties),
+		.Usage = D3D11_USAGE_DYNAMIC,
+		.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+		.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE
+	};
+	CHECK(
+		_device->CreateBuffer(
+			&cboLightPropertiesDesc,
+			nullptr,
+			&_cboLightProperties
+		)
+	);
+
+	// NOTE: Hard-coded material properties
+	// Need update dynamically.
+	_cbMaterialProperties.material.shininess = 128.f;
+	_cbMaterialProperties.material.useTexture = true;
 
 	return true;
 }

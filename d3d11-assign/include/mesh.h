@@ -73,5 +73,10 @@ private:
 	ID3D11Buffer* _cboPerObject{ nullptr };
 	cbPerObject _cbPerObject{};
 
+	ID3D11Buffer* _cboMaterialProperties{ nullptr };
+	cbMaterialProperties _cbMaterialProperties{};
+
+	ID3D11Buffer* _cboLightProperties{ nullptr };
+
 	bool InitBuffers();
 };
