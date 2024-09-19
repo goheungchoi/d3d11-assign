@@ -1,5 +1,7 @@
 #include "D3DEngine/WinApp/WinApp.h"
 
+#include <imgui_impl_win32.h>
+
 static WinApp* winApp{ nullptr };
 
 WinApp::WinApp(HINSTANCE _hInstance, const wchar_t* _className) {
@@ -16,7 +18,12 @@ WinApp::WinApp(HINSTANCE _hInstance, const wchar_t* _className) {
 		.registerWindowClass();
 }
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 LRESULT WinApp::handleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	if (ImGui_ImplWin32_WndProcHandler(winApp->GetWindow(), uMsg, wParam, lParam))
+		return true;
+	
 	switch (uMsg) {
 		// Close the window when user alt-f4s or clicks the X button
 	case WM_CLOSE:

@@ -118,19 +118,6 @@ struct cbLightProperties {
 	Vector4 eyePosition;
 	Vector4 globalAmbient;
 	Light lights[MAX_LIGHTS];
-
-	void PushBackLight(const Light* light) {
-		if (curr_light_index >= int(MAX_LIGHTS)-1) return;
-		lights[++curr_light_index] = *light;
-	}
-
-	void PopBackLight() {
-		if (curr_light_index < 0) return;
-		lights[curr_light_index--] = {};
-	}
-
-private:
-	int curr_light_index{ -1 };
 };
 
 inline cbLightProperties g_lightProperties;
@@ -143,6 +130,20 @@ void SetGlobalEyePosition(const Vector4& eyePosition) {
 inline
 void SetGlobalAmbient(const Vector4& globalAmbient) {
 	g_lightProperties.globalAmbient = globalAmbient;
+}
+
+inline int __curr_light_index{ -1 };
+
+inline
+void PushBackLight(const Light* light) {
+	if (__curr_light_index >= int(MAX_LIGHTS) - 1) return;
+	g_lightProperties.lights[++__curr_light_index] = *light;
+}
+
+inline
+void PopBackLight() {
+	if (__curr_light_index < 0) return;
+	g_lightProperties.lights[__curr_light_index--] = {};
 }
 
 // MVP Transform Constant buffer

@@ -2,9 +2,15 @@
 
 #include "D3DEngine/WinApp/WinApp.h"
 
+#include <imgui.h>
+#include <imgui_impl_win32.h>
+#include <imgui_impl_dx11.h>
+
 #include "d3d_renderer.h"
 
 #include "model.h"
+
+#include "camera.h"
 
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "dxgi.lib")
@@ -12,6 +18,8 @@
 
 #define USE_FLIPMODE 1	// In order to not show warnings, use flip mode
 #define VSYNC_ENABLED 0 // diable v-sync when 0, otherwise v-sync is on
+#define USE_GUI 0
+#define USE_CAM 1
 
 DemoApp* loadedApp{ nullptr };
 
@@ -44,6 +52,9 @@ void DemoApp::Initialize() {
 	InitCamera();
 	InitModels();
 	InitLights();
+#if USE_GUI == 1
+	InitImgui();
+#endif
 
 	// ÃÊ±âÈ­ True
 	isInitialized = true;
@@ -87,6 +98,9 @@ void DemoApp::Update(float dt) {
 	frameTime += dt;
 #endif
 	
+#if USE_CAM == 1
+	_camera->Update(dt);
+#endif
 
 }
 
@@ -99,10 +113,33 @@ void DemoApp::Render() {
 		count = 0;
 	}
 #endif
+
 	_renderer->BeginDraw();
 	
+#if USE_CAM == 1
+	_view = _camera->GetViewTransform();
+#endif
 	XMMATRIX viewProj = _view * _proj;
 	model->Draw(viewProj);
+
+#if USE_GUI == 1
+	// Start the Dear ImGui frame
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	if (ImGui::Begin("Point Light")) {
+		ImGui::Text("Light Position: ");
+
+		ImGui::SliderFloat("x", &g_lightProperties.lights[1].position.x, -10, 10);
+		ImGui::SliderFloat("y", &g_lightProperties.lights[1].position.y, -10, 10);
+		ImGui::SliderFloat("z", &g_lightProperties.lights[1].position.z, -10, 10);
+	} ImGui::End();
+
+	// Rendering
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+#endif
 
 	_renderer->EndDraw();
 #ifndef NDEBUG 
@@ -125,11 +162,15 @@ void DemoApp::InitTransformMatrices()
 
 void DemoApp::InitCamera()
 {
+#if USE_CAM == 1
+	_camera = new Camera(GetModuleHandle(NULL), hWindow);
+	_view = _camera->GetViewTransform();
+#else
 	XMVECTOR eye = g_camPos;
 	XMVECTOR viewDir{ 0.f, 0.f, 1.f };
 	XMVECTOR upDir{ 0.f, 1.f, 0.f };
 	_view = XMMatrixLookToLH(eye, viewDir, upDir);
-	// _view = XMMatrixLookAtLH(eye, viewDir, upDir);
+#endif
 }
 
 void DemoApp::InitModels()
@@ -148,7 +189,7 @@ void DemoApp::InitLights()
 	SetGlobalEyePosition(g_camPos);
 	SetGlobalAmbient({ 0.01f, 0.01f, 0.01f, 1.f });
 
-	/*Vector4 sunDir{ -1.f, -4.f, -7.f, 0.f };
+	Vector4 sunDir{ -1.f, -4.f, -7.f, 0.f };
 	sunDir.Normalize();
 	Light sunLight{
 		.direction = sunDir,
@@ -156,20 +197,37 @@ void DemoApp::InitLights()
 		.lightType = LightType::Directional,
 		.enabled = true,
 	};
-	g_lightProperties.PushBackLight(&sunLight);*/
+	PushBackLight(&sunLight);
 
 
 	//Vector4 pointPosition{ -3.f, 5.f, 3.f, 0.f };
-	Vector4 pointPosition{ 0.f, 0.f, -5.f, 0.f };
+	Vector4 pointPosition{ 0.f, -5.f, -5.f, 0.f };
 	pointPosition.Normalize();
 	Light pointLight{
 		.position = pointPosition,
 		.color = { 1.f, 1.f, 1.f, 1.f },
 		.constAtt = 1.f,
+		.linearAtt = 1.f,
 		.lightType = LightType::Point,
 		.enabled = true
 	};
-	g_lightProperties.PushBackLight(&pointLight);
+	PushBackLight(&pointLight);
 
+}
 
+void DemoApp::InitImgui()
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplWin32_Init(hWindow);
+	ImGui_ImplDX11_Init(_renderer->_device, _renderer->_deviceContext);
 }

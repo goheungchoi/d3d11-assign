@@ -18,7 +18,7 @@ class DemoApp : public GameEngine
 
 	class D3D11Renderer* _renderer;
 	class Model* model;
-
+	class Camera* _camera;
 public:
 
 	bool isInitialized{ false };
@@ -43,4 +43,10 @@ private:
 	void InitModels();
 	void InitLights();
 
+
+private:
+
+	void InitImgui();
+
+	LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 };

@@ -95,7 +95,7 @@ struct LightingResult
 	float4 specular;
 };
 
-LightingResult CalculatePointLight(float3x3 TBN, Light light, float3 V, float4 P, float3 N)
+LightingResult CalculatePointLight(Light light, float3 V, float4 P, float3 N)
 {
 	LightingResult res;
 	float3 L = (light.Position - P).xyz;
@@ -111,7 +111,7 @@ LightingResult CalculatePointLight(float3x3 TBN, Light light, float3 V, float4 P
 	return res;
 }
 
-LightingResult CalculateDirectionalLight(float3x3 TBN, Light light, float3 V, float4 P, float3 N)
+LightingResult CalculateDirectionalLight(Light light, float3 V, float4 P, float3 N)
 {
 	LightingResult res;
 	
@@ -131,7 +131,7 @@ float CalculateSpotCone(Light light, float3 L)
 	return smoothstep(minCos, maxCos, cosAngle);
 }
 
-LightingResult CalculateSpotLight(float3x3 TBN, Light light, float3 V, float4 P, float3 N)
+LightingResult CalculateSpotLight(Light light, float3 V, float4 P, float3 N)
 {
 	LightingResult res;
 	
@@ -148,7 +148,7 @@ LightingResult CalculateSpotLight(float3x3 TBN, Light light, float3 V, float4 P,
 	return res;
 }
 
-LightingResult ComputeLighting(float3x3 TBN, float4 P, float3 N)
+LightingResult ComputeLighting(float4 P, float3 N)
 {
 	float3 V = normalize((EyePosition - P).xyz);
 	
@@ -172,17 +172,17 @@ LightingResult ComputeLighting(float3x3 TBN, float4 P, float3 N)
 			break;
 			case DIRECTIONAL_LIGHT:
       {
-				res = CalculateDirectionalLight(TBN, Lights[i], V, P, N);
+				res = CalculateDirectionalLight(Lights[i], V, P, N);
 			}
 			break;
 			case POINT_LIGHT:
 			{
-				res = CalculatePointLight(TBN, Lights[i], V, P, N);
+				res = CalculatePointLight(Lights[i], V, P, N);
 			}
 			break;
 			case SPOT_LIGHT:
       {
-				res = CalculateSpotLight(TBN, Lights[i], V, P, N);
+				res = CalculateSpotLight(Lights[i], V, P, N);
 			}
 			break;
 		}
@@ -199,6 +199,7 @@ LightingResult ComputeLighting(float3x3 TBN, float4 P, float3 N)
 struct PS_INPUT
 {
 	float4 Position : SV_POSITION;
+	float4 WorldPosition : POSITION;
 	float2 TexCoord : TEXCOORD;
 	float3 Normal : NORMAL;
 	float3x3 TBN : TBNMATRIX;
@@ -214,7 +215,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 		N = N * 2.0 - 1.0;
 		N = normalize(mul(N, input.TBN));
 		
-		LightingResult lit = ComputeLighting(input.TBN, input.Position, N);
+		LightingResult lit = ComputeLighting(input.WorldPosition, N);
 		
 		float4 color = diffuseTexture.Sample(diffuseSampler, input.TexCoord);
 				
@@ -225,13 +226,18 @@ float4 main(PS_INPUT input) : SV_TARGET
 	
 		return pow(Ia + Id + Is, 1.0 / 2.2);
 		//return pow(color, 1.0 / 2.2);
+		//return float4(N, 1.f);
+		//return float4(input.Normal, 1.f);
+		//return lit.diffuse;
+		
+		//float3 V = normalize((EyePosition - input.WorldPosition).xyz);
+		//return float4(-V, 1.f);
 	}
 	else
 	{
 		float3 N = input.Normal.xyz;
 		
 		LightingResult lit = ComputeLighting(
-			input.TBN,
 			input.Position,
 			normalize(N)
 		);
