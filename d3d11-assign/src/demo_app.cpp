@@ -18,8 +18,8 @@
 
 #define USE_FLIPMODE 1	// In order to not show warnings, use flip mode
 #define VSYNC_ENABLED 0 // diable v-sync when 0, otherwise v-sync is on
-#define USE_GUI 0
-#define USE_CAM 1
+#define USE_GUI 1
+#define USE_CAM 0
 
 DemoApp* loadedApp{ nullptr };
 

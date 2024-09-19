@@ -1,13 +1,13 @@
 
-struct PS_OUTPUT
+struct VS_OUTPUT
 {
 	float4 Position : SV_POSITION;
 	float4 Color : COLOR0;
 };
 
-PS_OUTPUT main(float4 Position : POSITION, float4 Color : COLOR)
+VS_OUTPUT main(float4 Position : POSITION, float4 Color : COLOR)
 {
-	PS_OUTPUT output;
+	VS_OUTPUT output;
 	output.Position = Position;
 	output.Color = Color;
 	return output;

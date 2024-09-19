@@ -124,6 +124,153 @@ bool Mesh::InitPipeline()
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
 			.InstanceDataStepRate = 0
 		},
+		//------------------------------------------------------
+		// Bone IDs layout
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_IDS",
+			.SemanticIndex = 0U,
+			.Format = DXGI_FORMAT_R32_SINT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_IDS",
+			.SemanticIndex = 1U,
+			.Format = DXGI_FORMAT_R32_SINT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_IDS",
+			.SemanticIndex = 2U,
+			.Format = DXGI_FORMAT_R32_SINT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_IDS",
+			.SemanticIndex = 3U,
+			.Format = DXGI_FORMAT_R32_SINT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_IDS",
+			.SemanticIndex = 4U,
+			.Format = DXGI_FORMAT_R32_SINT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_IDS",
+			.SemanticIndex = 5U,
+			.Format = DXGI_FORMAT_R32_SINT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_IDS",
+			.SemanticIndex = 6U,
+			.Format = DXGI_FORMAT_R32_SINT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_IDS",
+			.SemanticIndex = 7U,
+			.Format = DXGI_FORMAT_R32_SINT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		// Bone weigths layout
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_WEIGHTS",
+			.SemanticIndex = 0U,
+			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_WEIGHTS",
+			.SemanticIndex = 1U,
+			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_WEIGHTS",
+			.SemanticIndex = 2U,
+			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_WEIGHTS",
+			.SemanticIndex = 3U,
+			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_WEIGHTS",
+			.SemanticIndex = 4U,
+			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_WEIGHTS",
+			.SemanticIndex = 5U,
+			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_WEIGHTS",
+			.SemanticIndex = 6U,
+			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
+		D3D11_INPUT_ELEMENT_DESC{
+			.SemanticName = "BONE_WEIGHTS",
+			.SemanticIndex = 7U,
+			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.InputSlot = 0,
+			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+			.InstanceDataStepRate = 0
+		},
 	};
 	CHECK(
 		_device->CreateInputLayout(

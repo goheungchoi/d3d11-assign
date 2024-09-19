@@ -26,11 +26,19 @@ D3D11TextureDataPair CreateTextureFromFile(
 	bool gamma = false
 );
 
+struct BoneInfo {
+	int id;
+	XMMATRIX offset;
+};
+
 class Model {
 	ID3D11Device* const _device;
 	ID3D11DeviceContext* const _context;
 
 	std::vector<Texture> _loadedTextures;
+
+	int _numBones{ 0 };
+	std::map<std::string, BoneInfo> _boneInfoMap;
 
 public:
 
@@ -52,4 +60,5 @@ private:
 		TEXTURE_TYPE textureType,
 		const aiScene* scene
 	);
+	void ExtractBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene);
 };

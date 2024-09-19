@@ -69,7 +69,7 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	std::vector<Texture> textures;
 
 	for (std::size_t i = 0; i < mesh->mNumVertices; i++) {
-		Vertex vertex;
+		Vertex vertex = Vertex::Default();
 
 		// Process vertex position
 		Vector3 vector;
@@ -106,6 +106,9 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		// Store the vertex
 		vertices[i] = vertex;
 	}
+
+	// Extract the bone data of the vertices
+	ExtractBoneData(vertices, mesh, scene);
 
 	// Process indices
 	std::size_t count = 0ULL;
@@ -195,6 +198,43 @@ std::vector<Texture> Model::LoadMaterialTextures(
 	}
 
 	return textures;
+}
+
+void Model::ExtractBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
+{
+	for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
+		aiBone* currBone = mesh->mBones[boneIndex];
+		
+		int boneID = -1;
+		std::string boneName{ currBone->mName.C_Str() };
+
+		// Find if the bone already exists in the bone info map
+		if (_boneInfoMap.find(boneName) == _boneInfoMap.end()) {
+			// When it's not found in the map,
+			// Add a new bone info
+			BoneInfo boneInfo;
+			boneInfo.id = _numBones;
+			boneInfo.offset = XMMATRIX(&currBone->mOffsetMatrix.a1);
+			_boneInfoMap[boneName] = boneInfo;
+			boneID = _numBones;
+			_numBones++;
+		}
+		else {
+			// When it's found, that means this bone affects
+			// vertices of mesh out of its scope, so take it's Id
+			// and proceed further to know which vertices it affects
+			boneID = _boneInfoMap[boneName].id;
+		}
+
+		// Find which bones are affected by this current bone
+		auto weights = currBone->mWeights;
+		int numWeights = currBone->mNumWeights;
+		for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex) {
+			int vertexId = weights[weightIndex].mVertexId;
+			float weight = weights[weightIndex].mWeight;
+			vertices[vertexId].SetBoneData(boneID, weight);
+		}
+	}
 }
 
 D3D11TextureDataPair LoadEmbeddedTexture(ID3D11Device* const device, ID3D11DeviceContext* const context, const aiTexture* embeddedTexture)

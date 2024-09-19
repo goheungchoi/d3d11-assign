@@ -36,12 +36,17 @@
     <ClCompile Include="src\mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\skeletal-animation\bone.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\VertexShader.hlsl" />
     <FxCompile Include="shaders\PixelShader.hlsl" />
     <FxCompile Include="shaders\BlinnPhong_VS.hlsl" />
     <FxCompile Include="shaders\BlinnPhong_PS.hlsl" />
+    <FxCompile Include="shaders\SkeletalBlinnPhong_VS.hlsl" />
+    <FxCompile Include="shaders\SkeletalBlinnPhong_PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\demo_app.h">
@@ -66,6 +71,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\skeletal-animation\bone.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\skeletal-animation\animation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\skeletal-animation\animator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,12 +19,38 @@ using namespace DirectX::SimpleMath;
 
 #define DECLSPEC_CBUFFER_ALIGN __declspec(align(16))
 
+#define MAX_BONES 100
+#define MAX_BONE_WEIGHTS 8
+
 // Vertex struct
 struct Vertex {
 	Vector3 position;
 	Vector2 uv;
 	Vector3 normal;
 	Vector3 tangent;
+	//-----------------------
+	int boneIDs[MAX_BONE_WEIGHTS];
+	float boneWeights[MAX_BONE_WEIGHTS];
+
+	static constexpr
+	Vertex Default() {
+		Vertex v{};
+		for (int i = 0; i < MAX_BONE_WEIGHTS; ++i) {
+			v.boneIDs[i] = -1;
+			v.boneWeights[i] = 0.f;
+		}
+		return v;
+	}
+
+	void SetBoneData(int boneID, float weight) {
+		for (int i = 0; i < MAX_BONE_WEIGHTS; ++i) {
+			// Find the next empty spot
+			if (boneIDs[i] < 0) {
+				boneIDs[i] = boneID;
+				boneWeights[i] = weight;
+			}
+		}
+	}
 };
 
 using Index = uint32_t;
@@ -153,6 +179,8 @@ struct cbPerFrame {
 
 struct cbPerObject {
 	Matrix model;
+	//-----------------------
+	Matrix boneTransforms[MAX_BONES];	// 64 x 100 = 6400 bytes
 };
 
 // Camera properties
