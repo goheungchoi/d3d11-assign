@@ -8,7 +8,8 @@
 
 #include "d3d_renderer.h"
 
-#include "model.h"
+// #include "model.h"
+#include "scene/mesh.h"
 
 #include "camera.h"
 
@@ -119,8 +120,8 @@ void DemoApp::Render() {
 #if USE_CAM == 1
 	_view = _camera->GetViewTransform();
 #endif
-	XMMATRIX viewProj = _view * _proj;
-	model->Draw(viewProj);
+	/*XMMATRIX viewProj = _view * _proj;
+	model->Draw(viewProj);*/
 
 #if USE_GUI == 1
 	// Start the Dear ImGui frame
@@ -175,11 +176,15 @@ void DemoApp::InitCamera()
 
 void DemoApp::InitModels()
 {
-	model = new Model(
+	/*model = new Model(
 		_renderer->_device,
 		_renderer->_deviceContext,
 		"assets/backpack/backpack.obj"
-	);
+	);*/
+
+
+
+
 }
 
 void DemoApp::InitLights()

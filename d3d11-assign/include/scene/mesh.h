@@ -4,14 +4,17 @@
 #include "d3d_utility.h"
 
 class Mesh {
+	ID3D11Device* const _device;
+	ID3D11DeviceContext* const _context;
+
 	Mesh* _parent;
 	std::list<Mesh*> _children;
 
 public:
 
-	std::vector<Vertex> vertices;
-	std::vector<Color> colors;
+	std::vector<SimpleVertex> vertices;
 	std::vector<Index> indices;
+	std::vector<Texture> textures;
 
 	XMVECTOR _translation;
 	XMVECTOR _scale;
@@ -19,7 +22,10 @@ public:
 
 	XMMATRIX _localTransform;
 
-	Mesh() :
+	Mesh(ID3D11Device* device,
+		ID3D11DeviceContext* context) :
+		_device{ device },
+		_context{ context },
 		_parent{ nullptr },
 		_translation{ XMVectorZero() },
 		_scale{ XMVectorZero() },
@@ -46,10 +52,6 @@ public:
 
 	void SetRotation(XMVECTOR rotation) {
 		_rotation = rotation;
-	}
-
-	void SetTranslation(XMVECTOR translation) {
-		_translation = translation;
 	}
 
 	void Translate(XMVECTOR translate) {
@@ -87,7 +89,44 @@ public:
 		RotateAxis({ 0.f, 0.f, 1.f, 0.f }, degree);
 	}
 
-	void Update(float dt) {
-		_localTransform = 
+	void UpdateLocalTransform() {
+		XMMATRIX scaling = XMMatrixScalingFromVector(_scale);
+		XMMATRIX rotation = XMMatrixScalingFromVector(_rotation);
+		XMMATRIX translation = XMMatrixScalingFromVector(_translation);
+		_localTransform = scaling * rotation * translation;
 	}
+
+	void Draw();
+
+private:
+
+	ID3D11InputLayout* _inputLayout{ nullptr };
+	ID3D11VertexShader* _vs{ nullptr };
+	ID3D11PixelShader* _ps{ nullptr };
+
+	bool InitPipeline();
+
+private:
+
+	ID3D11Buffer* _vbo{ nullptr };
+	UINT _vbStride{ 0U };
+	UINT _vbOffset{ 0U };
+	UINT _vertexCount{ 0U };
+
+	ID3D11Buffer* _ibo{ nullptr };
+	UINT _ibStride{ 0U };
+	UINT _ibOffset{ 0U };
+	UINT _indexCount{ 0U };
+
+	ID3D11Buffer* _cboPerFrame{ nullptr };
+	cbPerFrame _cbPerFrame{};
+	ID3D11Buffer* _cboPerObject{ nullptr };
+	cbPerObject _cbPerObject{};
+
+	ID3D11Buffer* _cboMaterialProperties{ nullptr };
+	cbMaterialProperties _cbMaterialProperties{};
+
+	ID3D11Buffer* _cboLightProperties{ nullptr };
+
+	bool InitBuffers();
 };

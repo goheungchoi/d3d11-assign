@@ -53,6 +53,12 @@ struct Vertex {
 	}
 };
 
+// NOTE: just for an assigment
+struct SimpleVertex {
+	Vector3 position;
+	Vector3 color;
+};
+
 using Index = uint32_t;
 
 // Transform struct
@@ -179,6 +185,7 @@ struct cbPerFrame {
 
 struct cbPerObject {
 	Matrix model;
+	Matrix inverseTransposeModel;
 	//-----------------------
 	Matrix boneTransforms[MAX_BONES];	// 64 x 100 = 6400 bytes
 };

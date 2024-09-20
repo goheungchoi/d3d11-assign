@@ -8,6 +8,7 @@ void Mesh::Draw(XMMATRIX topMat)
 {
 	_cbPerFrame.viewProj = XMMatrixTranspose(topMat);
 	_cbPerObject.model = XMMatrixTranspose(_cbPerObject.model);
+	_cbPerObject.inverseTransposeModel = XMMatrixInverse(nullptr, _cbPerObject.model);
 
 	/* INPUT ASSEMBLER STAGE */
 	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

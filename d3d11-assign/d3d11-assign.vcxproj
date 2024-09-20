@@ -26,6 +26,8 @@
     <ClCompile Include="src\demo_app.cpp" />
     <ClCompile Include="src\mesh.cpp" />
     <ClCompile Include="src\model.cpp" />
+    <ClCompile Include="src\scene\cube.cpp" />
+    <ClCompile Include="src\scene\mesh.cpp" />
     <ClCompile Include="src\skeletal-animation\bone.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +82,8 @@
     <ClInclude Include="include\demo_app.h" />
     <ClInclude Include="include\mesh.h" />
     <ClInclude Include="include\model.h" />
+    <ClInclude Include="include\scene\cube.h" />
+    <ClInclude Include="include\scene\mesh.h" />
     <ClInclude Include="include\skeletal-animation\animation.h" />
     <ClInclude Include="include\skeletal-animation\animator.h" />
     <ClInclude Include="include\skeletal-animation\bone.h" />
