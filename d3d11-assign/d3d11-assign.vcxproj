@@ -29,7 +29,6 @@
     <ClCompile Include="src\skeletal-animation\bone.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\..\..\BlinnPhong_VS.hlsl" />
     <FxCompile Include="shaders\PixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
