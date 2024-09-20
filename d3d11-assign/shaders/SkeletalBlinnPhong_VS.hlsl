@@ -10,6 +10,7 @@ cbuffer PerFrame : register(b0)
 cbuffer PerObject : register(b1)
 {
 	matrix model; // 16 x 4 = 64 bytes
+	matrix inverseTransposeModel;	// 64 bytes
 	//-----------------------------------
 	matrix boneTransforms[MAX_BONES];	// 64 x 100 = 6400 bytes
 };
@@ -60,8 +61,8 @@ VS_OUTPUT main(VS_INPUT input)
 
 	}
 	
-	float3 T = normalize(mul(float4(input.Tangent, 0.f), model)).xyz;
-	float3 N = normalize(mul(float4(input.Normal, 0.f), model)).xyz;
+	float3 T = normalize(mul(float4(input.Tangent, 0.f), inverseTransposeModel)).xyz;
+	float3 N = normalize(mul(float4(input.Normal, 0.f), inverseTransposeModel)).xyz;
 	// re-orthogonalize T with respect to N
 	T = normalize(T - dot(T, N) * N);
 	float3 B = cross(N, T);
@@ -72,7 +73,7 @@ VS_OUTPUT main(VS_INPUT input)
 	output.Position = mul(totalPos, mvp);
 	output.WorldPosition = mul(totalPos, model);
 	output.TexCoord = input.TexCoord;
-	output.Normal = mul(float4(input.Normal, 0.f), model).xyz;
+	output.Normal = N;
 	output.TBN = TBN;
 	return output;
 }

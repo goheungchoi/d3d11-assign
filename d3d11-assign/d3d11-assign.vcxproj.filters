@@ -47,6 +47,7 @@
     <FxCompile Include="shaders\BlinnPhong_PS.hlsl" />
     <FxCompile Include="shaders\SkeletalBlinnPhong_VS.hlsl" />
     <FxCompile Include="shaders\SkeletalBlinnPhong_PS.hlsl" />
+    <FxCompile Include="..\..\..\BlinnPhong_VS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\demo_app.h">
