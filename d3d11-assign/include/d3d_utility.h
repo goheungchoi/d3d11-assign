@@ -186,12 +186,15 @@ struct cbPerFrame {
 struct cbPerObject {
 	Matrix model;
 	Matrix inverseTransposeModel;
+	Matrix modelViewProj;
 	//-----------------------
 	Matrix boneTransforms[MAX_BONES];	// 64 x 100 = 6400 bytes
 };
 
 // Camera properties
-inline Vector4 g_camPos{ 0.f, 0.f, -3.f , 0.f };
+inline Vector4 g_camPos{ 0.f, 5.f, -8.f , 0.f };
+
+inline cbPerFrame g_cbPerFrame{};
 
 // Utility class for COM exception
 class COMException : public std::exception {

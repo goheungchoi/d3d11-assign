@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="app\main.cpp" />
+    <ClCompile Include="include\scene\system.cpp" />
     <ClCompile Include="src\camera.cpp" />
     <ClCompile Include="src\d3d_renderer.cpp" />
     <ClCompile Include="src\d3d_utility.cpp" />
@@ -84,6 +85,7 @@
     <ClInclude Include="include\model.h" />
     <ClInclude Include="include\scene\cube.h" />
     <ClInclude Include="include\scene\mesh.h" />
+    <ClInclude Include="include\scene\system.h" />
     <ClInclude Include="include\skeletal-animation\animation.h" />
     <ClInclude Include="include\skeletal-animation\animator.h" />
     <ClInclude Include="include\skeletal-animation\bone.h" />

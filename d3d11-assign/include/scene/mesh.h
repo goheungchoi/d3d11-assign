@@ -22,14 +22,17 @@ public:
 
 	XMMATRIX _localTransform;
 
+	bool _bShouldUpdateModelTransform{ true };
+	XMMATRIX _modelTransform{ XMMatrixIdentity() };
+
 	Mesh(ID3D11Device* device,
 		ID3D11DeviceContext* context) :
 		_device{ device },
 		_context{ context },
 		_parent{ nullptr },
 		_translation{ XMVectorZero() },
-		_scale{ XMVectorZero() },
-		_rotation{ XMVectorZero() },
+		_scale{ 1.f, 1.f, 1.f, 1.f },
+		_rotation{ XMQuaternionIdentity()},
 		_localTransform{ XMMatrixIdentity() } {}
 
 	void AddChildSceneComponent(Mesh* child) {
@@ -91,14 +94,31 @@ public:
 
 	void UpdateLocalTransform() {
 		XMMATRIX scaling = XMMatrixScalingFromVector(_scale);
-		XMMATRIX rotation = XMMatrixScalingFromVector(_rotation);
-		XMMATRIX translation = XMMatrixScalingFromVector(_translation);
+		XMMATRIX rotation = XMMatrixRotationQuaternion(_rotation);
+		XMMATRIX translation = XMMatrixTranslationFromVector(_translation);
 		_localTransform = scaling * rotation * translation;
+
+		_bShouldUpdateModelTransform = true;
+	}
+
+	XMMATRIX GetModelTransform() {
+		if (_bShouldUpdateModelTransform) {
+			if (_parent) {
+				XMMATRIX _parentModel = _parent->GetModelTransform();
+				_modelTransform = _localTransform * _parentModel;
+			}
+			else {
+				_modelTransform = _localTransform;
+			}
+			_bShouldUpdateModelTransform = false;
+		}
+
+		return _modelTransform;
 	}
 
 	void Draw();
 
-private:
+protected:
 
 	ID3D11InputLayout* _inputLayout{ nullptr };
 	ID3D11VertexShader* _vs{ nullptr };
@@ -106,7 +126,7 @@ private:
 
 	bool InitPipeline();
 
-private:
+protected:
 
 	ID3D11Buffer* _vbo{ nullptr };
 	UINT _vbStride{ 0U };
@@ -122,11 +142,6 @@ private:
 	cbPerFrame _cbPerFrame{};
 	ID3D11Buffer* _cboPerObject{ nullptr };
 	cbPerObject _cbPerObject{};
-
-	ID3D11Buffer* _cboMaterialProperties{ nullptr };
-	cbMaterialProperties _cbMaterialProperties{};
-
-	ID3D11Buffer* _cboLightProperties{ nullptr };
 
 	bool InitBuffers();
 };

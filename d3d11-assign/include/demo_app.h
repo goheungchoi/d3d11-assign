@@ -34,6 +34,7 @@ private:
 
 private:
 
+	float vfov, aspectRatio, nearZ, farZ;
 	XMMATRIX _proj;
 	XMMATRIX _view;
 	cbPerFrame _cbData{};

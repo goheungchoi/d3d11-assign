@@ -1,34 +1,54 @@
 #include "scene/cube.h"
 
-static Vector3 cubeVertices[8] = {
-
-
+static SimpleVertex cubeVertices[8] = {
+	SimpleVertex{{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
+	SimpleVertex{{-1.0f, +1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
+	SimpleVertex{{+1.0f, +1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
+	SimpleVertex{{+1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 0.0f}},
+	SimpleVertex{{-1.0f, -1.0f, +1.0f}, {0.0f, 1.0f, 1.0f}},
+	SimpleVertex{{-1.0f, +1.0f, +1.0f}, {1.0f, 1.0f, 1.0f}},
+	SimpleVertex{{+1.0f, +1.0f, +1.0f}, {1.0f, 0.0f, 1.0f}},
+	SimpleVertex{{+1.0f, -1.0f, +1.0f}, {1.0f, 0.0f, 0.0f}},
 };
 
-static Vector3 vertexColors[8] = {
+static Index cubeIndices[36] = {
+	// front face
+	0, 1, 2,
+	0, 2, 3,
 
+	// back face
+	4, 6, 5,
+	4, 7, 6,
 
-};
+	// left face
+	4, 5, 1,
+	4, 1, 0,
 
-static Index cubeIndices[12] = {
+	// right face
+	3, 2, 6,
+	3, 6, 7,
 
+	// top face
+	1, 5, 6,
+	1, 6, 2,
+
+	// bottom face
+	4, 0, 3,
+	4, 3, 7
 };
 
 Cube::Cube(ID3D11Device* device, ID3D11DeviceContext* context)
 	: Mesh(device, context) {
 
-	vertices.resize(8);
-	indices.resize(12);
+	const int numVertices = std::size(cubeVertices);
+	const int numIndices = std::size(cubeIndices);
 
-	for (int i = 0; i < 8; ++i) {
-		vertices[i].position = cubeVertices[i];
-		vertices[i].color = vertexColors[i];
-	}
+	vertices.resize(numVertices);
+	indices.resize(numIndices);
 
-	for (int i = 0; i < 12; ++i) {
-		indices[i] = cubeIndices[i];
-	}
+	memcpy(vertices.data(), cubeVertices, sizeof(SimpleVertex) * numVertices);
+	memcpy(indices.data(), cubeIndices, sizeof(Index) * numIndices);
 
-	bool InitPipeline();
-	bool InitBuffers();
+	InitPipeline();
+	InitBuffers();
 }

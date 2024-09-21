@@ -2,9 +2,11 @@
 
 void Mesh::Draw()
 {
-	//_cbPerFrame.viewProj = XMMatrixTranspose(topMat);
-	_cbPerObject.model = XMMatrixTranspose(_cbPerObject.model);
+	_cbPerObject.model = GetModelTransform();
 
+	_cbPerFrame.viewProj = XMMatrixTranspose(g_cbPerFrame.viewProj);
+	_cbPerObject.model = XMMatrixTranspose(_cbPerObject.model);
+	_cbPerObject.modelViewProj = XMMatrixTranspose(_cbPerObject.model * g_cbPerFrame.viewProj);
 	/* INPUT ASSEMBLER STAGE */
 	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	_context->IASetVertexBuffers(0, 1, &_vbo, &_vbStride, &_vbOffset);
@@ -27,21 +29,6 @@ void Mesh::Draw()
 	/* PIXEL STAGE */
 	// Diffuse
 	_context->PSSetShader(_ps, nullptr, 0);
-	_context->PSSetShaderResources(0, 1, &textures[0].textureView);
-	_context->PSSetSamplers(0, 1, &textures[0].samplerState);
-	// Bind constant buffers
-	// Material properties
-	D3D11_MAPPED_SUBRESOURCE cbMaterialPropertiesSubresource;
-	_context->Map(_cboMaterialProperties, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &cbMaterialPropertiesSubresource);
-	memcpy(cbMaterialPropertiesSubresource.pData, &_cbMaterialProperties, sizeof(cbMaterialProperties));
-	_context->Unmap(_cboMaterialProperties, NULL);
-	_context->PSSetConstantBuffers(0, 1, &_cboMaterialProperties);
-	// Light properties
-	D3D11_MAPPED_SUBRESOURCE cbLightPropertiesSubresource;
-	_context->Map(_cboLightProperties, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &cbLightPropertiesSubresource);
-	memcpy(cbLightPropertiesSubresource.pData, &g_lightProperties, sizeof(cbLightProperties));
-	_context->Unmap(_cboLightProperties, NULL);
-	_context->PSSetConstantBuffers(1, 1, &_cboLightProperties);
 
 	// Start sending commands to the gpu.
 	_context->DrawIndexed(_indexCount, 0, 0);

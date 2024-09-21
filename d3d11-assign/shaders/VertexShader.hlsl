@@ -8,6 +8,7 @@ cbuffer PerObject : register(b1)
 {
 	matrix model;
 	matrix inverseTransposeModel;
+	matrix modelViewProj;
 };
 
 struct VS_OUTPUT
@@ -18,8 +19,12 @@ struct VS_OUTPUT
 
 VS_OUTPUT main(float3 Position : POSITION, float3 Color : COLOR)
 {
+	matrix mvp = mul(model, viewProjection);
+	
+	float4 pos = mul(float4(Position, 1.f), mvp);
+	
 	VS_OUTPUT output;
-	output.Position = Position;
-	output.Color = Color;
+	output.Position = pos;
+	output.Color = float4(Color, 1.f);
 	return output;
 }
