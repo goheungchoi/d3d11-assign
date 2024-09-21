@@ -179,6 +179,7 @@ struct cbPerFrame {
 
 struct cbPerObject {
 	Matrix model;
+	Matrix inverseTransposeModel;
 	//-----------------------
 	Matrix boneTransforms[MAX_BONES];	// 64 x 100 = 6400 bytes
 };

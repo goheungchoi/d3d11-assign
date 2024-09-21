@@ -8,6 +8,7 @@ void Mesh::Draw(XMMATRIX topMat)
 {
 	_cbPerFrame.viewProj = XMMatrixTranspose(topMat);
 	_cbPerObject.model = XMMatrixTranspose(_cbPerObject.model);
+	_cbPerObject.inverseTransposeModel = XMMatrixInverse(nullptr, _cbPerObject.model);
 
 	/* INPUT ASSEMBLER STAGE */
 	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -75,7 +76,7 @@ bool Mesh::InitPipeline()
 	std::vector<uint8_t> vsByteData;
 	CHECK(
 		ReadBinaryFile(
-			L"shaders/BlinnPhong_VS.cso",
+			L"shaders/SkeletalBlinnPhong_VS.cso",
 			&vsByteData,
 			&vsByteSize
 		)
@@ -310,7 +311,7 @@ bool Mesh::InitPipeline()
 	std::vector<uint8_t> psByteData;
 	CHECK(
 		ReadBinaryFile(
-			L"shaders/BlinnPhong_PS.cso",
+			L"shaders/SkeletalBlinnPhong_PS.cso",
 			&psByteData,
 			&psByteSize
 		)
