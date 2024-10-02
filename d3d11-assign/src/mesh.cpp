@@ -4,10 +4,12 @@ Mesh::~Mesh()
 {
 }
 
-void Mesh::Draw(XMMATRIX topMat)
+void Mesh::Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms)
 {
 	_cbPerFrame.viewProj = XMMatrixTranspose(topMat);
-	_cbPerObject.model = XMMatrixTranspose(_cbPerObject.model);
+	_cbPerObject.model = XMMatrixTranspose(_modelTransform);
+	_cbPerObject.inverseTransposeModel = XMMatrixInverse(nullptr, _modelTransform);
+	memcpy(_cbPerObject.boneTransforms, boneTransforms.data(), sizeof(XMMATRIX) * MAX_BONES);
 
 	/* INPUT ASSEMBLER STAGE */
 	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -60,22 +62,11 @@ void Mesh::Draw(XMMATRIX topMat)
 bool Mesh::InitPipeline()
 {
 	/* Vertex Shader */
-	// Compile the vertex shader
-	/*ID3DBlob* vsBlob;
-	CHECK(
-		CompileShaderFromFile(
-			L"shaders/BlinnPhong_VS.hlsl",
-			"main",
-			"vs_5_0",
-			&vsBlob
-		)
-	);*/
-
 	std::size_t vsByteSize;
 	std::vector<uint8_t> vsByteData;
 	CHECK(
 		ReadBinaryFile(
-			L"shaders/BlinnPhong_VS.cso",
+			L"shaders/SkeletalBlinnPhong_VS.cso",
 			&vsByteData,
 			&vsByteSize
 		)
@@ -202,7 +193,7 @@ bool Mesh::InitPipeline()
 		D3D11_INPUT_ELEMENT_DESC{
 			.SemanticName = "BONE_WEIGHTS",
 			.SemanticIndex = 0U,
-			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.Format = DXGI_FORMAT_R32_FLOAT,
 			.InputSlot = 0,
 			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -211,7 +202,7 @@ bool Mesh::InitPipeline()
 		D3D11_INPUT_ELEMENT_DESC{
 			.SemanticName = "BONE_WEIGHTS",
 			.SemanticIndex = 1U,
-			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.Format = DXGI_FORMAT_R32_FLOAT,
 			.InputSlot = 0,
 			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -220,7 +211,7 @@ bool Mesh::InitPipeline()
 		D3D11_INPUT_ELEMENT_DESC{
 			.SemanticName = "BONE_WEIGHTS",
 			.SemanticIndex = 2U,
-			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.Format = DXGI_FORMAT_R32_FLOAT,
 			.InputSlot = 0,
 			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -229,7 +220,7 @@ bool Mesh::InitPipeline()
 		D3D11_INPUT_ELEMENT_DESC{
 			.SemanticName = "BONE_WEIGHTS",
 			.SemanticIndex = 3U,
-			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.Format = DXGI_FORMAT_R32_FLOAT,
 			.InputSlot = 0,
 			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -238,7 +229,7 @@ bool Mesh::InitPipeline()
 		D3D11_INPUT_ELEMENT_DESC{
 			.SemanticName = "BONE_WEIGHTS",
 			.SemanticIndex = 4U,
-			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.Format = DXGI_FORMAT_R32_FLOAT,
 			.InputSlot = 0,
 			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -247,7 +238,7 @@ bool Mesh::InitPipeline()
 		D3D11_INPUT_ELEMENT_DESC{
 			.SemanticName = "BONE_WEIGHTS",
 			.SemanticIndex = 5U,
-			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.Format = DXGI_FORMAT_R32_FLOAT,
 			.InputSlot = 0,
 			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -256,7 +247,7 @@ bool Mesh::InitPipeline()
 		D3D11_INPUT_ELEMENT_DESC{
 			.SemanticName = "BONE_WEIGHTS",
 			.SemanticIndex = 6U,
-			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.Format = DXGI_FORMAT_R32_FLOAT,
 			.InputSlot = 0,
 			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -265,7 +256,7 @@ bool Mesh::InitPipeline()
 		D3D11_INPUT_ELEMENT_DESC{
 			.SemanticName = "BONE_WEIGHTS",
 			.SemanticIndex = 7U,
-			.Format = DXGI_FORMAT_R32G32B32_FLOAT,
+			.Format = DXGI_FORMAT_R32_FLOAT,
 			.InputSlot = 0,
 			.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
 			.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
@@ -292,25 +283,12 @@ bool Mesh::InitPipeline()
 		)
 	);
 
-	//// Release the blob
-	//SafeRelease(&vsBlob);
-
 	/* Pixel Shader */
-	/*ID3DBlob* psBlob;
-	CHECK(
-		CompileShaderFromFile(
-			L"shaders/BlinnPhong_PS.hlsl",
-			"main",
-			"ps_5_0",
-			&psBlob
-		)
-	);*/
-
 	std::size_t psByteSize;
 	std::vector<uint8_t> psByteData;
 	CHECK(
 		ReadBinaryFile(
-			L"shaders/BlinnPhong_PS.cso",
+			L"shaders/SkeletalBlinnPhong_PS.cso",
 			&psByteData,
 			&psByteSize
 		)
@@ -325,9 +303,6 @@ bool Mesh::InitPipeline()
 			&_ps
 		)
 	);
-
-	// Release the blob
-	//SafeRelease(&psBlob);
 
 	return true;
 }

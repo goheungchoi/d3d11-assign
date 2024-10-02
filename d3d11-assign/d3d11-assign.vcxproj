@@ -84,6 +84,9 @@
     <ClInclude Include="include\skeletal-animation\animator.h" />
     <ClInclude Include="include\skeletal-animation\bone.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\MatrixInverse.hlsli" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

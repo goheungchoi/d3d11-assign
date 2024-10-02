@@ -29,7 +29,7 @@ struct VS_OUTPUT
 VS_OUTPUT main(VS_INPUT input)
 {
 	float4 pos = float4(input.Position, 1.f);
-	matrix mvp = mul(viewProjection, model);
+	matrix mvp = mul(model, viewProjection);
 	
 	float3 T = normalize(mul(float4(input.Tangent, 0.f), inverseTransposeModel)).xyz;
 	float3 N = normalize(mul(float4(input.Normal, 0.f), inverseTransposeModel)).xyz;

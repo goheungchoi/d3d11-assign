@@ -16,10 +16,10 @@ Model::~Model()
 
 }
 
-void Model::Draw(XMMATRIX topMat)
+void Model::Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms)
 {
 	for (Mesh& mesh : _meshes)
-		mesh.Draw(topMat);
+		mesh.Draw(topMat, boneTransforms);
 }
 
 void Model::LoadModel(const char* path)
@@ -144,11 +144,20 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		// Normal maps
 		std::vector<Texture> normalMaps = LoadMaterialTextures(
 			material, 
-			aiTextureType_HEIGHT,
+			aiTextureType_NORMALS,
 			TEXTURE_TYPE::NORMALS,
 			scene
 		);
 		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+
+		// Height maps
+		std::vector<Texture> heightMaps = LoadMaterialTextures(
+			material,
+			aiTextureType_HEIGHT,
+			TEXTURE_TYPE::HEIGHT,
+			scene
+		);
+		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 
 	return Mesh(_device, _context, std::move(vertices), std::move(indices), std::move(textures));
@@ -214,7 +223,7 @@ void Model::ExtractBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const a
 			// Add a new bone info
 			BoneInfo boneInfo;
 			boneInfo.id = _numBones;
-			boneInfo.offset = XMMATRIX(&currBone->mOffsetMatrix.a1);
+			boneInfo.offset = XMMatrixTranspose(XMMATRIX(&currBone->mOffsetMatrix.a1));
 			_boneInfoMap[boneName] = boneInfo;
 			boneID = _numBones;
 			_numBones++;
@@ -226,7 +235,7 @@ void Model::ExtractBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const a
 			boneID = _boneInfoMap[boneName].id;
 		}
 
-		// Find which bones are affected by this current bone
+		// Find which vertices are affected by this current bone
 		auto weights = currBone->mWeights;
 		int numWeights = currBone->mNumWeights;
 		for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex) {

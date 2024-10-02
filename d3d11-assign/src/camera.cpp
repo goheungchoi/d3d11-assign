@@ -61,7 +61,7 @@ void Camera::Update(float dt)
 	if (keyboardState[DIK_ESCAPE] & 0x80)
 		PostMessage(hwnd, WM_DESTROY, 0, 0);
 
-	float speed = 15.0f * dt;
+	float speed = 100.0f * dt;
 
 	if (keyboardState[DIK_Q] & 0x80)
 	{

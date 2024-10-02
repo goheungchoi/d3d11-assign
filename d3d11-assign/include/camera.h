@@ -1,5 +1,7 @@
 #pragma once
 
+#include "d3d_utility.h"
+
 #include <directxtk/SimpleMath.h>
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
@@ -28,7 +30,7 @@ class Camera {
 	float leftRightMove{ 0.f };
 	float backForwardMove{ 0.f };
 
-	XMVECTOR position{ 0.f, 0.f, -3.f , 0.f };
+	XMVECTOR position{ (__m128)g_camPos };
 	XMVECTOR forward{ 0.f, 0.f, 1.f, 0.f };
 	XMVECTOR up{ 0.f, 1.f, 0.f, 0.f };
 	XMVECTOR right{ 1.f, 0.f, 0.f, 0.f };

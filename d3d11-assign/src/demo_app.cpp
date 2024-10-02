@@ -9,6 +9,8 @@
 #include "d3d_renderer.h"
 
 #include "model.h"
+#include "skeletal-animation/animation.h"
+#include "skeletal-animation/animator.h"
 
 #include "camera.h"
 
@@ -18,8 +20,8 @@
 
 #define USE_FLIPMODE 1	// In order to not show warnings, use flip mode
 #define VSYNC_ENABLED 0 // diable v-sync when 0, otherwise v-sync is on
-#define USE_GUI 1
-#define USE_CAM 0
+#define USE_GUI 0
+#define USE_CAM 1
 
 DemoApp* loadedApp{ nullptr };
 
@@ -94,6 +96,7 @@ void DemoApp::FixedUpdate(float dt) {
 }
 
 void DemoApp::Update(float dt) {
+	static bool started = false;
 #ifndef NDEBUG 
 	frameTime += dt;
 #endif
@@ -102,6 +105,10 @@ void DemoApp::Update(float dt) {
 	_camera->Update(dt);
 #endif
 
+	//if (!started) {
+		_animator->UpdateAnimation(dt);
+		started = true;
+	//}
 }
 
 void DemoApp::Render() {
@@ -119,8 +126,10 @@ void DemoApp::Render() {
 #if USE_CAM == 1
 	_view = _camera->GetViewTransform();
 #endif
+
 	XMMATRIX viewProj = _view * _proj;
-	model->Draw(viewProj);
+	const auto& boneTransforms = _animator->GetFinalBoneTransforms();
+	_model->Draw(viewProj, boneTransforms);
 
 #if USE_GUI == 1
 	// Start the Dear ImGui frame
@@ -155,7 +164,7 @@ void DemoApp::InitTransformMatrices()
 	float aspectRatio = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
 
 	// Create the projection matrix
-	_proj = XMMatrixPerspectiveFovLH(vfov, aspectRatio, 0.01f, 100.f);
+	_proj = XMMatrixPerspectiveFovLH(vfov, aspectRatio, 0.01f, 10000.f);
 	// Create the Orthographic projection matrix
 	//_proj = XMMatrixOrthographicLH((float)SCREEN_WIDTH, (float)SCREEN_HEIGHT, 0.01f, 100.f);
 }
@@ -175,11 +184,18 @@ void DemoApp::InitCamera()
 
 void DemoApp::InitModels()
 {
-	model = new Model(
+	_model = new Model(
 		_renderer->_device,
 		_renderer->_deviceContext,
-		"assets/backpack/backpack.obj"
+		"assets/vampire/vampire.fbx"
 	);
+
+	_animation = new Animation(
+		"assets/vampire/vampire.fbx", 
+		_model
+	);
+
+	_animator = new Animator(_animation);
 }
 
 void DemoApp::InitLights()
@@ -189,7 +205,7 @@ void DemoApp::InitLights()
 	SetGlobalEyePosition(g_camPos);
 	SetGlobalAmbient({ 0.01f, 0.01f, 0.01f, 1.f });
 
-	Vector4 sunDir{ -1.f, -4.f, -7.f, 0.f };
+	Vector4 sunDir{ -1.f, -4.f, 7.f, 0.f };
 	sunDir.Normalize();
 	Light sunLight{
 		.direction = sunDir,

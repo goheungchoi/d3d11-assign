@@ -17,7 +17,9 @@ class DemoApp : public GameEngine
 #endif
 
 	class D3D11Renderer* _renderer;
-	class Model* model;
+	class Model* _model;
+	class Animation* _animation;
+	class Animator* _animator;
 	class Camera* _camera;
 public:
 

@@ -48,6 +48,7 @@ struct Vertex {
 			if (boneIDs[i] < 0) {
 				boneIDs[i] = boneID;
 				boneWeights[i] = weight;
+				break;
 			}
 		}
 	}
@@ -58,9 +59,9 @@ using Index = uint32_t;
 // Transform struct
 struct Transform {
 	// Local space transform
-	Vector3 scale;
-	Vector3 rotate;	// Euler rotation { pitch, yaw, roll }
-	Vector3 translate;
+	XMVECTOR scale;
+	XMVECTOR rotate;	// Quaternion rotation
+	XMVECTOR translate;
 };
 
 // Texture Types
@@ -179,12 +180,13 @@ struct cbPerFrame {
 
 struct cbPerObject {
 	Matrix model;
+	Matrix inverseTransposeModel;
 	//-----------------------
 	Matrix boneTransforms[MAX_BONES];	// 64 x 100 = 6400 bytes
 };
 
 // Camera properties
-inline Vector4 g_camPos{ 0.f, 0.f, -3.f , 0.f };
+inline Vector4 g_camPos{ 0.f, 100.f, -300.f , 0.f };
 
 // Utility class for COM exception
 class COMException : public std::exception {

@@ -4,6 +4,8 @@
 
 #include "d3d_utility.h"
 
+#include "skeletal-animation/bone.h"
+
 /**
  * @brief A simple mesh class.
  * - Load a model.
@@ -23,7 +25,10 @@ class Mesh {
 	std::vector<Index> indices;
 	std::vector<Texture> textures;
 
-	Transform transform{};
+	Transform _localTransform{};
+
+	bool _bShouldUpdateModelTransform{ true };
+	XMMATRIX _modelTransform{ XMMatrixIdentity() };
 
 public:
 	Mesh(ID3D11Device* device,
@@ -47,7 +52,7 @@ public:
 
 	~Mesh();
 
-	void Draw(XMMATRIX topMat);
+	void Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms);
 
 private:
 

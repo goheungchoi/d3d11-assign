@@ -1,4 +1,6 @@
 // BlinnPhong_VS.hlsl
+#include "MatrixInverse.hlsli"
+
 #define MAX_BONES 100
 #define MAX_BONE_WEIGHTS 8
 
@@ -12,7 +14,7 @@ cbuffer PerObject : register(b1)
 	matrix model; // 16 x 4 = 64 bytes
 	matrix inverseTransposeModel;	// 64 bytes
 	//-----------------------------------
-	matrix boneTransforms[MAX_BONES];	// 64 x 100 = 6400 bytes
+	matrix finalBoneTransforms[MAX_BONES];	// 64 x 100 = 6400 bytes
 };
 
 struct VS_INPUT
@@ -39,28 +41,62 @@ VS_OUTPUT main(VS_INPUT input)
 {
 	float4 pos = float4(input.Position, 1.f);
 	
-	float4 totalPos = float4(0.f, 0.f, 0.f, 0.f);
+	//matrix totalBoneTransform = matrix(
+	// 0.f, 0.f, 0.f, 0.f,
+	// 0.f, 0.f, 0.f, 0.f,
+	// 0.f, 0.f, 0.f, 0.f,
+	// 0.f, 0.f, 0.f, 0.f
+	//);
 	
-	[unroll]
+	//[unroll]
+	//for (int i = 0; i < MAX_BONE_WEIGHTS; ++i)
+	//{
+	//	int boneId = input.boneIds[i];
+	//	if (boneId < 0)
+	//		continue;
+		
+	//	if (boneId >= MAX_BONES)
+	//	{
+	//		totalBoneTransform = matrix(
+	//		 1.f, 0.f, 0.f, 0.f,
+	//		 0.f, 1.f, 0.f, 0.f,
+	//		 0.f, 0.f, 1.f, 0.f,
+	//		 0.f, 0.f, 0.f, 1.f
+	//		);
+	//		break;
+	//	}
+		
+	//	totalBoneTransform += input.boneWeights[i] * boneTransforms[boneId];
+	//}
+	
+	//float4 totalPos = pos;
+	//for (int i = 0; i < MAX_BONE_WEIGHTS; ++i)
+	//{
+	//	int boneId = input.boneIds[i];
+	//	if (boneId == -1)
+	//		continue;
+	//	float4 localPosition = mul(pos, input.boneWeights[i] * boneTransforms[boneId]);
+	//	totalPos += localPosition;
+	//}
+	
+	
+	
+	matrix boneTransform = matrix(
+	 0.f, 0.f, 0.f, 0.f,
+	 0.f, 0.f, 0.f, 0.f,
+	 0.f, 0.f, 0.f, 0.f,
+	 0.f, 0.f, 0.f, 0.f
+	);
+	
 	for (int i = 0; i < MAX_BONE_WEIGHTS; ++i)
 	{
-		int boneId = input.boneIds[i];
-		if (boneId < 0)
+		if (input.boneIds[i] == -1)
 			continue;
-		
-		if (boneId >= MAX_BONES)
-		{
-			totalPos = pos;
-			break;
-		}
-		
-		float4 localPos = mul(pos, boneTransforms[boneId]);
-		totalPos += localPos * input.boneWeights[i];
-		
-		float3 localNormal = mul(float4(input.Normal, 0.f), boneTransforms[boneId]);
-
+		boneTransform += input.boneWeights[i] * finalBoneTransforms[input.boneIds[i]];
 	}
+	float4 totalPos = mul(pos, boneTransform);
 	
+	//matrix normalTransform = inverse(totalBoneTransform) * inverseTransposeModel;
 	float3 T = normalize(mul(float4(input.Tangent, 0.f), inverseTransposeModel)).xyz;
 	float3 N = normalize(mul(float4(input.Normal, 0.f), inverseTransposeModel)).xyz;
 	// re-orthogonalize T with respect to N
@@ -69,7 +105,7 @@ VS_OUTPUT main(VS_INPUT input)
 	float3x3 TBN = float3x3(T, B, N);
 	
 	VS_OUTPUT output;
-	matrix mvp = mul(viewProjection, model);
+	matrix mvp = mul(model, viewProjection);
 	output.Position = mul(totalPos, mvp);
 	output.WorldPosition = mul(totalPos, model);
 	output.TexCoord = input.TexCoord;

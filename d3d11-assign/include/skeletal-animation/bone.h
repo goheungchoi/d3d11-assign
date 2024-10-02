@@ -6,7 +6,10 @@
 class aiNodeAnim;
 
 struct BoneInfo {
+	// The id of the bone
 	int id;
+	// Convert the positions and orientations of the bone's local space
+	// to the model space.
 	XMMATRIX offset;
 };
 
@@ -87,7 +90,7 @@ public:
 	 * @param animationTime The current animation time
 	 * @return The index of the keyframe rotation.
 	 */
-	int GetRotationIndex(float animationTime) {
+	int GetRotationIndex(float animationTime) const {
 		for (int index = 0; index < _numRotations - 1; ++index) {
 			if (animationTime < _rotations[index + 1].timeStamp)
 				return index;
@@ -100,7 +103,7 @@ public:
 	 * @param animationTime The current animation time
 	 * @return The index of the keyframe scale.
 	 */
-	int GetScaleIndex(float animationTime) {
+	int GetScaleIndex(float animationTime) const {
 		for (int index = 0; index < _numScalings - 1; ++index) {
 			if (animationTime < _scales[index + 1].timeStamp)
 				return index;
@@ -142,7 +145,9 @@ private:
 			_positions[p1Index].position,
 			scaleFactor
 		);
+
 		return XMMatrixTranslationFromVector(interpolatedPosition);
+		//return XMMatrixIdentity();
 	}
 
 	XMMATRIX InterpolateRotation(float animationTime) {
@@ -153,7 +158,7 @@ private:
 			// Rotation of a 3D vector, v, by a unit quaternion, q, is defined as
 			// R_q(v) = q[0, v]q^(-1) where [0, v] is a pure quaternion
 			// built from v by adding a zero real part.
-			XMVECTOR quatRotation = XMVector4Normalize(_rotations[0].orientation);
+			XMVECTOR quatRotation = XMQuaternionNormalize(_rotations[0].orientation);
 			return XMMatrixRotationQuaternion(quatRotation);
 		}
 
@@ -167,11 +172,12 @@ private:
 		);
 
 		XMVECTOR interpolatedQuatRotation = XMQuaternionSlerp(
-			_rotations[p0Index].orientation,
-			_rotations[p0Index].orientation,
+			XMQuaternionNormalize(_rotations[p0Index].orientation),
+			XMQuaternionNormalize(_rotations[p1Index].orientation),
 			scaleFactor
 		);
 		return XMMatrixRotationQuaternion(interpolatedQuatRotation);
+		//return XMMatrixRotationQuaternion(XMQuaternionIdentity());
 	}
 
 	XMMATRIX InterpolateScaling(float animationTime) {

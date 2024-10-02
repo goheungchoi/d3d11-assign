@@ -3,7 +3,9 @@
 #include <assimp/scene.h>
 
 Bone::Bone(const std::string& name, int ID, const aiNodeAnim* channel)
-	: _name(std::move(name)), _ID(ID), _localTransform(XMMatrixIdentity()) {
+	: _name(std::move(const_cast<std::string&>(name))), 
+	_ID(ID), 
+	_localTransform(XMMatrixIdentity()) {
 	// Read positions
 	_numPositions = channel->mNumPositionKeys;
 	_positions.resize(_numPositions);
@@ -26,6 +28,7 @@ Bone::Bone(const std::string& name, int ID, const aiNodeAnim* channel)
 
 		KeyRotation data;
 		data.orientation = XMVECTOR{ aiOrientation.x, aiOrientation.y, aiOrientation.z, aiOrientation.w };
+		data.orientation = XMQuaternionNormalize(data.orientation);
 		data.timeStamp = timeStamp;
 		_rotations[rotationIndex] = data;
 	}
