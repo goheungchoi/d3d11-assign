@@ -41,46 +41,6 @@ VS_OUTPUT main(VS_INPUT input)
 {
 	float4 pos = float4(input.Position, 1.f);
 	
-	//matrix totalBoneTransform = matrix(
-	// 0.f, 0.f, 0.f, 0.f,
-	// 0.f, 0.f, 0.f, 0.f,
-	// 0.f, 0.f, 0.f, 0.f,
-	// 0.f, 0.f, 0.f, 0.f
-	//);
-	
-	//[unroll]
-	//for (int i = 0; i < MAX_BONE_WEIGHTS; ++i)
-	//{
-	//	int boneId = input.boneIds[i];
-	//	if (boneId < 0)
-	//		continue;
-		
-	//	if (boneId >= MAX_BONES)
-	//	{
-	//		totalBoneTransform = matrix(
-	//		 1.f, 0.f, 0.f, 0.f,
-	//		 0.f, 1.f, 0.f, 0.f,
-	//		 0.f, 0.f, 1.f, 0.f,
-	//		 0.f, 0.f, 0.f, 1.f
-	//		);
-	//		break;
-	//	}
-		
-	//	totalBoneTransform += input.boneWeights[i] * boneTransforms[boneId];
-	//}
-	
-	//float4 totalPos = pos;
-	//for (int i = 0; i < MAX_BONE_WEIGHTS; ++i)
-	//{
-	//	int boneId = input.boneIds[i];
-	//	if (boneId == -1)
-	//		continue;
-	//	float4 localPosition = mul(pos, input.boneWeights[i] * boneTransforms[boneId]);
-	//	totalPos += localPosition;
-	//}
-	
-	
-	
 	matrix boneTransform = matrix(
 	 0.f, 0.f, 0.f, 0.f,
 	 0.f, 0.f, 0.f, 0.f,
@@ -88,6 +48,7 @@ VS_OUTPUT main(VS_INPUT input)
 	 0.f, 0.f, 0.f, 0.f
 	);
 	
+	[unroll]
 	for (int i = 0; i < MAX_BONE_WEIGHTS; ++i)
 	{
 		if (input.boneIds[i] == -1)
@@ -96,9 +57,10 @@ VS_OUTPUT main(VS_INPUT input)
 	}
 	float4 totalPos = mul(pos, boneTransform);
 	
-	//matrix normalTransform = inverse(totalBoneTransform) * inverseTransposeModel;
-	float3 T = normalize(mul(float4(input.Tangent, 0.f), inverseTransposeModel)).xyz;
-	float3 N = normalize(mul(float4(input.Normal, 0.f), inverseTransposeModel)).xyz;
+	//matrix normalTransform = inverse(boneTransform) * inverseTransposeModel;
+	matrix normalTransform = boneTransform;
+	float3 T = normalize(mul(float4(input.Tangent, 0.f), normalTransform)).xyz;
+	float3 N = normalize(mul(float4(input.Normal, 0.f), normalTransform)).xyz;
 	// re-orthogonalize T with respect to N
 	T = normalize(T - dot(T, N) * N);
 	float3 B = cross(N, T);
