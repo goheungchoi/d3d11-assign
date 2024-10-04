@@ -207,7 +207,7 @@ void DemoApp::InitLights()
 
 	Vector4 sunDir{ -1.f, -4.f, 7.f, 0.f };
 	sunDir.Normalize();
-	Light sunLight{
+	_Light sunLight{
 		.direction = sunDir,
 		.color = {.9f, .9f, .9f, 1.f},
 		.lightType = LightType::Directional,
@@ -219,7 +219,7 @@ void DemoApp::InitLights()
 	//Vector4 pointPosition{ -3.f, 5.f, 3.f, 0.f };
 	Vector4 pointPosition{ 0.f, -5.f, -5.f, 0.f };
 	pointPosition.Normalize();
-	Light pointLight{
+	_Light pointLight{
 		.position = pointPosition,
 		.color = { 1.f, 1.f, 1.f, 1.f },
 		.constAtt = 1.f,

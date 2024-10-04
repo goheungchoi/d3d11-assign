@@ -41,6 +41,9 @@ void Mesh::Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms)
 	// Normal
 	_context->PSSetShaderResources(2, 1, &textures[2].textureView);
 	_context->PSSetSamplers(2, 1, &textures[2].samplerState);
+	// TODO: Shadow maps
+
+
 	// Bind constant buffers
 	// Material properties
 	D3D11_MAPPED_SUBRESOURCE cbMaterialPropertiesSubresource;

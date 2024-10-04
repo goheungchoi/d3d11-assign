@@ -31,6 +31,7 @@ public:
 	Animation() = delete;
 	Animation(const std::string& animationPath, Model* model) {
 		Assimp::Importer importer;
+		importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, 0);
 		const aiScene* scene = importer.ReadFile(
 			animationPath, 
 			aiProcess_Triangulate |

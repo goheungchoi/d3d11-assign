@@ -44,7 +44,7 @@ public:
 	 */
 	void CalculateBoneTransform(const AnimationNode* node, XMMATRIX parentTransform) {
 		std::string nodeName = node->name;
-		XMMATRIX nodeTransform = XMMatrixIdentity();	// Bone's original local transform
+		XMMATRIX nodeTransform = node->transform;	// Bone's original local transform
 
 		// Check if this bone is in the current animation;
 		// engaged in this animation by finding it from _bones array of animation

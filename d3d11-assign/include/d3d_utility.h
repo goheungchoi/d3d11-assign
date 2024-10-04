@@ -121,7 +121,7 @@ enum LightType {
 	NUM_LIGHT_TYPES
 };
 
-struct Light
+struct _Light
 {
 	Vector4 position; // 16 bytes
 	//----------------------------------- (16 byte boundary)
@@ -144,7 +144,7 @@ DECLSPEC_CBUFFER_ALIGN
 struct cbLightProperties {
 	Vector4 eyePosition;
 	Vector4 globalAmbient;
-	Light lights[MAX_LIGHTS];
+	_Light lights[MAX_LIGHTS];
 };
 
 inline cbLightProperties g_lightProperties;
@@ -162,7 +162,7 @@ void SetGlobalAmbient(const Vector4& globalAmbient) {
 inline int __curr_light_index{ -1 };
 
 inline
-void PushBackLight(const Light* light) {
+void PushBackLight(const _Light* light) {
 	if (__curr_light_index >= int(MAX_LIGHTS) - 1) return;
 	g_lightProperties.lights[++__curr_light_index] = *light;
 }
