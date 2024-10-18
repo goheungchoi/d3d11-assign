@@ -52,7 +52,7 @@ public:
 
 	~Mesh();
 
-	void Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms);
+	void Draw(XMMATRIX topMat);
 
 private:
 

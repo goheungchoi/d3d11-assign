@@ -18,8 +18,6 @@ class DemoApp : public GameEngine
 
 	class D3D11Renderer* _renderer;
 	class Model* _model;
-	class Animation* _animation;
-	class Animator* _animator;
 	class Camera* _camera;
 public:
 

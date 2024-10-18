@@ -95,6 +95,13 @@ struct Texture {
 	std::string path;	// Texture equality check; TODO: need optimization
 };
 
+inline std::optional<Texture> FindTexture(std::span<Texture> textures, TEXTURE_TYPE type) {
+	auto it = std::find_if(textures.begin(), textures.end(), [type](const Texture& t) {
+		return t.type == type;
+	});
+	return (it != textures.end()) ? std::optional(*it) : std::nullopt;
+}
+
 // Material
 struct _Material {
 	Vector4 emissive;
@@ -103,8 +110,13 @@ struct _Material {
 	Vector4 normal;
 	//-----------------------
 	float shininess;
-	uint32_t useTexture;
+	uint32_t useDiffuseTexture;
 	float padding[2];
+	//-----------------------
+	uint32_t useNormalTexture;
+	uint32_t useSpecularTexture;
+	uint32_t useEmissiveTexture;
+	uint32_t useOpacityTexture;
 };
 
 DECLSPEC_CBUFFER_ALIGN
@@ -181,8 +193,6 @@ struct cbPerFrame {
 struct cbPerObject {
 	Matrix model;
 	Matrix inverseTransposeModel;
-	//-----------------------
-	Matrix boneTransforms[MAX_BONES];	// 64 x 100 = 6400 bytes
 };
 
 // Camera properties

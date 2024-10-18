@@ -9,7 +9,9 @@
 #include <iostream>
 #include <exception>
 #include <memory>
+#include <span>
 #include <utility>
+#include <algorithm>
 
 // Config file
 #include "config.h"

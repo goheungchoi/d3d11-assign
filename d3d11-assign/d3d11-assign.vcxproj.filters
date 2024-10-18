@@ -47,10 +47,8 @@
     <FxCompile Include="shaders\BlinnPhong_PS.hlsl" />
     <FxCompile Include="shaders\SkeletalBlinnPhong_VS.hlsl" />
     <FxCompile Include="shaders\SkeletalBlinnPhong_PS.hlsl" />
-    <FxCompile Include="shaders\shadow\DepthMap_VS.hlsl" />
-    <FxCompile Include="shaders\shadow\DepthMap_PS.hlsl" />
-    <FxCompile Include="shaders\shadow\SkeletalBlinnPhongWithShadow_VS.hlsl" />
-    <FxCompile Include="shaders\shadow\SkeletalBlinnPhongWithShadow_PS.hlsl" />
+    <FxCompile Include="shaders\fbx-blinn-phong\BlinnPhong_PS.hlsl" />
+    <FxCompile Include="shaders\fbx-blinn-phong\BlinnPhong_VS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\demo_app.h">

@@ -26,7 +26,7 @@ public:
 	void BeginDraw();
 	void EndDraw();
 
-	Color backgroundColor{ 0.f, 0.5f, 0.5f, 1.f };
+	Color backgroundColor{ 0.f, 0.f, 0.f, 1.f };
 	
 	ID3D11Device* _device{ nullptr };
 	ID3D11DeviceContext* _deviceContext{ nullptr };

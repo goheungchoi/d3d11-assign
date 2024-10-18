@@ -32,18 +32,12 @@ class Model {
 
 	std::vector<Texture> _loadedTextures;
 
-	int _numBones{ 0 };
-	std::unordered_map<std::string, BoneInfo> _boneInfoMap;
-
 public:
 
 	Model(ID3D11Device* device, ID3D11DeviceContext* context, const char* path);
 	~Model();
 
-	auto& GetBoneInfoMap() { return _boneInfoMap; }
-	int& GetNumBones() { return _numBones; }
-
-	void Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms);
+	void Draw(XMMATRIX topMat);
 
 private:
 	std::vector<Mesh> _meshes;
@@ -58,11 +52,4 @@ private:
 		TEXTURE_TYPE textureType,
 		const aiScene* scene
 	);
-	/**
-	 * @brief Extract animation bone information from a scene.
-	 * @param vertices Vertices of a model to set bone weights
-	 * @param mesh Assimp mesh that contains the bone data
-	 * @param scene ?
-	 */
-	void ExtractBoneData(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene);
 };

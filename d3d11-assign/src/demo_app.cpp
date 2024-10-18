@@ -104,11 +104,6 @@ void DemoApp::Update(float dt) {
 #if USE_CAM == 1
 	_camera->Update(dt);
 #endif
-
-	//if (!started) {
-		_animator->UpdateAnimation(dt);
-		started = true;
-	//}
 }
 
 void DemoApp::Render() {
@@ -128,8 +123,7 @@ void DemoApp::Render() {
 #endif
 
 	XMMATRIX viewProj = _view * _proj;
-	const auto& boneTransforms = _animator->GetFinalBoneTransforms();
-	_model->Draw(viewProj, boneTransforms);
+	_model->Draw(viewProj);
 
 #if USE_GUI == 1
 	// Start the Dear ImGui frame
@@ -187,15 +181,9 @@ void DemoApp::InitModels()
 	_model = new Model(
 		_renderer->_device,
 		_renderer->_deviceContext,
-		"assets/vampire/vampire.fbx"
+		"assets/resource/Character.fbx"
 	);
 
-	_animation = new Animation(
-		"assets/vampire/vampire.fbx", 
-		_model
-	);
-
-	_animator = new Animator(_animation);
 }
 
 void DemoApp::InitLights()
@@ -205,7 +193,7 @@ void DemoApp::InitLights()
 	SetGlobalEyePosition(g_camPos);
 	SetGlobalAmbient({ 0.01f, 0.01f, 0.01f, 1.f });
 
-	Vector4 sunDir{ -1.f, -4.f, 7.f, 0.f };
+	Vector4 sunDir{ 0.53f, 0.f, 848.f, 0.f };
 	sunDir.Normalize();
 	_Light sunLight{
 		.direction = sunDir,
@@ -217,7 +205,7 @@ void DemoApp::InitLights()
 
 
 	//Vector4 pointPosition{ -3.f, 5.f, 3.f, 0.f };
-	Vector4 pointPosition{ 0.f, -5.f, -5.f, 0.f };
+	/*Vector4 pointPosition{ 0.f, -5.f, -5.f, 0.f };
 	pointPosition.Normalize();
 	_Light pointLight{
 		.position = pointPosition,
@@ -227,7 +215,7 @@ void DemoApp::InitLights()
 		.lightType = LightType::Point,
 		.enabled = true
 	};
-	PushBackLight(&pointLight);
+	PushBackLight(&pointLight);*/
 
 }
 
