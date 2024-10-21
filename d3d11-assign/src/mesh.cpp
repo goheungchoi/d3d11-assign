@@ -82,7 +82,7 @@ bool Mesh::InitPipeline()
 	std::vector<uint8_t> vsByteData;
 	CHECK(
 		ReadBinaryFile(
-			L"shaders/BlinnPhong_VS.cso",
+			L"shaders/out/FBXBlinnPhong_VS.cso",
 			&vsByteData,
 			&vsByteSize
 		)
@@ -157,7 +157,7 @@ bool Mesh::InitPipeline()
 	std::vector<uint8_t> psByteData;
 	CHECK(
 		ReadBinaryFile(
-			L"shaders/BlinnPhong_PS.cso",
+			L"shaders/out/FBXBlinnPhong_PS.cso",
 			&psByteData,
 			&psByteSize
 		)

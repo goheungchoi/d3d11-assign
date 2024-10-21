@@ -123,7 +123,9 @@ void DemoApp::Render() {
 #endif
 
 	XMMATRIX viewProj = _view * _proj;
-	_model->Draw(viewProj);
+	_character->Draw(viewProj);
+	_tree->Draw(viewProj);
+	_zelda->Draw(viewProj);
 
 #if USE_GUI == 1
 	// Start the Dear ImGui frame
@@ -178,10 +180,22 @@ void DemoApp::InitCamera()
 
 void DemoApp::InitModels()
 {
-	_model = new Model(
+	_character = new Model(
 		_renderer->_device,
 		_renderer->_deviceContext,
 		"assets/resource/Character.fbx"
+	);
+
+	_tree = new Model(
+		_renderer->_device,
+		_renderer->_deviceContext,
+		"assets/resource/Tree.fbx"
+	);
+
+	_zelda = new Model(
+		_renderer->_device,
+		_renderer->_deviceContext,
+		"assets/resource/zeldaPosed001.fbx"
 	);
 
 }

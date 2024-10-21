@@ -37,8 +37,8 @@ struct _Material
 	bool UseDiffuseTexture; // 4 bytes
 	float2 Padding; // 8 bytes
     //----------------------------------- (16 byte boundary)
-	bool useNormalTexture;
 	bool useSpecularTexture;
+	bool useNormalTexture;
 	bool useEmissiveTexture;
 	bool useOpacityTexture;
 }; // Total:               // 80 bytes ( 5 * 16 )
@@ -93,9 +93,9 @@ float4 CalculateSpecular(Light light, float3 V, float3 L, float3 N)
 
 float CalculateAttenuation(Light light, float d)
 {
-	return 1.0f / 
-		(light.ConstantAttenuation + 
-		light.LinearAttenuation * d + 
+	return 1.0f /
+		(light.ConstantAttenuation +
+		light.LinearAttenuation * d +
 		light.QuadraticAttenuation * d * d);
 }
 
@@ -111,7 +111,7 @@ LightingResult CalculatePointLight(Light light, float3 V, float4 P, float3 N)
 	float3 L = (light.Position - P).xyz;
 	float distance = length(L);
 	
-	L = L / distance;		// Normalize
+	L = L / distance; // Normalize
 	
 	float attenuation = CalculateAttenuation(light, distance);
 	
@@ -179,22 +179,22 @@ LightingResult ComputeLighting(float4 P, float3 N)
 		switch (Lights[i].LightType)
 		{
 			case UNDEFINED_LIGHT:
-			break;
+				break;
 			case DIRECTIONAL_LIGHT:
       {
-				res = CalculateDirectionalLight(Lights[i], V, P, N);
-			}
-			break;
+					res = CalculateDirectionalLight(Lights[i], V, P, N);
+				}
+				break;
 			case POINT_LIGHT:
 			{
-				res = CalculatePointLight(Lights[i], V, P, N);
-			}
-			break;
+					res = CalculatePointLight(Lights[i], V, P, N);
+				}
+				break;
 			case SPOT_LIGHT:
       {
-				res = CalculateSpotLight(Lights[i], V, P, N);
-			}
-			break;
+					res = CalculateSpotLight(Lights[i], V, P, N);
+				}
+				break;
 		}
 		total.diffuse += res.diffuse;
 		total.specular += res.specular;
@@ -217,39 +217,52 @@ struct PS_INPUT
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
-	if (Material.UseDiffuseTexture)
+	float3 N = input.Normal.xyz;
+	if (Material.useNormalTexture)
 	{
 		float4 normal = normalTexture.Sample(normalSampler, input.TexCoord);
-		
-		float3 N = normal.xyz;
+		N = normal.xyz;
 		N = N * 2.0 - 1.0;
 		N = normalize(mul(N, input.TBN));
+	}
 		
-		LightingResult lit = ComputeLighting(input.WorldPosition, N);
+	LightingResult lit = ComputeLighting(input.WorldPosition, N);
 		
-		float4 color = diffuseTexture.Sample(diffuseSampler, input.TexCoord);
-				
-		// float4 emissive = Material.Emissive;	// TODO: Need emissive texture
-		float4 Ia = color * GlobalAmbient;
-		float4 Id = color * lit.diffuse;
-		float4 Is = lit.specular * specularTexture.Sample(specularSampler, input.TexCoord);
 	
-		return pow(Ia + Id + Is, 1.0 / 2.2);
-	}
-	else
+		
+	float4 color = Material.DiffuseColor;
+	if (Material.UseDiffuseTexture)
 	{
-		float3 N = input.Normal.xyz;
-		
-		LightingResult lit = ComputeLighting(
-			input.Position,
-			normalize(N)
-		);
-		
-		float4 Ie = Material.EmissiveColor;
-		float4 Ia = Material.AmbientColor * GlobalAmbient;
-		float4 Id = lit.diffuse * Material.DiffuseColor;
-		float4 Is = lit.specular * Material.SpecularColor;
-		
-		return Ie + Ia + Id + Is;
+		color = diffuseTexture.Sample(diffuseSampler, input.TexCoord);
 	}
+				
+	// float4 emissive = Material.Emissive;	// TODO: Need emissive texture
+	float4 Ia = color * GlobalAmbient;
+	float4 Id = color * lit.diffuse;
+		
+	float4 Is = lit.specular * 0.4;
+	if (Material.useSpecularTexture)
+	{
+		Is = lit.specular * specularTexture.Sample(specularSampler, input.TexCoord);
+	}
+	
+	float opacity = 1.f;
+	if (Material.useOpacityTexture)
+	{
+		opacity = opacityTexture.Sample(opacitySampler, input.TexCoord).a;
+	}
+		
+	if (Material.useEmissiveTexture)
+	{
+		Ia += emissiveTexture.Sample(emissiveSampler, input.TexCoord);
+	}
+		
+	float4 finalColor = pow(Ia + Id + Is, 1.0 / 2.2);
+		
+	finalColor.a *= opacity;
+		
+	if (finalColor.a < 0.1)
+		clip(-1);
+		
+	return finalColor;
 }

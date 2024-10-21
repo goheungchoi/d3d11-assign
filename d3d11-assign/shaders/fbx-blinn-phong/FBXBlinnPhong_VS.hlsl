@@ -33,8 +33,7 @@ VS_OUTPUT main(VS_INPUT input)
 	
 	float3 T = normalize(mul(float4(input.Tangent, 0.f), inverseTransposeModel)).xyz;
 	float3 N = normalize(mul(float4(input.Normal, 0.f), inverseTransposeModel)).xyz;
-	// re-orthogonalize T with respect to N
-	T = normalize(T - dot(T, N) * N);
+	T = normalize(T - dot(T, N) * N); // re-orthogonalize T with respect to N
 	float3 B = cross(N, T);
 	float3x3 TBN = float3x3(T, B, N);
 	

@@ -113,8 +113,8 @@ struct _Material {
 	uint32_t useDiffuseTexture;
 	float padding[2];
 	//-----------------------
-	uint32_t useNormalTexture;
 	uint32_t useSpecularTexture;
+	uint32_t useNormalTexture;
 	uint32_t useEmissiveTexture;
 	uint32_t useOpacityTexture;
 };
