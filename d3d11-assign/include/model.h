@@ -32,12 +32,18 @@ class Model {
 
 	std::vector<Texture> _loadedTextures;
 
+	XMMATRIX _modelTransform{ XMMatrixIdentity() };
+
 public:
 
 	Model(ID3D11Device* device, ID3D11DeviceContext* context, const char* path);
 	~Model();
 
 	void Draw(XMMATRIX topMat);
+
+	void Scale(float scale) {
+		_modelTransform *= XMMatrixScaling(scale, scale, scale);
+	}
 
 private:
 	std::vector<Mesh> _meshes;

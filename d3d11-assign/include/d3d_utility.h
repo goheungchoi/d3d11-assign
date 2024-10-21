@@ -48,20 +48,37 @@ struct Vertex {
 			if (boneIDs[i] < 0) {
 				boneIDs[i] = boneID;
 				boneWeights[i] = weight;
-				break;
 			}
 		}
 	}
 };
 
+// NOTE: just for an assigment
+struct DefaultVertex {
+	Vector3 position;
+	Vector4 color;
+	Vector2 uv;
+	Vector3 normal;
+	Vector3 tangent;
+};
+
 using Index = uint32_t;
+
+struct cbDefaultLightProp {
+	Vector4 eyePosition;
+	Vector4 lightDir;
+	Vector4 lightColor;
+};
+
+inline Vector4 g_defaultLightDir{ 0.f, -1.f, 0.f, 1.f };
+inline Vector4 g_defaultLightColor{ 1.f, 1.f, 1.f, 1.f };
 
 // Transform struct
 struct Transform {
 	// Local space transform
-	XMVECTOR scale;
-	XMVECTOR rotate;	// Quaternion rotation
-	XMVECTOR translate;
+	Vector3 scale;
+	Vector3 rotate;	// Euler rotation { pitch, yaw, roll }
+	Vector3 translate;
 };
 
 // Texture Types
@@ -95,13 +112,6 @@ struct Texture {
 	std::string path;	// Texture equality check; TODO: need optimization
 };
 
-inline std::optional<Texture> FindTexture(std::span<Texture> textures, TEXTURE_TYPE type) {
-	auto it = std::find_if(textures.begin(), textures.end(), [type](const Texture& t) {
-		return t.type == type;
-	});
-	return (it != textures.end()) ? std::optional(*it) : std::nullopt;
-}
-
 // Material
 struct _Material {
 	Vector4 emissive;
@@ -119,6 +129,14 @@ struct _Material {
 	uint32_t useOpacityTexture;
 };
 
+inline std::optional<Texture> FindTexture(std::vector<Texture> textures, TEXTURE_TYPE type) {
+	auto it = std::find_if(begin(textures), end(textures), [type](const Texture& tex) {
+		return tex.type == type;
+		});
+
+	return (it != textures.end()) ? std::optional(*it) : std::nullopt;
+}
+
 DECLSPEC_CBUFFER_ALIGN
 struct cbMaterialProperties {
 	_Material material;
@@ -133,7 +151,7 @@ enum LightType {
 	NUM_LIGHT_TYPES
 };
 
-struct _Light
+struct Light
 {
 	Vector4 position; // 16 bytes
 	//----------------------------------- (16 byte boundary)
@@ -156,7 +174,7 @@ DECLSPEC_CBUFFER_ALIGN
 struct cbLightProperties {
 	Vector4 eyePosition;
 	Vector4 globalAmbient;
-	_Light lights[MAX_LIGHTS];
+	Light lights[MAX_LIGHTS];
 };
 
 inline cbLightProperties g_lightProperties;
@@ -174,7 +192,7 @@ void SetGlobalAmbient(const Vector4& globalAmbient) {
 inline int __curr_light_index{ -1 };
 
 inline
-void PushBackLight(const _Light* light) {
+void PushBackLight(const Light* light) {
 	if (__curr_light_index >= int(MAX_LIGHTS) - 1) return;
 	g_lightProperties.lights[++__curr_light_index] = *light;
 }
@@ -193,10 +211,15 @@ struct cbPerFrame {
 struct cbPerObject {
 	Matrix model;
 	Matrix inverseTransposeModel;
+	Matrix modelViewProj;
+	//-----------------------
+	Matrix boneTransforms[MAX_BONES];	// 64 x 100 = 6400 bytes
 };
 
 // Camera properties
-inline Vector4 g_camPos{ 0.f, 100.f, -300.f , 0.f };
+inline Vector4 g_camPos{ 0.f, 5.f, -8.f , 0.f };
+
+inline cbPerFrame g_cbPerFrame{};
 
 // Utility class for COM exception
 class COMException : public std::exception {
@@ -223,7 +246,7 @@ HRESULT CompileShaderFromFile(const WCHAR* filename, LPCSTR entryPoint, LPCSTR s
 HRESULT ReadBinaryFile(const WCHAR* filename, std::vector<uint8_t>* data, std::size_t* size);
 
 // Utility function to load textures from a file
-HRESULT CreateTextureFromFile(ID3D11Device* d3dDevice, const wchar_t* szFileName, ID3D11ShaderResourceView** outTextureView);
+HRESULT CreateTextureFromFile(ID3D11Device* device, const wchar_t* filename, ID3D11ShaderResourceView** outTextureView);
 
 // Utility macro to convert D3D API failures into exceptions
 #define CHECK(res) if (FAILED(res)) throw COMException(res);

@@ -18,6 +18,7 @@ Model::~Model()
 
 void Model::Draw(XMMATRIX topMat)
 {
+	topMat = _modelTransform * topMat;
 	for (Mesh& mesh : _meshes)
 		mesh.Draw(topMat);
 }

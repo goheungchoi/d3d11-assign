@@ -191,6 +191,7 @@ void DemoApp::InitModels()
 		_renderer->_deviceContext,
 		"assets/resource/Tree.fbx"
 	);
+	_tree->Scale(100.f);
 
 	_zelda = new Model(
 		_renderer->_device,
@@ -209,7 +210,7 @@ void DemoApp::InitLights()
 
 	Vector4 sunDir{ 0.53f, 0.f, 848.f, 0.f };
 	sunDir.Normalize();
-	_Light sunLight{
+	Light sunLight{
 		.direction = sunDir,
 		.color = {.9f, .9f, .9f, 1.f},
 		.lightType = LightType::Directional,
