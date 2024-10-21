@@ -228,8 +228,6 @@ float4 main(PS_INPUT input) : SV_TARGET
 		
 	LightingResult lit = ComputeLighting(input.WorldPosition, N);
 		
-	
-		
 	float4 color = Material.DiffuseColor;
 	if (Material.UseDiffuseTexture)
 	{
@@ -246,23 +244,21 @@ float4 main(PS_INPUT input) : SV_TARGET
 		Is = lit.specular * specularTexture.Sample(specularSampler, input.TexCoord);
 	}
 	
-	float opacity = 1.f;
-	if (Material.useOpacityTexture)
-	{
-		opacity = opacityTexture.Sample(opacitySampler, input.TexCoord).a;
-	}
-		
 	if (Material.useEmissiveTexture)
 	{
 		Ia += emissiveTexture.Sample(emissiveSampler, input.TexCoord);
 	}
 		
 	float4 finalColor = pow(Ia + Id + Is, 1.0 / 2.2);
-		
-	finalColor.a *= opacity;
-		
-	if (finalColor.a < 0.1)
-		clip(-1);
+	
+	if (Material.useOpacityTexture)
+	{
+		float opacity = opacityTexture.Sample(opacitySampler, input.TexCoord).a;
+		finalColor.a *= opacity;
+			
+		if (finalColor.a <= 0.9)
+			clip(-1);
+	}
 		
 	return finalColor;
 }

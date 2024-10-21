@@ -48,10 +48,13 @@ public:
 	ID3D11DepthStencilState* _depthStencilState{ nullptr };
 	ID3D11DepthStencilView* _depthStencilView{ nullptr };
 
+	ID3D11BlendState* _blendState{ nullptr };
+
 	D3D11_VIEWPORT _viewport{};
 
 	HRESULT ConfigureBackBuffer();
 	HRESULT ConfigureDepthStencilBuffer();
 	HRESULT ConfigureRasterizer();
+	HRESULT ConfigureBlendState();
 	HRESULT ConfigureViewport();
 };

@@ -191,13 +191,15 @@ void DemoApp::InitModels()
 		_renderer->_deviceContext,
 		"assets/resource/Tree.fbx"
 	);
-	_tree->Scale(100.f);
+	_tree->Scale(150.f);
+	_tree->Translate(200.f, 0.f, 0.f);
 
 	_zelda = new Model(
 		_renderer->_device,
 		_renderer->_deviceContext,
 		"assets/resource/zeldaPosed001.fbx"
 	);
+	_zelda->Translate(-200.f, 0.f, 0.f);
 
 }
 

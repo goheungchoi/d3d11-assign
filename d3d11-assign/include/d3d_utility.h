@@ -130,9 +130,10 @@ struct _Material {
 };
 
 inline std::optional<Texture> FindTexture(std::vector<Texture> textures, TEXTURE_TYPE type) {
-	auto it = std::find_if(begin(textures), end(textures), [type](const Texture& tex) {
+	auto it = std::find_if(begin(textures), end(textures), 
+		[type](const Texture& tex) {
 		return tex.type == type;
-		});
+	});
 
 	return (it != textures.end()) ? std::optional(*it) : std::nullopt;
 }
@@ -217,7 +218,7 @@ struct cbPerObject {
 };
 
 // Camera properties
-inline Vector4 g_camPos{ 0.f, 5.f, -8.f , 0.f };
+inline Vector4 g_camPos{ 0.f, 100.f, -200.f , 0.f };
 
 inline cbPerFrame g_cbPerFrame{};
 

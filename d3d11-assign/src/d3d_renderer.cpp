@@ -25,6 +25,9 @@ HRESULT D3D11Renderer::Initialize(HWND hWnd)
 	res = ConfigureRasterizer();
 	if (FAILED(res)) return res;
 
+	res = ConfigureBlendState();
+	if (FAILED(res)) return res;
+
 	res = ConfigureViewport();
 	if (FAILED(res)) return res;
 
@@ -50,10 +53,16 @@ void D3D11Renderer::BeginDraw()
 		1.f											, 0
 	);
 
+	//"fine-tune" the blending equation
+	//float blendFactor[] = { 0.75f, 0.75f, 0.75f, 1.0f };
+
+	
 	/* OUTPUT MERGER */
 	// Bind the render target every frame
 	_deviceContext->OMSetRenderTargets(1, &_renderTargetView, _depthStencilView);
-	
+	//Set the default blend state (no blending) for opaque objects
+	//_deviceContext->OMSetBlendState(_blendState, blendFactor, 0xffffffff);
+
 	//// Set the depth stencil state
 	//_deviceContext->OMSetDepthStencilState(_depthStencilState, 1);
 
@@ -355,6 +364,30 @@ HRESULT D3D11Renderer::ConfigureRasterizer()
 
 	// Set the rasterizer state
 	_deviceContext->RSSetState(_rasterizerState);
+
+	return res;
+}
+
+HRESULT D3D11Renderer::ConfigureBlendState()
+{
+	HRESULT res = S_OK;
+
+	D3D11_BLEND_DESC blendDesc{};
+	D3D11_RENDER_TARGET_BLEND_DESC renderTargetBlendDesc{};
+
+	renderTargetBlendDesc.BlendEnable = true;
+	renderTargetBlendDesc.SrcBlend = D3D11_BLEND_SRC_COLOR;
+	renderTargetBlendDesc.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+	renderTargetBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
+	renderTargetBlendDesc.SrcBlendAlpha = D3D11_BLEND_ONE;
+	renderTargetBlendDesc.DestBlendAlpha = D3D11_BLEND_ZERO;
+	renderTargetBlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	renderTargetBlendDesc.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
+
+	blendDesc.AlphaToCoverageEnable = false;
+	blendDesc.RenderTarget[0] = renderTargetBlendDesc;
+
+	res = _device->CreateBlendState(&blendDesc, &_blendState);
 
 	return res;
 }

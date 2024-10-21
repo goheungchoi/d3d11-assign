@@ -308,11 +308,11 @@ bool Mesh::InitBuffers()
 	if (FindTexture(textures, TEXTURE_TYPE::DIFFUSE))
 		_cbMaterialProperties.material.useDiffuseTexture = true;
 
-	if (FindTexture(textures, TEXTURE_TYPE::NORMALS))
-		_cbMaterialProperties.material.useNormalTexture = true;
-
 	if (FindTexture(textures, TEXTURE_TYPE::SPECULAR))
 		_cbMaterialProperties.material.useSpecularTexture = true;
+
+	if (FindTexture(textures, TEXTURE_TYPE::NORMALS))
+		_cbMaterialProperties.material.useNormalTexture = true;
 
 	if (FindTexture(textures, TEXTURE_TYPE::EMISSIVE))
 		_cbMaterialProperties.material.useEmissiveTexture = true;

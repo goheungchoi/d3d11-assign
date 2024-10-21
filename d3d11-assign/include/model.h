@@ -45,6 +45,10 @@ public:
 		_modelTransform *= XMMatrixScaling(scale, scale, scale);
 	}
 
+	void Translate(float dx, float dy, float dz) {
+		_modelTransform *= XMMatrixTranslation(dx, dy, dz);
+	}
+
 private:
 	std::vector<Mesh> _meshes;
 	std::string _directory;

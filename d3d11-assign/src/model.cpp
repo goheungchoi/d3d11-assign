@@ -185,7 +185,12 @@ std::vector<Texture> Model::LoadMaterialTextures(
 		bool skip = false;
 		for (UINT j = 0; j < _loadedTextures.size(); j++) {
 			if (std::strcmp(_loadedTextures[j].path.data(), str.C_Str()) == 0) {
-				textures.push_back(_loadedTextures[j]);
+				Texture texture;
+				texture.textureView = _loadedTextures[j].textureView;
+				texture.samplerState = _loadedTextures[j].samplerState;
+				texture.type = textureType;
+				texture.path = str.C_Str();
+				textures.push_back(texture);
 				skip = true;
 				break;
 			}
@@ -300,7 +305,9 @@ D3D11TextureDataPair CreateTextureFromFile(
 {
 	HRESULT res = S_OK;
 
-	std::string filename(path);
+	std::filesystem::path filepath(path);
+	std::string filename{ filepath.filename().string() };
+
 	filename = _directory + '/' + filename;
 
 	// Texture view
@@ -317,6 +324,9 @@ D3D11TextureDataPair CreateTextureFromFile(
 		nullptr, 
 		&textureView
 	);
+	if (FAILED(res)) {
+		throw std::exception("Can't load a texture file!");
+	}
 
 	// Sampler state
 	ID3D11SamplerState* samplerState{ nullptr };
