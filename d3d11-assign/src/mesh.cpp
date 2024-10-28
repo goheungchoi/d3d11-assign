@@ -31,16 +31,16 @@ void Mesh::Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms)
 	_context->VSSetConstantBuffers(1, 1, &_cboPerObject);
 
 	/* PIXEL STAGE */
-	// Diffuse
 	_context->PSSetShader(_ps, nullptr, 0);
-	_context->PSSetShaderResources(0, 1, &textures[0].textureView);
-	_context->PSSetSamplers(0, 1, &textures[0].samplerState);
-	// Specular
-	_context->PSSetShaderResources(1, 1, &textures[1].textureView);
-	_context->PSSetSamplers(1, 1, &textures[1].samplerState);
-	// Normal
-	_context->PSSetShaderResources(2, 1, &textures[2].textureView);
-	_context->PSSetSamplers(2, 1, &textures[2].samplerState);
+	// Diffuse
+	//_context->PSSetShaderResources(0, 1, &textures[0].textureView);
+	//_context->PSSetSamplers(0, 1, &textures[0].samplerState);
+	//// Specular
+	//_context->PSSetShaderResources(1, 1, &textures[1].textureView);
+	//_context->PSSetSamplers(1, 1, &textures[1].samplerState);
+	//// Normal
+	//_context->PSSetShaderResources(2, 1, &textures[2].textureView);
+	//_context->PSSetSamplers(2, 1, &textures[2].samplerState);
 	// TODO: Shadow maps
 
 
@@ -437,8 +437,11 @@ bool Mesh::InitBuffers()
 
 	// NOTE: Hard-coded material properties
 	// Need update dynamically.
+	_cbMaterialProperties.material.ambient = { 0.06f, 0.04f, 0.04f, 1.f };
+	_cbMaterialProperties.material.diffuse = { 0.8f, 0.6f, 0.6f, 1.f };
+	_cbMaterialProperties.material.specular = { 1.f, 1.f, 1.f, 1.f };
 	_cbMaterialProperties.material.shininess = 128.f;
-	_cbMaterialProperties.material.useTexture = true;
+	_cbMaterialProperties.material.useTexture = false;
 
 	return true;
 }

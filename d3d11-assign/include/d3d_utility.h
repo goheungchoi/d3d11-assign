@@ -98,9 +98,9 @@ struct Texture {
 // Material
 struct _Material {
 	Vector4 emissive;
+	Vector4 ambient;
 	Vector4 diffuse;
 	Vector4 specular;
-	Vector4 normal;
 	//-----------------------
 	float shininess;
 	uint32_t useTexture;

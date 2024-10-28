@@ -187,11 +187,11 @@ void DemoApp::InitModels()
 	_model = new Model(
 		_renderer->_device,
 		_renderer->_deviceContext,
-		"assets/vampire/vampire.fbx"
+		"assets/vampire/SkinningTest.fbx"
 	);
 
 	_animation = new Animation(
-		"assets/vampire/vampire.fbx", 
+		"assets/vampire/SkinningTest.fbx", 
 		_model
 	);
 
