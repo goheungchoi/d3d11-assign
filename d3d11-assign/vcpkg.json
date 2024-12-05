@@ -1,7 +1,14 @@
 {
-  "dependencies": [
-    "assimp",
-    "directxtk",
-    "imgui"
-  ]
+	"dependencies": [
+		"assimp",
+		"directxtk",
+		"stb",
+		{
+			"name": "imgui",
+			"features": [
+				"dx11-binding",
+				"win32-binding"
+			]
+		}
+	]
 }

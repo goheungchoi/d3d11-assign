@@ -1,7 +1,11 @@
 #pragma once
 
+#define NOMINMAX	// Use std minmax
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 #include <windows.h>
+
+#include <wrl/client.h>	// ComPtr
+using Microsoft::WRL::ComPtr;
 
 // WinAPI types Re-definitions
 using AppWindow = HWND;
@@ -26,7 +30,6 @@ using WindowStyleFlags = DWORD;
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <functional>
 using namespace std::literals;
 #include <format>
 

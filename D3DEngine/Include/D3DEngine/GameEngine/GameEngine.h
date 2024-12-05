@@ -7,9 +7,6 @@ public:
 	AppWindow hWindow;
 	bool stop_rendering{ false };
 
-	class D2DRenderer* d2d{ nullptr };
-	class InputSystem* inputSystem{ nullptr };
-
 	virtual void Initialize();
 	virtual void Execute();
 	virtual void Shutdown();

@@ -1,93 +1,134 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="app\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\demo_app.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\d3d_utility.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\d3d_renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\skeletal-animation\bone.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="shaders\VertexShader.hlsl" />
-    <FxCompile Include="shaders\PixelShader.hlsl" />
-    <FxCompile Include="shaders\BlinnPhong_VS.hlsl" />
-    <FxCompile Include="shaders\BlinnPhong_PS.hlsl" />
-    <FxCompile Include="shaders\SkeletalBlinnPhong_VS.hlsl" />
-    <FxCompile Include="shaders\SkeletalBlinnPhong_PS.hlsl" />
-    <FxCompile Include="shaders\shadow\DepthMap_VS.hlsl" />
-    <FxCompile Include="shaders\shadow\DepthMap_PS.hlsl" />
-    <FxCompile Include="shaders\shadow\SkeletalBlinnPhongWithShadow_VS.hlsl" />
-    <FxCompile Include="shaders\shadow\SkeletalBlinnPhongWithShadow_PS.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\demo_app.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\d3d_utility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\d3d_renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\skeletal-animation\bone.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\skeletal-animation\animation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\skeletal-animation\animator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="shaders\MatrixInverse.hlsli" />
-  </ItemGroup>
+<?xml version='1.0' encoding='utf-8'?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+	<ItemGroup>
+		<Filter Include="assets\model">
+			<UniqueIdentifier>{798DAC01-5B30-40A3-BEB7-B790AB95A632}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="assets">
+			<UniqueIdentifier>{8D6B0ECB-6A2E-476A-9C5E-6287E07EFF56}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="include">
+			<UniqueIdentifier>{5A1453CE-90F8-4CEE-9084-9C9006CD2BFE}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="src">
+			<UniqueIdentifier>{62DFBEB1-2CD1-4CCC-A9BB-93CAEEF59732}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="assets\textures">
+			<UniqueIdentifier>{EB11BF39-CB1B-4474-BC0B-A1FC312D777D}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="app">
+			<UniqueIdentifier>{0504FC72-4020-4E17-BEA2-2D5C9D654273}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="shaders">
+			<UniqueIdentifier>{32C59C8B-74CC-4DA1-9154-7E1CA6838F10}</UniqueIdentifier>
+		</Filter>
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="assets\textures\cerberus_R.png">
+			<Filter>assets\textures</Filter>
+		</None>
+		<None Include="shaders\BlinnPhong_VS.cso">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="assets\textures\cerberus_N.png">
+			<Filter>assets\textures</Filter>
+		</None>
+		<None Include="shaders\SpecularBRDF_LUT_CS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="shaders\PBR_PS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="shaders\SkyBox_VS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="shaders\PBR_PS.cso">
+			<Filter>shaders</Filter>
+		</None>
+		<ClInclude Include="src\demo_app.h">
+			<Filter>src</Filter>
+		</ClInclude>
+		<None Include="shaders\BlinnPhong_PS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="shaders\BlinnPhong_PS.cso">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="shaders\PBR_VS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="shaders\ToneMapping_PS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="shaders\MatrixInverse.hlsli">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="shaders\PBR_VS.cso">
+			<Filter>shaders</Filter>
+		</None>
+		<ClCompile Include="app\main.cpp">
+			<Filter>app</Filter>
+		</ClCompile>
+		<None Include="shaders\ToneMapping_VS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="shaders\compile.bat">
+			<Filter>shaders</Filter>
+		</None>
+		<ClInclude Include="include\types.h">
+			<Filter>include</Filter>
+		</ClInclude>
+		<ClCompile Include="src\demo_app.cpp">
+			<Filter>src</Filter>
+		</ClCompile>
+		<ClCompile Include="src\skybox.cpp">
+			<Filter>src</Filter>
+		</ClCompile>
+		<ClCompile Include="src\camera.cpp">
+			<Filter>src</Filter>
+		</ClCompile>
+		<None Include="shaders\BlinnPhong_VS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="assets\model\cerberus.fbx">
+			<Filter>assets\model</Filter>
+		</None>
+		<ClInclude Include="include\config.h">
+			<Filter>include</Filter>
+		</ClInclude>
+		<None Include="assets\textures\cerberus_A.png">
+			<Filter>assets\textures</Filter>
+		</None>
+		<ClInclude Include="src\camera.h">
+			<Filter>src</Filter>
+		</ClInclude>
+		<None Include="shaders\GammaCorrection.hlsli">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="assets\textures\environment.hdr">
+			<Filter>assets\textures</Filter>
+		</None>
+		<ClInclude Include="include\common.h">
+			<Filter>include</Filter>
+		</ClInclude>
+		<None Include="shaders\SpecularIBLMap_CS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="assets\textures\cerberus_M.png">
+			<Filter>assets\textures</Filter>
+		</None>
+		<ClInclude Include="src\skybox.h">
+			<Filter>src</Filter>
+		</ClInclude>
+		<None Include="shaders\SkyBox_PS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="imgui.ini" />
+		<None Include="shaders\Equirect2Cube_CS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="shaders\DiffuseIrradiance_CS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+	</ItemGroup>
 </Project>

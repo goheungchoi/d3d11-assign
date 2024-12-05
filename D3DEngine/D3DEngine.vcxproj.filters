@@ -1,54 +1,91 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Include\D3DEngine\WinApp\WinApp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\D3DEngine\WinApp\WinBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\D3DEngine\EngineCommon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\D3DEngine\GameEngine\GameEngine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\D3DEngine\Core\Timer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\D3DEngine\Renderer\IRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Renderer\D3D11Renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Source\WinApp\WinApp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\GameEngine\GameEngine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\Timer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Renderer\D3D11Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
+<?xml version='1.0' encoding='utf-8'?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+	<ItemGroup>
+		<Filter Include="Include\D3DEngine\GameEngine">
+			<UniqueIdentifier>{5F3A3996-FD4B-47A5-B4EA-A31D68451E1E}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source">
+			<UniqueIdentifier>{94A8C5FB-20E1-4AA7-A622-1974D2AE2FDD}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include\D3DEngine">
+			<UniqueIdentifier>{35C53D16-FDA9-4756-BD3B-4AE532954E40}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source\GameEngine">
+			<UniqueIdentifier>{A28C2312-9184-4C4C-939B-58883D5118A7}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source\Renderer">
+			<UniqueIdentifier>{A4395A50-6F2A-4DB7-A1F4-9E32C0AB5561}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include">
+			<UniqueIdentifier>{77CB8922-6863-41C6-8E57-15CCF0900744}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source\WinApp">
+			<UniqueIdentifier>{B6535FD4-D775-4232-BCA0-C9159E2B1A4D}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include\D3DEngine\Renderer">
+			<UniqueIdentifier>{B975DD44-0284-48CD-BFEF-FE474C287890}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include\D3DEngine\WinApp">
+			<UniqueIdentifier>{6ABD434D-ABFA-4A25-B345-977EB603E8F5}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source\Core">
+			<UniqueIdentifier>{97E9B544-AA3D-4D50-B888-DA05A7216EEB}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include\D3DEngine\Core">
+			<UniqueIdentifier>{DA5FB70F-B394-4710-863E-705B7E1C0874}</UniqueIdentifier>
+		</Filter>
+	</ItemGroup>
+	<ItemGroup>
+		<ClInclude Include="Include\D3DEngine\GameEngine\GameEngine.h">
+			<Filter>Include\D3DEngine\GameEngine</Filter>
+		</ClInclude>
+		<ClInclude Include="Include\D3DEngine\Core\Mesh.h">
+			<Filter>Include\D3DEngine\Core</Filter>
+		</ClInclude>
+		<ClInclude Include="Include\D3DEngine\Renderer\D3D11Utils.h">
+			<Filter>Include\D3DEngine\Renderer</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\Renderer\D3D11Renderer.cpp">
+			<Filter>Source\Renderer</Filter>
+		</ClCompile>
+		<ClInclude Include="Include\D3DEngine\Core\Image.h">
+			<Filter>Include\D3DEngine\Core</Filter>
+		</ClInclude>
+		<ClInclude Include="Include\D3DEngine\WinApp\WinBase.h">
+			<Filter>Include\D3DEngine\WinApp</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\Core\Mesh.cpp">
+			<Filter>Source\Core</Filter>
+		</ClCompile>
+		<ClCompile Include="Source\GameEngine\GameEngine.cpp">
+			<Filter>Source\GameEngine</Filter>
+		</ClCompile>
+		<ClInclude Include="Include\D3DEngine\WinApp\WinApp.h">
+			<Filter>Include\D3DEngine\WinApp</Filter>
+		</ClInclude>
+		<ClInclude Include="Include\D3DEngine\Renderer\D3D11Renderer.h">
+			<Filter>Include\D3DEngine\Renderer</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\Core\Timer.cpp">
+			<Filter>Source\Core</Filter>
+		</ClCompile>
+		<ClInclude Include="Include\D3DEngine\EngineCommon.h">
+			<Filter>Include\D3DEngine</Filter>
+		</ClInclude>
+		<ClInclude Include="Include\D3DEngine\Core\Timer.h">
+			<Filter>Include\D3DEngine\Core</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\WinApp\WinApp.cpp">
+			<Filter>Source\WinApp</Filter>
+		</ClCompile>
+		<ClCompile Include="Source\Core\Image.cpp">
+			<Filter>Source\Core</Filter>
+		</ClCompile>
+		<ClCompile Include="Source\Renderer\D3D11Utils.cpp">
+			<Filter>Source\Renderer</Filter>
+		</ClCompile>
+		<ClInclude Include="Include\D3DEngine\Renderer\IRenderer.h">
+			<Filter>Include\D3DEngine\Renderer</Filter>
+		</ClInclude>
+	</ItemGroup>
 </Project>
