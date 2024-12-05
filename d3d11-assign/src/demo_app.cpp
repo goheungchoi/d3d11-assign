@@ -19,6 +19,8 @@
 
 DemoApp* loadedApp{nullptr};
 
+XMVECTOR g_eyePos{};
+
 void DemoApp::Initialize() {
   if (loadedApp) abort();
 
@@ -51,11 +53,10 @@ void DemoApp::Initialize() {
   InitShaders();
   InitTextures();
   InitSamplers();
+  InitIBL();
   InitSpecularBRDF_LUT();
-  
-	InitIBL();
 
-	InitMeshes();
+  InitMeshes();
   InitLights();
 #if USE_GUI == 1
   InitImgui();
@@ -103,6 +104,18 @@ void DemoApp::Update(float dt) {
 
 #if USE_CAM == 1
   _camera->Update(dt);
+#else
+  g_camPos.m128_f32[2] = g_camDist;
+  XMVECTOR eye = g_camPos;
+  XMVECTOR viewDir{0.f, 0.f, -1.f};
+  XMVECTOR upDir{0.f, 1.f, 0.f};
+  // _view = XMMatrixLookToLH(eye, viewDir, upDir);
+  XMMATRIX transform = XMMatrixTranslationFromVector(g_camPos) *
+                       XMMatrixRotationY(XMConvertToRadians(rotation));
+  XMVECTOR dump1, dump2;
+  XMMatrixDecompose(&dump1, &dump2, &eye, transform);
+  g_eyePos = eye;
+  _view = XMMatrixLookAtLH(eye, {0, 0, 0, 0}, upDir);
 #endif
 }
 
@@ -118,41 +131,48 @@ void DemoApp::Render() {
 
   _renderer->BeginDraw();
 
-	_renderer->_context->IASetPrimitiveTopology(
+  _renderer->_context->IASetPrimitiveTopology(
       D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+  _renderer->_context->RSSetState(_defaultRasterizerState.Get());
 
 #if USE_CAM == 1
   _view = _camera->GetViewTransform();
 #endif
 
-  _transformConstants.viewProj = _view * _proj;
-  _transformConstants.sceneRotation = XMMatrixIdentity();
+  _transformConstants.viewProj = XMMatrixTranspose(_view * _proj);
+  _transformConstants.skyProj = XMMatrixTranspose(_proj);
+  _transformConstants.sceneRotation =
+      XMMatrixTranspose(XMMatrixScaling(0.8, 0.8, 0.8));
   _renderer->CopyDataToDeviceBuffer(_cboTransform, &_transformConstants);
-	_renderer->CopyDataToDeviceBuffer(_cboShading, &_shadingConstants);
 
-	// Draw skybox.
-  if (_useIBL) {
-    _renderer->_context->IASetInputLayout(
-        _skyboxProgram.inputLayout.Get());
-    _renderer->_context->IASetVertexBuffers(
-        0, 1, _skybox.vertexBuffer.GetAddressOf(), &_skybox.stride,
-        &_skybox.offset);
+  _shadingConstants.eyePosition = g_eyePos;
+
+  _renderer->CopyDataToDeviceBuffer(_cboShading, &_shadingConstants);
+
+  _renderer->_context->VSSetConstantBuffers(0, 1, _cboTransform.GetAddressOf());
+  _renderer->_context->PSSetConstantBuffers(0, 1, _cboShading.GetAddressOf());
+
+  // Draw skybox.
+  if (_shadingConstants.useIBL) {
+    _renderer->_context->IASetInputLayout(_skyboxProgram.inputLayout.Get());
+    _renderer->_context->IASetVertexBuffers(0, 1,
+                                            _skybox.vertexBuffer.GetAddressOf(),
+                                            &_skybox.stride, &_skybox.offset);
     _renderer->_context->IASetIndexBuffer(_skybox.indexBuffer.Get(),
                                           DXGI_FORMAT_R32_UINT, 0);
-    _renderer->_context->VSSetShader(_skyboxProgram.vertexShader.Get(),
-                                      nullptr, 0);
-    _renderer->_context->PSSetShader(_skyboxProgram.pixelShader.Get(),
-                                      nullptr, 0);
-    _renderer->_context->PSSetShaderResources(
-        0, 1, _envTexture.srv.GetAddressOf());
-    _renderer->_context->PSSetSamplers(0, 1,
-                                        _defaultSampler.GetAddressOf());
-    _renderer->_context->OMSetDepthStencilState(
-        _skyboxDepthStencilState.Get(), 0);
+    _renderer->_context->VSSetShader(_skyboxProgram.vertexShader.Get(), nullptr,
+                                     0);
+    _renderer->_context->PSSetShader(_skyboxProgram.pixelShader.Get(), nullptr,
+                                     0);
+    _renderer->_context->PSSetShaderResources(0, 1,
+                                              _envTexture.srv.GetAddressOf());
+    _renderer->_context->PSSetSamplers(0, 1, _defaultSampler.GetAddressOf());
+    _renderer->_context->OMSetDepthStencilState(_skyboxDepthStencilState.Get(),
+                                                0);
     _renderer->_context->DrawIndexed(_skybox.numElements, 0, 0);
   }
 
-	// Draw PBR model.
+  // Draw PBR model.
   ID3D11ShaderResourceView* const pbrModelSRVs[] = {
       _albedoTexture.srv.Get(),    _normalTexture.srv.Get(),
       _metalnessTexture.srv.Get(), _roughnessTexture.srv.Get(),
@@ -164,19 +184,21 @@ void DemoApp::Render() {
       _spBRDF_Sampler.Get(),
   };
 
-	_renderer->_context->IASetInputLayout(_pbrProgram.inputLayout.Get());
-  _renderer->_context->IASetVertexBuffers(0, 1, _pbrModel.vertexBuffer.GetAddressOf(),
-                                &_pbrModel.stride, &_pbrModel.offset);
+  _renderer->_context->IASetInputLayout(_pbrProgram.inputLayout.Get());
+  _renderer->_context->IASetVertexBuffers(0, 1,
+                                          _pbrModel.vertexBuffer.GetAddressOf(),
+                                          &_pbrModel.stride, &_pbrModel.offset);
   _renderer->_context->IASetIndexBuffer(_pbrModel.indexBuffer.Get(),
-                              DXGI_FORMAT_R32_UINT, 0);
+                                        DXGI_FORMAT_R32_UINT, 0);
   _renderer->_context->VSSetShader(_pbrProgram.vertexShader.Get(), nullptr, 0);
   _renderer->_context->PSSetShader(_pbrProgram.pixelShader.Get(), nullptr, 0);
   _renderer->_context->PSSetShaderResources(0, 7, pbrModelSRVs);
   _renderer->_context->PSSetSamplers(0, 2, pbrModelSamplers);
-  _renderer->_context->OMSetDepthStencilState(_defaultDepthStencilState.Get(), 0);
+  _renderer->_context->OMSetDepthStencilState(_defaultDepthStencilState.Get(),
+                                              0);
   _renderer->_context->DrawIndexed(_pbrModel.numElements, 0, 0);
 
-	_renderer->EndDraw();
+  _renderer->EndDraw();
 
 #if USE_GUI == 1
   // Start the Dear ImGui frame
@@ -185,8 +207,16 @@ void DemoApp::Render() {
   ImGui::NewFrame();
 
   if (ImGui::Begin("Properties")) {
+    ImGui::Text("Camera: ");
+    ImGui::SliderFloat("CamRotation", &rotation, 0.f, 360.f);
+    ImGui::SliderFloat("CamDistance", &g_camDist, 10.f, 200.f);
     ImGui::Text("Gamma: ");
-
+    ImGui::SliderFloat("Gamma value", &_shadingConstants.gamma, 0.0, 5.0);
+    ImGui::Text("Use IBL: ");
+    ImGui::Checkbox("UseIBL", (bool*)&_shadingConstants.useIBL);
+    ImGui::Checkbox("Light1", (bool*)&_shadingConstants.lights[0].enabled);
+    ImGui::Checkbox("Light2", (bool*)&_shadingConstants.lights[1].enabled);
+    ImGui::Checkbox("Light3", (bool*)&_shadingConstants.lights[2].enabled);
   }
   ImGui::End();
 
@@ -195,7 +225,7 @@ void DemoApp::Render() {
   ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 #endif
 
-	_renderer->_swapchain->Present(1, 0);
+  _renderer->_swapchain->Present(1, 0);
 
 #ifndef NDEBUG
   ++count;
@@ -212,7 +242,7 @@ void DemoApp::InitTransformMatrices() {
   _proj = XMMatrixPerspectiveFovLH(vfov, aspectRatio, 0.01f, 10000.f);
   // Create the Orthographic projection matrix
   //_proj = XMMatrixOrthographicLH((float)SCREEN_WIDTH, (float)SCREEN_HEIGHT,
-  //0.01f, 100.f);
+  // 0.01f, 100.f);
 }
 
 void DemoApp::InitCamera() {
@@ -220,11 +250,12 @@ void DemoApp::InitCamera() {
   _camera = new Camera(GetModuleHandle(NULL), hWindow);
   _view = _camera->GetViewTransform();
 #else
-  XMVECTOR eye = g_camPos;
+  /*XMVECTOR eye = g_camPos;
   XMVECTOR viewDir{ 0.f, 0.f, -1.f };
   XMVECTOR upDir{0.f, 1.f, 0.f};
-  _view = XMMatrixLookToLH(eye, viewDir, upDir);
-  //_view = XMMatrixLookAtLH({10, 0, 10, 0}, {0, 0, 0, 0}, upDir);
+  _view = XMMatrixLookToLH(eye, viewDir, upDir)*/
+  ;
+  _view = XMMatrixLookAtLH(g_camPos, {0, 0, 0, 0}, {0.f, 1.f, 0.f});
 #endif
 }
 
@@ -257,24 +288,25 @@ void DemoApp::InitShaders() {
       CompileShaderFromFile(L"shaders/PBR_PS.hlsl", "main", "ps_5_0"),
       &meshInputLayout);
 
-	_skyboxProgram = _renderer->CreateShaderProgram(
+  _skyboxProgram = _renderer->CreateShaderProgram(
       CompileShaderFromFile(L"shaders/SkyBox_VS.hlsl", "main", "vs_5_0"),
       CompileShaderFromFile(L"shaders/SkyBox_PS.hlsl", "main", "ps_5_0"),
       &skyboxInputLayout);
 }
 
 void DemoApp::InitTextures() {
-  _albedoTexture =
-      _renderer->CreateTexture(Image::fromFile("assets/textures/cerberus_A.png"),
-                                  DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
+  _albedoTexture = _renderer->CreateTexture(
+      Image::fromFile("assets/textures/cerberus_A.png"),
+      DXGI_FORMAT_R8G8B8A8_UNORM);
   _normalTexture = _renderer->CreateTexture(
       Image::fromFile("assets/textures/cerberus_N.png"),
-                                  DXGI_FORMAT_R8G8B8A8_UNORM);
+      DXGI_FORMAT_R8G8B8A8_UNORM);
   _metalnessTexture = _renderer->CreateTexture(
-      Image::fromFile("assets/textures/cerberus_M.png", 1), DXGI_FORMAT_R8_UNORM);
+      Image::fromFile("assets/textures/cerberus_M.png", 1),
+      DXGI_FORMAT_R8_UNORM);
   _roughnessTexture = _renderer->CreateTexture(
-      Image::fromFile("assets/textures/cerberus_R.png", 1), DXGI_FORMAT_R8_UNORM);
-
+      Image::fromFile("assets/textures/cerberus_R.png", 1),
+      DXGI_FORMAT_R8_UNORM);
 }
 
 void DemoApp::InitSamplers() {
@@ -282,23 +314,6 @@ void DemoApp::InitSamplers() {
                                                   D3D11_TEXTURE_ADDRESS_WRAP);
   _computeSampler = _renderer->CreateSamplerState(
       D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP);
-}
-
-void DemoApp::InitSpecularBRDF_LUT() {
-  ComputeProgram spBRDFProgram = _renderer->CreateComputeProgram(
-      CompileShaderFromFile(L"shaders/SpecularBRDF_LUT_CS.hlsl", "main", "cs_5_0"));
-
-  _spBRDF_LUT = _renderer->CreateTexture(256, 256, DXGI_FORMAT_R16G16_FLOAT, 1);
-  _spBRDF_Sampler = _renderer->CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-                                        D3D11_TEXTURE_ADDRESS_CLAMP);
-  _renderer->CreateTextureUAV(_spBRDF_LUT, 0);
-
-  _renderer->_context->CSSetUnorderedAccessViews(
-      0, 1, _spBRDF_LUT.uav.GetAddressOf(), nullptr);
-  _renderer->_context->CSSetShader(spBRDFProgram.computeShader.Get(), nullptr, 0);
-  _renderer->_context->Dispatch(_spBRDF_LUT.width / 32, _spBRDF_LUT.height / 32,
-                              1);
-  _renderer->_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
 }
 
 void DemoApp::InitIBL() {
@@ -309,21 +324,22 @@ void DemoApp::InitIBL() {
 
   // Load & convert equirectangular environment map to a cubemap texture.
   {
-    ComputeProgram equirectToCubeProgram = _renderer->CreateComputeProgram(
-        CompileShaderFromFile(L"shaders/Equirect2Cube_CS.hlsl", "main", "cs_5_0"));
+    ComputeProgram equirectToCubeProgram =
+        _renderer->CreateComputeProgram(CompileShaderFromFile(
+            L"shaders/Equirect2Cube_CS.hlsl", "main", "cs_5_0"));
     Texture envTextureEquirect = _renderer->CreateTexture(
-        Image::fromFile("assets/textures/environment.hdr"), DXGI_FORMAT_R32G32B32A32_FLOAT, 1);
+        Image::fromFile("assets/textures/environment.hdr"),
+        DXGI_FORMAT_R32G32B32A32_FLOAT, 1);
 
     _renderer->_context->CSSetShaderResources(
-        0, 1,
-                                    envTextureEquirect.srv.GetAddressOf());
+        0, 1, envTextureEquirect.srv.GetAddressOf());
     _renderer->_context->CSSetUnorderedAccessViews(
         0, 1, envTextureUnfiltered.uav.GetAddressOf(), nullptr);
     _renderer->_context->CSSetSamplers(0, 1, _computeSampler.GetAddressOf());
     _renderer->_context->CSSetShader(equirectToCubeProgram.computeShader.Get(),
-                                   nullptr, 0);
+                                     nullptr, 0);
     _renderer->_context->Dispatch(envTextureUnfiltered.width / 32,
-                                envTextureUnfiltered.height / 32, 6);
+                                  envTextureUnfiltered.height / 32, 6);
     _renderer->_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
   }
 
@@ -336,13 +352,13 @@ void DemoApp::InitIBL() {
       float padding[3];
     };
     ComputeProgram spmapProgram =
-        _renderer->CreateComputeProgram(
-        CompileShaderFromFile(L"shaders/SpecularIBLMap_CS.hlsl", "main", "cs_5_0"));
+        _renderer->CreateComputeProgram(CompileShaderFromFile(
+            L"shaders/SpecularIBLMap_CS.hlsl", "main", "cs_5_0"));
     ComPtr<ID3D11Buffer> spmapCB =
         _renderer->CreateConstantBuffer<SpecularMapFilterSettingsCB>();
 
-    _envTexture =
-        _renderer->CreateTextureCube(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
+    _envTexture = _renderer->CreateTextureCube(1024, 1024,
+                                               DXGI_FORMAT_R16G16B16A16_FLOAT);
 
     // Copy 0th mipmap level into destination environment map.
     for (int arraySlice = 0; arraySlice < 6; ++arraySlice) {
@@ -357,7 +373,7 @@ void DemoApp::InitIBL() {
         0, 1, envTextureUnfiltered.srv.GetAddressOf());
     _renderer->_context->CSSetSamplers(0, 1, _computeSampler.GetAddressOf());
     _renderer->_context->CSSetShader(spmapProgram.computeShader.Get(), nullptr,
-                                   0);
+                                     0);
 
     // Pre-filter rest of the mip chain.
     const float deltaRoughness =
@@ -381,9 +397,10 @@ void DemoApp::InitIBL() {
     _renderer->_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
   }
 
-	// Compute diffuse irradiance cubemap.
-  ComputeProgram irmapProgram = _renderer->CreateComputeProgram(
-      CompileShaderFromFile(L"shaders/DiffuseIrradiance_CS.hlsl", "main", "cs_5_0"));
+  // Compute diffuse irradiance cubemap.
+  ComputeProgram irmapProgram =
+      _renderer->CreateComputeProgram(CompileShaderFromFile(
+          L"shaders/DiffuseIrradiance_CS.hlsl", "main", "cs_5_0"));
 
   _irmapTexture =
       _renderer->CreateTextureCube(32, 32, DXGI_FORMAT_R16G16B16A16_FLOAT, 1);
@@ -393,19 +410,38 @@ void DemoApp::InitIBL() {
                                             _envTexture.srv.GetAddressOf());
   _renderer->_context->CSSetSamplers(0, 1, _computeSampler.GetAddressOf());
   _renderer->_context->CSSetUnorderedAccessViews(
-      0, 1, _irmapTexture.uav.GetAddressOf(),
-                                       nullptr);
+      0, 1, _irmapTexture.uav.GetAddressOf(), nullptr);
   _renderer->_context->CSSetShader(irmapProgram.computeShader.Get(), nullptr,
                                    0);
   _renderer->_context->Dispatch(_irmapTexture.width / 32,
                                 _irmapTexture.height / 32, 6);
   _renderer->_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
+}
 
+void DemoApp::InitSpecularBRDF_LUT() {
+  ComputeProgram spBRDFProgram =
+      _renderer->CreateComputeProgram(CompileShaderFromFile(
+          L"shaders/SpecularBRDF_LUT_CS.hlsl", "main", "cs_5_0"));
+
+  _spBRDF_LUT = _renderer->CreateTexture(256, 256, DXGI_FORMAT_R16G16_FLOAT, 1);
+  _spBRDF_Sampler = _renderer->CreateSamplerState(
+      D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP);
+  _renderer->CreateTextureUAV(_spBRDF_LUT, 0);
+
+  _renderer->_context->CSSetUnorderedAccessViews(
+      0, 1, _spBRDF_LUT.uav.GetAddressOf(), nullptr);
+  _renderer->_context->CSSetShader(spBRDFProgram.computeShader.Get(), nullptr,
+                                   0);
+  _renderer->_context->Dispatch(_spBRDF_LUT.width / 32, _spBRDF_LUT.height / 32,
+                                1);
+  _renderer->_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
 }
 
 void DemoApp::InitMeshes() {
-  _pbrModel = _renderer->CreateMeshBuffer(Mesh::fromFile("assets/model/cerberus.fbx"));
-  _skybox = _renderer->CreateMeshBuffer(Mesh::fromFile("assets/model/skybox.obj"));
+  _pbrModel =
+      _renderer->CreateMeshBuffer(Mesh::fromFile("assets/model/cerberus.fbx"));
+  _skybox =
+      _renderer->CreateMeshBuffer(Mesh::fromFile("assets/model/skybox.obj"));
 }
 
 void DemoApp::InitLights() {
@@ -414,20 +450,22 @@ void DemoApp::InitLights() {
   _shadingConstants.useIBL = _useIBL;
   _shadingConstants.gamma = 1.f;
 
-	Light light1, light2, light3;
-  light1.direction = {-1.0f,  0.0f, 0.0f, 0.f};
-  light2.direction = { 1.0f,  0.0f, 0.0f, 0.f};
-  light3.direction = { 0.0f, -1.0f, 0.0f, 0.f};
+  Light light1, light2, light3;
+  light1.direction = {-1.0f, 0.0f, 0.0f, 0.f};
+  light2.direction = {1.0f, 0.0f, 0.0f, 0.f};
+  light3.direction = {0.0f, -1.0f, 0.0f, 0.f};
 
-	light1.radiance = {1.0f, 1.0f, 1.0f, 1.f};
+  light1.radiance = {1.0f, 1.0f, 1.0f, 1.f};
   light2.radiance = {1.0f, 1.0f, 1.0f, 1.f};
   light3.radiance = {1.0f, 1.0f, 1.0f, 1.f};
 
-	light1.enabled = true;
+  light1.enabled = true;
+  light2.enabled = true;
+  light3.enabled = true;
 
-	_shadingConstants.lights[0] = light1;
-	_shadingConstants.lights[1] = light2;
-	_shadingConstants.lights[2] = light3;
+  _shadingConstants.lights[0] = light1;
+  _shadingConstants.lights[1] = light2;
+  _shadingConstants.lights[2] = light3;
 }
 
 void DemoApp::InitImgui() {

@@ -10,8 +10,8 @@ using namespace DirectX::SimpleMath;
 
 class Camera {
 	static constexpr XMVECTOR UP{ 0.f, 1.f, 0.f, 0.f };
-	static constexpr XMVECTOR RIGHT{ 1.f, 0.f, 0.f, 0.f };
-	static constexpr XMVECTOR FORWARD{ 0.f, 0.f, 1.f, 0.f };
+	static constexpr XMVECTOR RIGHT{ -1.f, 0.f, 0.f, 0.f };
+	static constexpr XMVECTOR FORWARD{ 0.f, 0.f, -1.f, 0.f };
 
 	IDirectInputDevice8* DIKeyboard;
 	IDirectInputDevice8* DIMouse;
@@ -31,9 +31,9 @@ class Camera {
 	float backForwardMove{ 0.f };
 
 	XMVECTOR position{ (__m128)g_camPos };
-	XMVECTOR forward{ 0.f, 0.f, 1.f, 0.f };
+	XMVECTOR forward{ 0.f, 0.f, -1.f, 0.f };
 	XMVECTOR up{ 0.f, 1.f, 0.f, 0.f };
-	XMVECTOR right{ 1.f, 0.f, 0.f, 0.f };
+	XMVECTOR right{ -1.f, 0.f, 0.f, 0.f };
 	float pitch{ 0.f };	// around x-axis in radian
 	float yaw{ 0.f };	// around y-axis in radian
 	float roll{ 0.f };	// around z-axis in radian. Must be 0.f

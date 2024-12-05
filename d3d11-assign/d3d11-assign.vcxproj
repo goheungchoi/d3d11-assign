@@ -181,6 +181,7 @@
 		<None Include="shaders\BlinnPhong_VS.cso" />
 		<None Include="shaders\BlinnPhong_VS.hlsl" />
 		<None Include="shaders\DiffuseIrradiance_CS.hlsl" />
+		<None Include="shaders\Equirect2Cube_CS.cso" />
 		<None Include="shaders\Equirect2Cube_CS.hlsl" />
 		<None Include="shaders\GammaCorrection.hlsli" />
 		<None Include="shaders\MatrixInverse.hlsli" />

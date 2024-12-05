@@ -32,10 +32,12 @@ cbuffer ShadingConstants : register(b0)
 {
 	struct
 	{
-		float3 direction;
-		float3 radiance;
+		float4 direction;
+		float4 radiance;
+		bool enabled;
+		uint3 paddings;
 	} lights[NUM_LIGHTS];
-	float3 eyePosition;
+	float4 eyePosition;
 	bool useIBL;
 	float gamma;
 	uint padding[2];
@@ -85,14 +87,15 @@ struct PS_INPUT
 	float4 position : SV_POSITION;
 	float3 worldPosition : POSITION;
 	float2 texcoord : TEXCOORD;
-	float3x3 TBN : TBN;
+  float3x3 tangentBasis : TBASIS;
 };
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
 	float3 albedo = pow(albedoTexture.Sample(defaultSampler, input.texcoord).rgb, gamma);
 	float metalness = metalnessTexture.Sample(defaultSampler, input.texcoord).r;
-	float roughness = metalnessTexture.Sample(defaultSampler, input.texcoord).r;
+        float roughness =
+            roughnessTexture.Sample(defaultSampler, input.texcoord).r;
 	
 	// Outgoing light dir
 	float3 Lo = normalize(eyePosition - input.worldPosition);
@@ -100,7 +103,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 	// Normal
 	float3 N = normalTexture.Sample(defaultSampler, input.texcoord).rgb;
 	N = normalize(2.0 * N - 1.0);
-	N = normalize(mul(input.TBN, N));
+	N = normalize(mul(input.tangentBasis, N));
 	
 	float NdotLo = max(0.f, dot(N, Lo));
 	
@@ -115,7 +118,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 	[unroll]
 	for (int i = 0; i < NUM_LIGHTS; ++i) {
 		float3 Li = -lights[i].direction;
-		float3 Lradiance = lights[i].radiance;
+		float3 Lradiance = lights[i].radiance * lights[i].enabled;
 		
 		// Half-vector between Li and Lo
 		float3 Lh = normalize(Li + Lo);
@@ -148,7 +151,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 	
 	// Ambient lighting
 	float3 ambientLighting;
-	if (useIBL.r > 0)
+	if (useIBL > 0)
 	{
 		// Sample diffuse irradiance at normal direction
 		float3 irradiance = irradianceTexture.Sample(defaultSampler, N).rgb;
@@ -180,5 +183,5 @@ float4 main(PS_INPUT input) : SV_TARGET
 	}
 	
 	float3 result = directLighting + ambientLighting;
-	return float4(Linear2sRGB(result), 1.0);
+	return pow(float4(result, 1.0), 1/gamma);
 }

@@ -52,41 +52,40 @@ void D3D11Renderer::Shutdown() {
 }
 
 void D3D11Renderer::BeginDraw() {
-  if (_useToneMappingAndGamma) {
+  /*if (_useToneMappingAndGamma) {
     const float clear_color_with_alpha[] = {0.0f, 0.0f, 0.0f, 0.0f};
     _context->OMSetRenderTargets(1, _framebuffer.rtv.GetAddressOf(),
                                   _framebuffer.dsv.Get());
-    _context->ClearRenderTargetView(_framebuffer.rtv.Get(),
-                                     clear_color_with_alpha);
+
+    _context->ClearRenderTargetView(_framebuffer.rtv.Get(), clear_color_with_alpha);
     _context->ClearDepthStencilView(_framebuffer.dsv.Get(), D3D11_CLEAR_DEPTH,
                                      1.0f, 0);
-  } else {
+  } else {*/
     const float clear_color_with_alpha[] = {0.0f, 0.0f, 0.0f, 0.0f};
     _context->OMSetRenderTargets(1, &_backbufferRTV, _depthStencilView);
+
     _context->ClearRenderTargetView(_backbufferRTV, clear_color_with_alpha);
     _context->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH,
                                      1.0f, 0);
-    _context->OMSetDepthStencilState(_depthStencilState, 0);
-  }
+  //}
 }
 
 void D3D11Renderer::EndDraw() {
-  if (_useToneMappingAndGamma) {
-    // Resolve multisample framebuffer.
-    ResolveFrameBuffer(_framebuffer, _resolveFramebuffer,
-                       DXGI_FORMAT_R16G16B16A16_FLOAT);
+  //if (_useToneMappingAndGamma) {
+  //  // Resolve multisample framebuffer.
+  //  ResolveFrameBuffer(_framebuffer, _resolveFramebuffer,
+  //                     DXGI_FORMAT_R16G16B16A16_FLOAT);
 
-    // Draw a full screen triangle for postprocessing/tone mapping.
-    _context->OMSetRenderTargets(1, &_backbufferRTV, nullptr);
-    _context->IASetInputLayout(nullptr);
-    _context->VSSetShader(_toneMappingProgram.vertexShader.Get(), nullptr, 0);
-    _context->PSSetShader(_toneMappingProgram.pixelShader.Get(), nullptr, 0);
-    _context->PSSetShaderResources(0, 1,
-                                   _resolveFramebuffer.srv.GetAddressOf());
-    _context->PSSetSamplers(0, 1, _toneMappingSamplerState.GetAddressOf());
-    _context->Draw(3, 0);
-  }
-  
+  //  // Draw a full screen triangle for postprocessing/tone mapping.
+  //  _context->OMSetRenderTargets(1, &_backbufferRTV, nullptr);
+  //  _context->IASetInputLayout(nullptr);
+  //  _context->VSSetShader(_toneMappingProgram.vertexShader.Get(), nullptr, 0);
+  //  _context->PSSetShader(_toneMappingProgram.pixelShader.Get(), nullptr, 0);
+  //  _context->PSSetShaderResources(0, 1,
+  //                                 _resolveFramebuffer.srv.GetAddressOf());
+  //  _context->PSSetSamplers(0, 1, _toneMappingSamplerState.GetAddressOf());
+  //  _context->Draw(3, 0);
+  //}
 }
 
 HRESULT D3D11Renderer::CreateDeviceResources() {

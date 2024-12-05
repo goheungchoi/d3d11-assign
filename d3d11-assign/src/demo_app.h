@@ -36,7 +36,7 @@ private:
 	void Render() override;
 
 private:
-
+	float rotation{0};
 	bool _useIBL{true};
 
 	XMMATRIX _proj;

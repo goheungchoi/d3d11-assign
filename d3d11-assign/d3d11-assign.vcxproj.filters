@@ -124,11 +124,19 @@
 			<Filter>shaders</Filter>
 		</None>
 		<None Include="imgui.ini" />
-		<None Include="shaders\Equirect2Cube_CS.hlsl">
-			<Filter>shaders</Filter>
-		</None>
 		<None Include="shaders\DiffuseIrradiance_CS.hlsl">
 			<Filter>shaders</Filter>
 		</None>
+		<None Include="shaders\Equirect2Cube_CS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="shaders\Equirect2Cube_CS.cso">
+			<Filter>shaders</Filter>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<FxCompile Include="shaders\Equirect2Cube_CS.hlsl">
+			<Filter>shaders</Filter>
+		</FxCompile>
 	</ItemGroup>
 </Project>

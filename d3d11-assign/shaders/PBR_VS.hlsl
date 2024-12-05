@@ -6,8 +6,6 @@
 // This implementation is based on "Real Shading in Unreal Engine 4" SIGGRAPH 2013 course notes by Epic Games.
 // See: http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
 
-
-
 cbuffer TransformConstants : register(b0)
 {
 	float4x4 viewProj;
@@ -29,22 +27,22 @@ struct VS_OUTPUT
 	float4 position : SV_POSITION;
 	float3 worldPosition : POSITION;
 	float2 texcoord : TEXCOORD;
-	float3x3 TBN : TBN;
+	float3x3 tangentBasis : TBASIS;
 };
 
 VS_OUTPUT main(VS_INPUT input)
 {
 	VS_OUTPUT output;
-	output.worldPosition = mul(sceneRotation, float4(input.position, 1.0)).xyz;
+  output.worldPosition = mul(float4(input.position, 1.0) , sceneRotation).xyz;
 	output.texcoord = input.texcoord;
 	
 	// Pass tangent space basis vectors (for normal mapping).
 	float3x3 TBN = float3x3(input.tangent, input.bitangent, input.normal);
-	output.TBN = mul((float3x3) sceneRotation, transpose(TBN));
+	output.tangentBasis = mul((float3x3) sceneRotation, transpose(TBN));
 	
 	// NDC position
 	matrix mvp = mul(viewProj, sceneRotation);
-	output.position = mul(mvp, float4(input.position, 1.0));
+	output.position = mul(float4(input.position, 1.0), mvp);
 	
 	return output;
 }

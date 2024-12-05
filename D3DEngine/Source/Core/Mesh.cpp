@@ -11,7 +11,8 @@ namespace {
 const unsigned int ImportFlags =
     aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_SortByPType |
     aiProcess_PreTransformVertices | aiProcess_GenNormals |
-    aiProcess_GenUVCoords | aiProcess_OptimizeMeshes | aiProcess_Debone |
+    aiProcess_ConvertToLeftHanded | aiProcess_GenUVCoords |
+    aiProcess_OptimizeMeshes | aiProcess_Debone |
     aiProcess_ValidateDataStructure;
 }
 
