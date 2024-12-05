@@ -150,7 +150,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 	}
 	
 	// Ambient lighting
-	float3 ambientLighting;
+	float3 ambientLighting = 0.f;
 	if (useIBL > 0)
 	{
 		// Sample diffuse irradiance at normal direction
