@@ -37,7 +37,7 @@ private:
 
 private:
 	float rotation{75};
-	bool _useIBL{true};
+	bool _useIBL{false};
 
 	XMMATRIX _proj;
 	XMMATRIX _view;

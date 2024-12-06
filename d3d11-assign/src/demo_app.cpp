@@ -21,6 +21,13 @@ DemoApp* loadedApp{nullptr};
 
 XMVECTOR g_eyePos{};
 
+IDirectInputDevice8* DIKeyboard;
+LPDIRECTINPUT8 DirectInput{};
+
+bool gammaToggle{false};
+
+float elapsedTime{0.f};
+
 void DemoApp::Initialize() {
   if (loadedApp) abort();
 
@@ -46,6 +53,15 @@ void DemoApp::Initialize() {
   _renderer = new D3D11Renderer();
   if (FAILED(_renderer->Initialize(hWindow, SCREEN_WIDTH, SCREEN_HEIGHT)))
     throw std::runtime_error("Initialization of D3D 11 failed!");
+
+	CHECK(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION,
+                           IID_IDirectInput8, (void**)&DirectInput, NULL));
+	CHECK(DirectInput->CreateDevice(GUID_SysKeyboard, &DIKeyboard, NULL));
+
+	CHECK(DIKeyboard->SetDataFormat(&c_dfDIKeyboard));
+	CHECK(DIKeyboard->SetCooperativeLevel(
+		hWindow, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE));
+
 
   InitTransformMatrices();
   InitCamera();
@@ -105,6 +121,39 @@ void DemoApp::Update(float dt) {
 #if USE_CAM == 1
   _camera->Update(dt);
 #else
+  BYTE keyboardState[256];
+  DIKeyboard->Acquire();
+  DIKeyboard->GetDeviceState(sizeof(keyboardState), (LPVOID)&keyboardState);
+
+	elapsedTime += dt;
+	if (elapsedTime > 0.1) {
+    if (keyboardState[DIK_F1] & 0x80) {
+      _shadingConstants.lights[0].enabled =
+          !_shadingConstants.lights[0].enabled;
+    }
+    if (keyboardState[DIK_F2] & 0x80) {
+      _shadingConstants.lights[1].enabled =
+          !_shadingConstants.lights[1].enabled;
+    }
+    if (keyboardState[DIK_F3] & 0x80) {
+      _shadingConstants.lights[2].enabled =
+          !_shadingConstants.lights[2].enabled;
+    }
+    if (keyboardState[DIK_F4] & 0x80) {
+      _shadingConstants.useIBL = !_shadingConstants.useIBL;
+    }
+    if (keyboardState[DIK_F5] & 0x80) {
+      gammaToggle = !gammaToggle;
+      if (gammaToggle)
+        _shadingConstants.gamma = 2.2;
+      else
+        _shadingConstants.gamma = 1.0;
+    }
+    elapsedTime = 0.f;
+	}
+  
+
+
   g_camPos.m128_f32[2] = g_camDist;
   XMVECTOR eye = g_camPos;
   XMVECTOR viewDir{0.f, 0.f, -1.f};
@@ -459,9 +508,9 @@ void DemoApp::InitLights() {
   light2.radiance = {1.0f, 1.0f, 1.0f, 1.f};
   light3.radiance = {1.0f, 1.0f, 1.0f, 1.f};
 
-  light1.enabled = true;
-  light2.enabled = true;
-  light3.enabled = true;
+  light1.enabled = false;
+  light2.enabled = false;
+  light3.enabled = false;
 
   _shadingConstants.lights[0] = light1;
   _shadingConstants.lights[1] = light2;
