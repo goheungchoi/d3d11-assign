@@ -133,10 +133,8 @@
 		<None Include="shaders\Equirect2Cube_CS.cso">
 			<Filter>shaders</Filter>
 		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<FxCompile Include="shaders\Equirect2Cube_CS.hlsl">
+		<None Include="shaders\Empty">
 			<Filter>shaders</Filter>
-		</FxCompile>
+		</None>
 	</ItemGroup>
 </Project>
