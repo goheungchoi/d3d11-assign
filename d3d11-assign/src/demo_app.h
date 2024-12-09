@@ -60,14 +60,16 @@ private:
   MeshBuffer _pbrModel;
   MeshBuffer _skybox;
 
+	Texture _environmentMap;
+
   Texture _albedoTexture;
   Texture _normalTexture;
   Texture _metalnessTexture;
   Texture _roughnessTexture;
 
-  Texture _envTexture;
-  Texture _irmapTexture;
-  Texture _spBRDF_LUT;
+  Texture _specularTexture;
+  Texture _irradianceTexture;
+  Texture _specularBRDF_LUT;
 
 	void InitTransformMatrices();
 	void InitCamera();
@@ -76,10 +78,6 @@ private:
 	void InitShaders();
 	void InitTextures();
   void InitSamplers();
-
-	void InitSpecularBRDF_LUT();
-
-	void InitIBL();
 
 	void InitMeshes();
 	void InitLights();

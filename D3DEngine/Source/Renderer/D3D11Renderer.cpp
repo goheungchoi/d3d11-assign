@@ -595,6 +595,17 @@ Texture D3D11Renderer::CreateTextureCube(UINT width, UINT height,
   return texture;
 }
 
+Texture D3D11Renderer::CreateTextureCube(
+    const std::shared_ptr<class Image>& image, DXGI_FORMAT format,
+    UINT levels) const {
+  Texture texture =
+      CreateTextureCube(image->width(), image->height(), format, levels);
+  if (levels == 0) {
+    _context->GenerateMips(texture.srv.Get());
+  }
+  return texture;
+}
+
 void D3D11Renderer::CreateTextureUAV(Texture& texture, UINT mipSlice) const {
   assert(texture.texture);
 

@@ -167,6 +167,10 @@
 	<ItemGroup>
 		<ClCompile Include="app\main.cpp" />
 		<None Include="assets\model\cerberus.fbx" />
+		<None Include="assets\textures\BakerDiffuseIrradiance.dds" />
+		<None Include="assets\textures\BakerEnv.dds" />
+		<None Include="assets\textures\BakerSpecularBRDF_LUT.dds" />
+		<None Include="assets\textures\BakerSpecularIBL.dds" />
 		<None Include="assets\textures\cerberus_A.png" />
 		<None Include="assets\textures\cerberus_M.png" />
 		<None Include="assets\textures\cerberus_N.png" />
@@ -181,7 +185,7 @@
 		<None Include="shaders\BlinnPhong_VS.cso" />
 		<None Include="shaders\BlinnPhong_VS.hlsl" />
 		<None Include="shaders\DiffuseIrradiance_CS.hlsl" />
-		<None Include="shaders\Empty" />
+		<None Include="shaders\Empty.hlsl" />
 		<None Include="shaders\Equirect2Cube_CS.cso" />
 		<None Include="shaders\Equirect2Cube_CS.hlsl" />
 		<None Include="shaders\GammaCorrection.hlsli" />

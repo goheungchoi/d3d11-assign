@@ -69,8 +69,6 @@ void DemoApp::Initialize() {
   InitShaders();
   InitTextures();
   InitSamplers();
-  InitIBL();
-  InitSpecularBRDF_LUT();
 
   InitMeshes();
   InitLights();
@@ -213,8 +211,7 @@ void DemoApp::Render() {
                                      0);
     _renderer->_context->PSSetShader(_skyboxProgram.pixelShader.Get(), nullptr,
                                      0);
-    _renderer->_context->PSSetShaderResources(0, 1,
-                                              _envTexture.srv.GetAddressOf());
+    _renderer->_context->PSSetShaderResources(0, 1, _environmentMap.srv.GetAddressOf());
     _renderer->_context->PSSetSamplers(0, 1, _defaultSampler.GetAddressOf());
     _renderer->_context->OMSetDepthStencilState(_skyboxDepthStencilState.Get(),
                                                 0);
@@ -225,8 +222,8 @@ void DemoApp::Render() {
   ID3D11ShaderResourceView* const pbrModelSRVs[] = {
       _albedoTexture.srv.Get(),    _normalTexture.srv.Get(),
       _metalnessTexture.srv.Get(), _roughnessTexture.srv.Get(),
-      _envTexture.srv.Get(),       _irmapTexture.srv.Get(),
-      _spBRDF_LUT.srv.Get(),
+      _specularTexture.srv.Get(),  _irradianceTexture.srv.Get(),
+      _specularBRDF_LUT.srv.Get(),
   };
   ID3D11SamplerState* const pbrModelSamplers[] = {
       _defaultSampler.Get(),
@@ -344,6 +341,10 @@ void DemoApp::InitShaders() {
 }
 
 void DemoApp::InitTextures() {
+  _environmentMap = _renderer->CreateTextureCube(
+      Image::fromFile("assets/textures/BakerEnv.dds"),
+      DXGI_FORMAT_R32G32B32_FLOAT, 10);
+
   _albedoTexture = _renderer->CreateTexture(
       Image::fromFile("assets/textures/cerberus_A.png"),
       DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -356,6 +357,16 @@ void DemoApp::InitTextures() {
   _roughnessTexture = _renderer->CreateTexture(
       Image::fromFile("assets/textures/cerberus_R.png", 1),
       DXGI_FORMAT_R8_UNORM);
+
+  _specularTexture = _renderer->CreateTextureCube(
+      Image::fromFile("assets/textures/BakerSpecularIBL.dds"),
+      DXGI_FORMAT_R32G32B32_FLOAT, 10);
+  _irradianceTexture = _renderer->CreateTextureCube(
+      Image::fromFile("assets/textures/BakerDiffuseIrradiance.dds"),
+      DXGI_FORMAT_R32G32B32_FLOAT, 1);
+  _specularBRDF_LUT = _renderer->CreateTexture(
+      Image::fromFile("assets/textures/BakerSpecularBRDF_LUT.dds"),
+      DXGI_FORMAT_R32G32B32_FLOAT, 1);
 }
 
 void DemoApp::InitSamplers() {
@@ -363,127 +374,6 @@ void DemoApp::InitSamplers() {
                                                   D3D11_TEXTURE_ADDRESS_WRAP);
   _computeSampler = _renderer->CreateSamplerState(
       D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP);
-}
-
-void DemoApp::InitIBL() {
-  // Unfiltered environment cube map (temporary).
-  Texture envTextureUnfiltered =
-      _renderer->CreateTextureCube(1024, 1024, DXGI_FORMAT_R16G16B16A16_FLOAT);
-  _renderer->CreateTextureUAV(envTextureUnfiltered, 0);
-
-  // Load & convert equirectangular environment map to a cubemap texture.
-  {
-    ComputeProgram equirectToCubeProgram =
-        _renderer->CreateComputeProgram(CompileShaderFromFile(
-            L"shaders/Equirect2Cube_CS.hlsl", "main", "cs_5_0"));
-    Texture envTextureEquirect = _renderer->CreateTexture(
-        Image::fromFile("assets/textures/environment.hdr"),
-        DXGI_FORMAT_R32G32B32A32_FLOAT, 1);
-
-    _renderer->_context->CSSetShaderResources(
-        0, 1, envTextureEquirect.srv.GetAddressOf());
-    _renderer->_context->CSSetUnorderedAccessViews(
-        0, 1, envTextureUnfiltered.uav.GetAddressOf(), nullptr);
-    _renderer->_context->CSSetSamplers(0, 1, _computeSampler.GetAddressOf());
-    _renderer->_context->CSSetShader(equirectToCubeProgram.computeShader.Get(),
-                                     nullptr, 0);
-    _renderer->_context->Dispatch(envTextureUnfiltered.width / 32,
-                                  envTextureUnfiltered.height / 32, 6);
-    _renderer->_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
-  }
-
-  _renderer->_context->GenerateMips(envTextureUnfiltered.srv.Get());
-
-  // Compute pre-filtered specular environment map.
-  {
-    struct SpecularMapFilterSettingsCB {
-      float roughness;
-      float padding[3];
-    };
-    ComputeProgram spmapProgram =
-        _renderer->CreateComputeProgram(CompileShaderFromFile(
-            L"shaders/SpecularIBLMap_CS.hlsl", "main", "cs_5_0"));
-    ComPtr<ID3D11Buffer> spmapCB =
-        _renderer->CreateConstantBuffer<SpecularMapFilterSettingsCB>();
-
-    _envTexture = _renderer->CreateTextureCube(1024, 1024,
-                                               DXGI_FORMAT_R16G16B16A16_FLOAT);
-
-    // Copy 0th mipmap level into destination environment map.
-    for (int arraySlice = 0; arraySlice < 6; ++arraySlice) {
-      const UINT subresourceIndex =
-          D3D11CalcSubresource(0, arraySlice, _envTexture.levels);
-      _renderer->_context->CopySubresourceRegion(
-          _envTexture.texture.Get(), subresourceIndex, 0, 0, 0,
-          envTextureUnfiltered.texture.Get(), subresourceIndex, nullptr);
-    }
-
-    _renderer->_context->CSSetShaderResources(
-        0, 1, envTextureUnfiltered.srv.GetAddressOf());
-    _renderer->_context->CSSetSamplers(0, 1, _computeSampler.GetAddressOf());
-    _renderer->_context->CSSetShader(spmapProgram.computeShader.Get(), nullptr,
-                                     0);
-
-    // Pre-filter rest of the mip chain.
-    const float deltaRoughness =
-        1.0f / std::max(float(_envTexture.levels - 1), 1.0f);
-    for (UINT level = 1, size = 512; level < _envTexture.levels;
-         ++level, size /= 2) {
-      const UINT numGroups = std::max<UINT>(1, size / 32);
-      _renderer->CreateTextureUAV(_envTexture, level);
-
-      const SpecularMapFilterSettingsCB spmapConstants = {level *
-                                                          deltaRoughness};
-      _renderer->_context->UpdateSubresource(spmapCB.Get(), 0, nullptr,
-                                             &spmapConstants, 0, 0);
-
-      _renderer->_context->CSSetConstantBuffers(0, 1, spmapCB.GetAddressOf());
-      _renderer->_context->CSSetUnorderedAccessViews(
-          0, 1, _envTexture.uav.GetAddressOf(), nullptr);
-      _renderer->_context->Dispatch(numGroups, numGroups, 6);
-    }
-    _renderer->_context->CSSetConstantBuffers(0, 1, nullBuffer);
-    _renderer->_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
-  }
-
-  // Compute diffuse irradiance cubemap.
-  ComputeProgram irmapProgram =
-      _renderer->CreateComputeProgram(CompileShaderFromFile(
-          L"shaders/DiffuseIrradiance_CS.hlsl", "main", "cs_5_0"));
-
-  _irmapTexture =
-      _renderer->CreateTextureCube(32, 32, DXGI_FORMAT_R16G16B16A16_FLOAT, 1);
-  _renderer->CreateTextureUAV(_irmapTexture, 0);
-
-  _renderer->_context->CSSetShaderResources(0, 1,
-                                            _envTexture.srv.GetAddressOf());
-  _renderer->_context->CSSetSamplers(0, 1, _computeSampler.GetAddressOf());
-  _renderer->_context->CSSetUnorderedAccessViews(
-      0, 1, _irmapTexture.uav.GetAddressOf(), nullptr);
-  _renderer->_context->CSSetShader(irmapProgram.computeShader.Get(), nullptr,
-                                   0);
-  _renderer->_context->Dispatch(_irmapTexture.width / 32,
-                                _irmapTexture.height / 32, 6);
-  _renderer->_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
-}
-
-void DemoApp::InitSpecularBRDF_LUT() {
-  ComputeProgram spBRDFProgram =
-      _renderer->CreateComputeProgram(CompileShaderFromFile(
-          L"shaders/SpecularBRDF_LUT_CS.hlsl", "main", "cs_5_0"));
-
-  _spBRDF_LUT = _renderer->CreateTexture(256, 256, DXGI_FORMAT_R16G16_FLOAT, 1);
-  _spBRDF_Sampler = _renderer->CreateSamplerState(
-      D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP);
-  _renderer->CreateTextureUAV(_spBRDF_LUT, 0);
-
-  _renderer->_context->CSSetUnorderedAccessViews(
-      0, 1, _spBRDF_LUT.uav.GetAddressOf(), nullptr);
-  _renderer->_context->CSSetShader(spBRDFProgram.computeShader.Get(), nullptr,
-                                   0);
-  _renderer->_context->Dispatch(_spBRDF_LUT.width / 32, _spBRDF_LUT.height / 32,
-                                1);
-  _renderer->_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
 }
 
 void DemoApp::InitMeshes() {

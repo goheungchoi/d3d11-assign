@@ -131,6 +131,8 @@ class D3D11Renderer {
                         DXGI_FORMAT format, UINT levels = 0) const;
   Texture CreateTextureCube(UINT width, UINT height, DXGI_FORMAT format,
                             UINT levels = 0) const;
+  Texture CreateTextureCube(const std::shared_ptr<class Image>& image,
+                            DXGI_FORMAT format, UINT levels = 0) const;
 
   void CreateTextureUAV(Texture& texture, UINT mipSlice) const;
 

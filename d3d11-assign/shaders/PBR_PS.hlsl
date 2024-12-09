@@ -94,11 +94,10 @@ float4 main(PS_INPUT input) : SV_TARGET
 {
 	float3 albedo = pow(albedoTexture.Sample(defaultSampler, input.texcoord).rgb, gamma);
 	float metalness = metalnessTexture.Sample(defaultSampler, input.texcoord).r;
-        float roughness =
-            roughnessTexture.Sample(defaultSampler, input.texcoord).r;
+  float roughness = roughnessTexture.Sample(defaultSampler, input.texcoord).r;
 	
 	// Outgoing light dir
-	float3 Lo = normalize(eyePosition - input.worldPosition);
+	float3 Lo = normalize(eyePosition.xyz - input.worldPosition);
 	
 	// Normal
 	float3 N = normalTexture.Sample(defaultSampler, input.texcoord).rgb;
