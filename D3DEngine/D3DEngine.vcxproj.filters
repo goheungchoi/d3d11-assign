@@ -34,6 +34,9 @@
 		<Filter Include="Include\D3DEngine\Core">
 			<UniqueIdentifier>{DA5FB70F-B394-4710-863E-705B7E1C0874}</UniqueIdentifier>
 		</Filter>
+		<Filter Include="External">
+			<UniqueIdentifier>{C9B8133B-E460-4E09-A00D-14C5A2599A4D}</UniqueIdentifier>
+		</Filter>
 	</ItemGroup>
 	<ItemGroup>
 		<ClInclude Include="Include\D3DEngine\GameEngine\GameEngine.h">
@@ -86,6 +89,18 @@
 		</ClCompile>
 		<ClInclude Include="Include\D3DEngine\Renderer\IRenderer.h">
 			<Filter>Include\D3DEngine\Renderer</Filter>
+		</ClInclude>
+		<ClInclude Include="External\texture_formats.h">
+			<Filter>External</Filter>
+		</ClInclude>
+		<ClCompile Include="External\nv_dds.cpp">
+			<Filter>External</Filter>
+		</ClCompile>
+		<ClCompile Include="External\texture_formats.cpp">
+			<Filter>External</Filter>
+		</ClCompile>
+		<ClInclude Include="External\nv_dds.h">
+			<Filter>External</Filter>
 		</ClInclude>
 	</ItemGroup>
 </Project>

@@ -6,21 +6,24 @@
 // Vertex shader
 cbuffer TransformConstants : register(b0)
 {
-	float4x4 viewProjectionMatrix;
-	float4x4 skyProjectionMatrix;
+	float4x4 view;
+	float4x4 proj;
 	float4x4 sceneRotationMatrix;
 };
 
 struct PixelShaderInput
 {
-	float3 localPosition : POSITION;
-	float4 pixelPosition : SV_POSITION;
+	float4 position : SV_POSITION;
+	float3 texCoords : TEXCOORD;
 };
 
 PixelShaderInput main(float3 position : POSITION)
 {
 	PixelShaderInput vout;
-	vout.localPosition = position;
-  vout.pixelPosition = mul(float4(position, 1.0), skyProjectionMatrix);
+	vout.texCoords = position.xyz;
+	
+	float3 pos = mul(position, (float3x3) view);
+	vout.position = mul(float4(pos, 1.f), proj);
+
 	return vout;
 }

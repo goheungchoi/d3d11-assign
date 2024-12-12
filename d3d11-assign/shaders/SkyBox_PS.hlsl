@@ -17,13 +17,12 @@ cbuffer ShadingConstants : register(b0) {
 
 struct PixelShaderInput
 {
-	float3 localPosition : POSITION;
-	float4 pixelPosition : SV_POSITION;
+	float4 position : SV_POSITION;
+	float3 texCoords : TEXCOORD;
 };
 
 // Pixel shader
 float4 main(PixelShaderInput pin) : SV_Target
 {
-	float3 envVector = normalize(pin.localPosition);
-  return pow(envTexture.SampleLevel(defaultSampler, envVector, 0), 1 / gamma);
+  return pow(envTexture.SampleLevel(defaultSampler, pin.texCoords, 0), 1 / gamma);
 }

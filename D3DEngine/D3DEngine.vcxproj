@@ -71,12 +71,12 @@
 	</ImportGroup>
 	<PropertyGroup Label="UserMacros" />
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-		<IncludePath>$(ProjectDir)Include;$(ProjectDir)Source;$(IncludePath)</IncludePath>
+		<IncludePath>$(ProjectDir)Include;$(ProjectDir)Source;$(ProjectDir)External;$(IncludePath)</IncludePath>
 		<PublicIncludeDirectories>$(ProjectDir)Include</PublicIncludeDirectories>
 		<SourcePath>$(VC_SourcePath);$(ProjectDir)Source</SourcePath>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-		<IncludePath>$(ProjectDir)Include;$(ProjectDir)Source;$(IncludePath)</IncludePath>
+		<IncludePath>$(ProjectDir)Include;$(ProjectDir)Source;$(ProjectDir)External;$(IncludePath)</IncludePath>
 		<PublicIncludeDirectories>$(ProjectDir)Include</PublicIncludeDirectories>
 		<SourcePath>$(VC_SourcePath);$(ProjectDir)Source</SourcePath>
 	</PropertyGroup>
@@ -165,6 +165,10 @@
 	<ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 	<ItemGroup>
+		<ClCompile Include="External\nv_dds.cpp" />
+		<ClInclude Include="External\nv_dds.h" />
+		<ClCompile Include="External\texture_formats.cpp" />
+		<ClInclude Include="External\texture_formats.h" />
 		<ClInclude Include="Include\D3DEngine\Core\Image.h" />
 		<ClInclude Include="Include\D3DEngine\Core\Mesh.h" />
 		<ClInclude Include="Include\D3DEngine\Core\Timer.h" />

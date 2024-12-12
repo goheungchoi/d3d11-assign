@@ -1,5 +1,8 @@
 #include "D3DEngine/Renderer/D3D11Renderer.h"
 
+#include "directxtk/DDSTextureLoader.h"
+using namespace DirectX;
+
 HRESULT D3D11Renderer::Initialize(HWND hWnd, UINT width, UINT height) {
   HRESULT res = S_OK;
 
@@ -596,11 +599,16 @@ Texture D3D11Renderer::CreateTextureCube(UINT width, UINT height,
 }
 
 Texture D3D11Renderer::CreateTextureCube(
-    const std::shared_ptr<class Image>& image, DXGI_FORMAT format,
+    const std::string& path, DXGI_FORMAT format,
     UINT levels) const {
-  Texture texture =
-      CreateTextureCube(image->width(), image->height(), format, levels);
-  if (levels == 0) {
+
+	Texture texture;
+  if (FAILED(CreateDDSTextureFromFile(_device, Utility::convertToUTF16(path).c_str(),
+		(ID3D11Resource**)texture.texture.GetAddressOf(), texture.srv.GetAddressOf()))) {
+    throw std::runtime_error("Failed to create cubemap texture SRV");
+	}
+	
+	if (levels == 0) {
     _context->GenerateMips(texture.srv.Get());
   }
   return texture;

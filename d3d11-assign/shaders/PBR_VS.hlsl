@@ -8,8 +8,8 @@
 
 cbuffer TransformConstants : register(b0)
 {
-	float4x4 viewProj;
-	float4x4 skyProj;
+	float4x4 view;
+	float4x4 proj;
 	float4x4 sceneRotation;	// Model Matrix
 };
 
@@ -41,6 +41,7 @@ VS_OUTPUT main(VS_INPUT input)
 	output.tangentBasis = mul((float3x3) sceneRotation, transpose(TBN));
 	
 	// NDC position
+	matrix viewProj = mul(view, proj);
 	matrix mvp = mul(viewProj, sceneRotation);
 	output.position = mul(float4(input.position, 1.0), mvp);
 	

@@ -10,8 +10,8 @@
 
 DECLSPEC_CBUFFER_ALIGN
 struct cbTransformConstants {
-	XMMATRIX viewProj;
-	XMMATRIX skyProj;
+	XMMATRIX view;
+	XMMATRIX proj;
 	XMMATRIX sceneRotation;
 };
 
@@ -28,7 +28,8 @@ struct cbShadingConstants {
 	Vector4 eyePosition;
 	UINT useIBL;
   FLOAT gamma;
-	UINT padding[2];
+  FLOAT g_metalness;
+  FLOAT g_roughness;
 };
 
 inline float g_camDist{150.f};

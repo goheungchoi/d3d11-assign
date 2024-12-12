@@ -15,7 +15,7 @@
 #define USE_FLIPMODE 1   // In order to not show warnings, use flip mode
 #define VSYNC_ENABLED 0  // diable v-sync when 0, otherwise v-sync is on
 #define USE_GUI 1
-#define USE_CAM 0
+#define USE_CAM 1
 
 DemoApp* loadedApp{nullptr};
 
@@ -186,8 +186,8 @@ void DemoApp::Render() {
   _view = _camera->GetViewTransform();
 #endif
 
-  _transformConstants.viewProj = XMMatrixTranspose(_view * _proj);
-  _transformConstants.skyProj = XMMatrixTranspose(_proj);
+  _transformConstants.view = XMMatrixTranspose(_view);
+  _transformConstants.proj = XMMatrixTranspose(_proj);
   _transformConstants.sceneRotation =
       XMMatrixTranspose(XMMatrixScaling(0.8, 0.8, 0.8));
   _renderer->CopyDataToDeviceBuffer(_cboTransform, &_transformConstants);
@@ -256,6 +256,10 @@ void DemoApp::Render() {
     ImGui::Text("Camera: ");
     ImGui::SliderFloat("CamRotation", &rotation, 0.f, 360.f);
     ImGui::SliderFloat("CamDistance", &g_camDist, 10.f, 200.f);
+    ImGui::Text("Metalness: ");
+    ImGui::SliderFloat("Metalness", &_shadingConstants.g_metalness, 0.f, 1.f);
+    ImGui::Text("Roughness: ");
+    ImGui::SliderFloat("Roughness", &_shadingConstants.g_roughness, 0.f, 1.f);
     ImGui::Text("Gamma: ");
     ImGui::SliderFloat("Gamma value", &_shadingConstants.gamma, 0.0, 5.0);
     ImGui::Text("Use IBL: ");
@@ -341,9 +345,8 @@ void DemoApp::InitShaders() {
 }
 
 void DemoApp::InitTextures() {
-  _environmentMap = _renderer->CreateTextureCube(
-      Image::fromFile("assets/textures/BakerEnv.dds"),
-      DXGI_FORMAT_R32G32B32_FLOAT, 10);
+  _environmentMap = _renderer->CreateTextureCube("assets/textures/BakerEnv.dds",
+      DXGI_FORMAT_R32G32B32A32_FLOAT, 10);
 
   _albedoTexture = _renderer->CreateTexture(
       Image::fromFile("assets/textures/cerberus_A.png"),
@@ -358,15 +361,13 @@ void DemoApp::InitTextures() {
       Image::fromFile("assets/textures/cerberus_R.png", 1),
       DXGI_FORMAT_R8_UNORM);
 
-  _specularTexture = _renderer->CreateTextureCube(
-      Image::fromFile("assets/textures/BakerSpecularIBL.dds"),
-      DXGI_FORMAT_R32G32B32_FLOAT, 10);
-  _irradianceTexture = _renderer->CreateTextureCube(
-      Image::fromFile("assets/textures/BakerDiffuseIrradiance.dds"),
-      DXGI_FORMAT_R32G32B32_FLOAT, 1);
+  _specularTexture = _renderer->CreateTextureCube("assets/textures/BakerSpecularIBL.dds",
+      DXGI_FORMAT_R32G32B32A32_FLOAT, 10);
+  _irradianceTexture = _renderer->CreateTextureCube("assets/textures/BakerDiffuseIrradiance.dds",
+      DXGI_FORMAT_R32G32B32A32_FLOAT, 1);
   _specularBRDF_LUT = _renderer->CreateTexture(
       Image::fromFile("assets/textures/BakerSpecularBRDF_LUT.dds"),
-      DXGI_FORMAT_R32G32B32_FLOAT, 1);
+      DXGI_FORMAT_R32G32B32A32_FLOAT, 1);
 }
 
 void DemoApp::InitSamplers() {

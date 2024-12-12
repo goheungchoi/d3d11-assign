@@ -40,7 +40,8 @@ cbuffer ShadingConstants : register(b0)
 	float4 eyePosition;
 	bool useIBL;
 	float gamma;
-	uint padding[2];
+	float g_metalness;
+	float g_roughness;
 };
 
 // GGX/Towbridge-Reitz normal distribution function.
@@ -93,8 +94,11 @@ struct PS_INPUT
 float4 main(PS_INPUT input) : SV_TARGET
 {
 	float3 albedo = pow(albedoTexture.Sample(defaultSampler, input.texcoord).rgb, gamma);
-	float metalness = metalnessTexture.Sample(defaultSampler, input.texcoord).r;
-  float roughness = roughnessTexture.Sample(defaultSampler, input.texcoord).r;
+	// float metalness = metalnessTexture.Sample(defaultSampler, input.texcoord).r;
+  // float roughness = roughnessTexture.Sample(defaultSampler, input.texcoord).r;
+	
+	float metalness = g_metalness;
+	float roughness = g_roughness;
 	
 	// Outgoing light dir
 	float3 Lo = normalize(eyePosition.xyz - input.worldPosition);

@@ -17,6 +17,9 @@ public:
 	int width() const { return m_width; }
 	int height() const { return m_height; }
 	int channels() const { return m_channels; }
+  int levels() const { return m_levels; }
+  int faces() const { return m_faces; }
+  int faceOffset() const { return m_faceOffset; }
 	int bytesPerPixel() const { return m_channels * (m_hdr ? sizeof(float) : sizeof(unsigned char)); }
 	int pitch() const { return m_width * bytesPerPixel(); }
 
@@ -34,6 +37,9 @@ private:
 	int m_width;
 	int m_height;
 	int m_channels;
+	int m_levels;
+  int m_faces;
+  int m_faceOffset;
 	bool m_hdr;
 	std::unique_ptr<unsigned char> m_pixels;
 };
