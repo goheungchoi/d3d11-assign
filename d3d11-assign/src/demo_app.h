@@ -17,6 +17,7 @@ class DemoApp : public GameEngine
 #endif
 
 	class D3D11Renderer* _renderer;
+	
 	class Camera* _camera;
   
 	cbTransformConstants _transformConstants;

@@ -7,21 +7,27 @@
 #include "D3DEngine/Renderer/D3D11Renderer.h"
 #include "D3DEngine/WinApp/WinApp.h"
 #include "camera.h"
+#include <dinput.h>
 
+#pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "dxguid.lib")
 
+#include <d3d9helper.h>
+
 #define USE_FLIPMODE 1   // In order to not show warnings, use flip mode
 #define VSYNC_ENABLED 0  // diable v-sync when 0, otherwise v-sync is on
 #define USE_GUI 1
-#define USE_CAM 1
 
 DemoApp* loadedApp{nullptr};
 
 XMVECTOR g_eyePos{};
 
+bool _enableCamera{false};
 IDirectInputDevice8* DIKeyboard;
+IDirectInputDevice8* DIMouse;
+DIMOUSESTATE mouseLastState{};
 LPDIRECTINPUT8 DirectInput{};
 
 bool gammaToggle{false};
@@ -54,13 +60,18 @@ void DemoApp::Initialize() {
   if (FAILED(_renderer->Initialize(hWindow, SCREEN_WIDTH, SCREEN_HEIGHT)))
     throw std::runtime_error("Initialization of D3D 11 failed!");
 
-	CHECK(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION,
-                           IID_IDirectInput8, (void**)&DirectInput, NULL));
+	CHECK(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION,IID_IDirectInput8,(void**)&DirectInput, NULL));
+
 	CHECK(DirectInput->CreateDevice(GUID_SysKeyboard, &DIKeyboard, NULL));
+	CHECK(DirectInput->CreateDevice(GUID_SysMouse, &DIMouse, NULL));
 
 	CHECK(DIKeyboard->SetDataFormat(&c_dfDIKeyboard));
-	CHECK(DIKeyboard->SetCooperativeLevel(
-		hWindow, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE));
+  CHECK(DIKeyboard->SetCooperativeLevel(hWindow,
+                                        DISCL_FOREGROUND | DISCL_NONEXCLUSIVE));
+
+	CHECK(DIMouse->SetDataFormat(&c_dfDIMouse));
+  CHECK(DIMouse->SetCooperativeLevel(
+      hWindow, DISCL_NONEXCLUSIVE | DISCL_NOWINKEY | DISCL_FOREGROUND));
 
 
   InitTransformMatrices();
@@ -108,23 +119,59 @@ void DemoApp::Shutdown() {
   loadedApp = nullptr;
 }
 
-void DemoApp::FixedUpdate(float dt) {}
-
-void DemoApp::Update(float dt) {
-  static bool started = false;
-#ifndef NDEBUG
-  frameTime += dt;
-#endif
-
-#if USE_CAM == 1
-  _camera->Update(dt);
-#else
+void DemoApp::FixedUpdate(float dt) {
+  DIMOUSESTATE mouseCurrState;
   BYTE keyboardState[256];
+
+	DIMouse->Acquire();
   DIKeyboard->Acquire();
+  
+	DIMouse->GetDeviceState(sizeof(DIMOUSESTATE), &mouseCurrState);
   DIKeyboard->GetDeviceState(sizeof(keyboardState), (LPVOID)&keyboardState);
 
+  if (keyboardState[DIK_ESCAPE] & 0x80) 
+		PostMessage(hWindow, WM_DESTROY, 0, 0);
+
+  if (mouseCurrState.rgbButtons[0] & 0x80) {
+    while (ShowCursor(false) >= 0);
+
+    if (keyboardState[DIK_Q] & 0x80) {
+      _camera->MoveDownUp(-dt);
+    }
+    if (keyboardState[DIK_E] & 0x80) {
+      _camera->MoveDownUp(dt);
+    }
+    if (keyboardState[DIK_A] & 0x80) {
+      _camera->MoveLeftRight(-dt);
+    }
+    if (keyboardState[DIK_D] & 0x80) {
+      _camera->MoveLeftRight(dt);
+    }
+    if (keyboardState[DIK_W] & 0x80) {
+      _camera->MoveBackForward(dt);
+    }
+    if (keyboardState[DIK_S] & 0x80) {
+      _camera->MoveBackForward(-dt);
+    }
+    if ((mouseCurrState.lX != mouseLastState.lX) ||
+        (mouseCurrState.lY != mouseLastState.lY)) {
+      _camera->RotateAroundXAxis(mouseCurrState.lY * 0.1f);
+      _camera->RotateAroundYAxis(mouseCurrState.lX * 0.1f);
+      mouseLastState = mouseCurrState;
+    }
+
+		RECT rect;
+    GetClientRect(hWindow, &rect);
+    MapWindowPoints(hWindow, nullptr, (POINT*)(&rect), 2);
+    ClipCursor(&rect);
+  } else {
+    while (ShowCursor(true) < 0);
+    ClipCursor(nullptr);
+		mouseLastState = {};
+	}
+	
 	elapsedTime += dt;
-	if (elapsedTime > 0.1) {
+  if (elapsedTime > 0.1) {
     if (keyboardState[DIK_F1] & 0x80) {
       _shadingConstants.lights[0].enabled =
           !_shadingConstants.lights[0].enabled;
@@ -148,9 +195,15 @@ void DemoApp::Update(float dt) {
         _shadingConstants.gamma = 1.0;
     }
     elapsedTime = 0.f;
-	}
-  
+  }
 
+}
+
+void DemoApp::Update(float dt) {
+  static bool started = false;
+#ifndef NDEBUG
+  frameTime += dt;
+#endif
 
   g_camPos.m128_f32[2] = g_camDist;
   XMVECTOR eye = g_camPos;
@@ -163,7 +216,6 @@ void DemoApp::Update(float dt) {
   XMMatrixDecompose(&dump1, &dump2, &eye, transform);
   g_eyePos = eye;
   _view = XMMatrixLookAtLH(eye, {0, 0, 0, 0}, upDir);
-#endif
 }
 
 void DemoApp::Render() {
@@ -182,9 +234,7 @@ void DemoApp::Render() {
       D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   _renderer->_context->RSSetState(_defaultRasterizerState.Get());
 
-#if USE_CAM == 1
   _view = _camera->GetViewTransform();
-#endif
 
   _transformConstants.view = XMMatrixTranspose(_view);
   _transformConstants.proj = XMMatrixTranspose(_proj);
@@ -253,9 +303,6 @@ void DemoApp::Render() {
   ImGui::NewFrame();
 
   if (ImGui::Begin("Properties")) {
-    ImGui::Text("Camera: ");
-    ImGui::SliderFloat("CamRotation", &rotation, 0.f, 360.f);
-    ImGui::SliderFloat("CamDistance", &g_camDist, 10.f, 200.f);
     ImGui::Text("Metalness: ");
     ImGui::SliderFloat("Metalness", &_shadingConstants.g_metalness, 0.f, 1.f);
     ImGui::Text("Roughness: ");
@@ -264,10 +311,21 @@ void DemoApp::Render() {
     ImGui::SliderFloat("Gamma value", &_shadingConstants.gamma, 0.0, 5.0);
     ImGui::Text("Use IBL: ");
     ImGui::Checkbox("UseIBL", (bool*)&_shadingConstants.useIBL);
-    ImGui::Checkbox("Light1", (bool*)&_shadingConstants.lights[0].enabled);
-    ImGui::Checkbox("Light2", (bool*)&_shadingConstants.lights[1].enabled);
-    ImGui::Checkbox("Light3", (bool*)&_shadingConstants.lights[2].enabled);
-  }
+    ImGui::Text("Light 1 Properties: ");
+    ImGui::Checkbox("Enable Light 1", (bool*)&_shadingConstants.lights[0].enabled);
+    ImGui::SliderFloat3("Light 1 Radiance",
+                        (float*) & (_shadingConstants.lights[0].radiance), 0.f, 10.f);
+		ImGui::Text("Light 2 Properties: ");
+    ImGui::Checkbox("Enable Light 2", (bool*)&_shadingConstants.lights[1].enabled);
+    ImGui::SliderFloat3("Light 2 Radiance",
+                        (float*)&(_shadingConstants.lights[1].radiance), 0.f,
+                        10.f);
+    ImGui::Text("Light 3 Properties: ");
+    ImGui::Checkbox("Enable Light 3", (bool*)&_shadingConstants.lights[2].enabled);
+    ImGui::SliderFloat3("Light 3 Radiance",
+                        (float*)&(_shadingConstants.lights[2].radiance), 0.f,
+                        10.f);
+	}
   ImGui::End();
 
   // Rendering
@@ -296,15 +354,14 @@ void DemoApp::InitTransformMatrices() {
 }
 
 void DemoApp::InitCamera() {
-#if USE_CAM == 1
   _camera = new Camera(GetModuleHandle(NULL), hWindow);
   _view = _camera->GetViewTransform();
-#else
   /*XMVECTOR eye = g_camPos;
   XMVECTOR viewDir{ 0.f, 0.f, -1.f };
   XMVECTOR upDir{0.f, 1.f, 0.f};
   _view = XMMatrixLookToLH(eye, viewDir, upDir)*/
   ;
+#if USE_CAM == 1
   _view = XMMatrixLookAtLH(g_camPos, {0, 0, 0, 0}, {0.f, 1.f, 0.f});
 #endif
 }

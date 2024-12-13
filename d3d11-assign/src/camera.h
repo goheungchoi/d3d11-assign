@@ -13,9 +13,6 @@ class Camera {
 	static constexpr XMVECTOR RIGHT{ -1.f, 0.f, 0.f, 0.f };
 	static constexpr XMVECTOR FORWARD{ 0.f, 0.f, -1.f, 0.f };
 
-	IDirectInputDevice8* DIKeyboard;
-	IDirectInputDevice8* DIMouse;
-
 	HINSTANCE hInstance; HWND hwnd;
 
 	DIMOUSESTATE mouseLastState{};
@@ -25,6 +22,9 @@ class Camera {
 	float rotz = 0;
 	float scaleX = 1.0f;
 	float scaleY = 1.0f;
+
+	float moveSpeed{100.f};
+  float rotationSpeed{1.f};
 
 	float downUpMove{ 0.f };
 	float leftRightMove{ 0.f };
@@ -40,14 +40,16 @@ class Camera {
 public:
 	
 	Camera(HINSTANCE hInstance, HWND hwnd);
+	
+	void AddMoveSpeed(float speed);
+  void AddRotationSpeed(float speed);
 
+	void MoveDownUp(float move);
 	void MoveLeftRight(float move);
 	void MoveBackForward(float move);
 
 	void RotateAroundXAxis(float degrees);
 	void RotateAroundYAxis(float degrees);
-
-	void Update(float dt);
 
 	XMMATRIX GetViewTransform();
 };
