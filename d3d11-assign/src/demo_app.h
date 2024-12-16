@@ -58,6 +58,7 @@ private:
   ShaderProgram _skyboxProgram;
   ShaderProgram _tonemapProgram;
 
+	MeshBuffer _ground;
   MeshBuffer _pbrModel;
   MeshBuffer _skybox;
 
@@ -71,6 +72,11 @@ private:
   Texture _specularTexture;
   Texture _irradianceTexture;
   Texture _specularBRDF_LUT;
+
+
+	ShaderProgram _shadowProgram;
+  Texture _depthBuffer;
+	void InitShadowPass();
 
 	void InitTransformMatrices();
 	void InitCamera();

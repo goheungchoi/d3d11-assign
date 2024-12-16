@@ -194,6 +194,8 @@
 		<None Include="shaders\PBR_PS.hlsl" />
 		<None Include="shaders\PBR_VS.cso" />
 		<None Include="shaders\PBR_VS.hlsl" />
+		<None Include="shaders\Shadow_PS.hlsl" />
+		<None Include="shaders\Shadow_VS.hlsl" />
 		<None Include="shaders\SkyBox_PS.hlsl" />
 		<None Include="shaders\SkyBox_VS.hlsl" />
 		<None Include="shaders\SpecularBRDF_LUT_CS.hlsl" />
