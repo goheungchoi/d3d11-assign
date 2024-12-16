@@ -294,13 +294,6 @@ void DemoApp::Render() {
                                               0);
   _renderer->_context->DrawIndexed(_pbrModel.numElements, 0, 0);
 
-  _renderer->_context->IASetVertexBuffers(0, 1,
-                                          _ground.vertexBuffer.GetAddressOf(),
-                                          &_ground.stride, &_ground.offset);
-  _renderer->_context->IASetIndexBuffer(_ground.indexBuffer.Get(),
-                                        DXGI_FORMAT_R32_UINT, 0);
-  _renderer->_context->DrawIndexed(_ground.numElements, 0, 0);
-
   _renderer->EndDraw();
 
 #if USE_GUI == 1
@@ -345,27 +338,6 @@ void DemoApp::Render() {
 #ifndef NDEBUG
   ++count;
 #endif
-}
-
-void DemoApp::InitShadowPass() {
-  const std::vector<D3D11_INPUT_ELEMENT_DESC> shadowInputLayout = {
-    {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-      D3D11_INPUT_PER_VERTEX_DATA, 0},
-    {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12,
-      D3D11_INPUT_PER_VERTEX_DATA, 0},
-    {"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24,
-      D3D11_INPUT_PER_VERTEX_DATA, 0},
-    {"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36,
-      D3D11_INPUT_PER_VERTEX_DATA, 0},
-    {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48,
-      D3D11_INPUT_PER_VERTEX_DATA, 0},
-  };
-	
-	_shadowProgram = _renderer->CreateShaderProgram(
-    CompileShaderFromFile(L"shaders/PBR_VS.hlsl", "main", "vs_5_0"),
-    CompileShaderFromFile(L"shaders/PBR_PS.hlsl", "main", "ps_5_0"),
-    &shadowInputLayout
-  );
 }
 
 void DemoApp::InitTransformMatrices() {
@@ -463,8 +435,6 @@ void DemoApp::InitSamplers() {
 }
 
 void DemoApp::InitMeshes() {
-  _ground =
-      _renderer->CreateMeshBuffer(Mesh::fromFile("assets/model/ground.obj"));
   _pbrModel =
       _renderer->CreateMeshBuffer(Mesh::fromFile("assets/model/cerberus.fbx"));
   _skybox =

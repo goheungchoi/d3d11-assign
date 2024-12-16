@@ -148,11 +148,5 @@
 		<None Include="assets\textures\BakerDiffuseIrradiance.dds">
 			<Filter>assets\textures</Filter>
 		</None>
-		<None Include="shaders\Shadow_VS.hlsl">
-			<Filter>shaders</Filter>
-		</None>
-		<None Include="shaders\Shadow_PS.hlsl">
-			<Filter>shaders</Filter>
-		</None>
 	</ItemGroup>
 </Project>
