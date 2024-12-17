@@ -11,6 +11,7 @@ cbuffer TransformConstants : register(b0)
 	float4x4 view;
 	float4x4 proj;
 	float4x4 sceneRotation;	// Model Matrix
+	float4x4 shadowViewProj;
 };
 
 struct VS_INPUT
@@ -26,6 +27,7 @@ struct VS_OUTPUT
 {
 	float4 position : SV_POSITION;
 	float3 worldPosition : POSITION;
+	float4 shadowPosition : SHADOW_POSITION;
 	float2 texcoord : TEXCOORD;
 	float3x3 tangentBasis : TBASIS;
 };
@@ -42,8 +44,10 @@ VS_OUTPUT main(VS_INPUT input)
 	
 	// NDC position
 	matrix viewProj = mul(view, proj);
-	matrix mvp = mul(viewProj, sceneRotation);
+	matrix mvp = mul(sceneRotation, viewProj);
 	output.position = mul(float4(input.position, 1.0), mvp);
+	
+	output.shadowPosition = mul(float4(output.worldPosition, 1.f), shadowViewProj);
 	
 	return output;
 }

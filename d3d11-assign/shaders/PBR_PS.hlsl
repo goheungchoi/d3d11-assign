@@ -23,9 +23,11 @@ Texture2D roughnessTexture : register(t3);
 TextureCube specularTexture : register(t4);
 TextureCube irradianceTexture : register(t5);
 Texture2D specularBRDF_LUT : register(t6);
+Texture2D shadowTexture : register(t7);
 
 SamplerState defaultSampler : register(s0);
 SamplerState spBRDF_Sampler : register(s1);
+SamplerState shadowSampler : register(s2);
 
 
 cbuffer ShadingConstants : register(b0)
@@ -87,6 +89,7 @@ struct PS_INPUT
 {
 	float4 position : SV_POSITION;
 	float3 worldPosition : POSITION;
+	float4 shadowPosition : SHADOW_POSITION;
 	float2 texcoord : TEXCOORD;
   float3x3 tangentBasis : TBASIS;
 };
@@ -94,11 +97,11 @@ struct PS_INPUT
 float4 main(PS_INPUT input) : SV_TARGET
 {
 	float3 albedo = pow(albedoTexture.Sample(defaultSampler, input.texcoord).rgb, gamma);
-	// float metalness = metalnessTexture.Sample(defaultSampler, input.texcoord).r;
-  // float roughness = roughnessTexture.Sample(defaultSampler, input.texcoord).r;
+	float metalness = metalnessTexture.Sample(defaultSampler, input.texcoord).r;
+  float roughness = roughnessTexture.Sample(defaultSampler, input.texcoord).r;
 	
-	float metalness = g_metalness;
-	float roughness = g_roughness;
+	//float metalness = g_metalness;
+	//float roughness = g_roughness;
 	
 	// Outgoing light dir
 	float3 Lo = normalize(eyePosition.xyz - input.worldPosition);
@@ -185,6 +188,24 @@ float4 main(PS_INPUT input) : SV_TARGET
 		ambientLighting = diffuseIBL + specularIBL;
 	}
 	
-	float3 result = directLighting + ambientLighting;
+	// Calculate the shadow mask
+	float currShadowDepth = input.shadowPosition.z / input.shadowPosition.w;
+	float2 uv = input.shadowPosition.xy / input.shadowPosition.w;
+	uv.y = -uv.y;
+	uv = uv * 0.5 + 0.5;
+	float shadowDepth = shadowTexture.Sample(shadowSampler, uv).r;
+	if (currShadowDepth > shadowDepth + 0.001)
+		directLighting = 0.f;
+	
+	// Get the result color
+	float3 result = directLighting + ambientLighting * 0.2f;
+	
 	return pow(float4(result, 1.0), 1/gamma);
+	
+	//return float4(shadowTexture.Sample(shadowSampler, uv).r,
+	// shadowTexture.Sample(shadowSampler, uv).r, shadowTexture.Sample(shadowSampler, uv).r,
+	// 1.0);
+	
+	return float4(shadowDepth, shadowDepth, shadowDepth, 1.f);
+
 }

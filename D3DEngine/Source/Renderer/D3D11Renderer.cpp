@@ -688,8 +688,11 @@ FrameBuffer D3D11Renderer::CreateFrameBuffer(
   }
 
   if (depthstencilFormat != DXGI_FORMAT_UNKNOWN) {
-    desc.Format = depthstencilFormat;
+    desc.Format = DXGI_FORMAT_R24G8_TYPELESS;
     desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    if (samples <= 1) {
+      desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+    }
     if (FAILED(_device->CreateTexture2D(&desc, nullptr,
                                          &fb.depthStencilTexture))) {
       throw std::runtime_error(
@@ -697,13 +700,26 @@ FrameBuffer D3D11Renderer::CreateFrameBuffer(
     }
 
     D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-    dsvDesc.Format = desc.Format;
+    dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
     dsvDesc.ViewDimension = (samples > 1) ? D3D11_DSV_DIMENSION_TEXTURE2DMS
                                           : D3D11_DSV_DIMENSION_TEXTURE2D;
     if (FAILED(_device->CreateDepthStencilView(fb.depthStencilTexture.Get(),
                                                 &dsvDesc, &fb.dsv))) {
       throw std::runtime_error(
           "Failed to create FrameBuffer depth-stencil view");
+    }
+
+		if (samples <= 1) {
+      D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+      srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+      srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+      srvDesc.Texture2D.MostDetailedMip = 0;
+      srvDesc.Texture2D.MipLevels = 1;
+      if (FAILED(_device->CreateShaderResourceView(fb.depthStencilTexture.Get(),
+                                                   &srvDesc, &fb.depthSRV))) {
+        throw std::runtime_error(
+            "Failed to create FrameBuffer shader resource view");
+      }
     }
   }
 

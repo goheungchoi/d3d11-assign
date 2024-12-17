@@ -38,7 +38,7 @@ private:
 
 private:
 	float rotation{75};
-	bool _useIBL{false};
+	bool _useIBL{true};
 
 	XMMATRIX _proj;
 	XMMATRIX _view;
@@ -64,18 +64,30 @@ private:
 
 	Texture _environmentMap;
 
+	// Cerberus
   Texture _albedoTexture;
   Texture _normalTexture;
   Texture _metalnessTexture;
   Texture _roughnessTexture;
 
+	// Ground
+	Texture _groundATexture;
+  Texture _groundNTexture;
+  Texture _groundMTexture;
+  Texture _groundRTexture;
+
+	// Env
   Texture _specularTexture;
   Texture _irradianceTexture;
   Texture _specularBRDF_LUT;
 
-
+	// Shadow
+	ComPtr<ID3D11DepthStencilState> _shadowDepthStencilState;
+  ComPtr<ID3D11SamplerState> _shadowSampler;
 	ShaderProgram _shadowProgram;
-  Texture _depthBuffer;
+  FrameBuffer _depthBuffer;
+  XMMATRIX _shadowView;
+  XMMATRIX _shadowProj;
 	void InitShadowPass();
 
 	void InitTransformMatrices();

@@ -83,6 +83,7 @@ void DemoApp::Initialize() {
 
   InitMeshes();
   InitLights();
+  InitShadowPass();
 #if USE_GUI == 1
   InitImgui();
 #endif
@@ -105,6 +106,10 @@ void DemoApp::Shutdown() {
     //
     //
     _renderer->Shutdown();
+		
+		while (ShowCursor(true) < 0);
+    ClipCursor(nullptr);
+    mouseLastState = {};
 
     ///////////////////////// DO NOT MODIFY /////////////////////////
     // 게임 엔진 셧다운
@@ -228,6 +233,10 @@ void DemoApp::Render() {
   }
 #endif
 
+	XMMATRIX groundTransform = XMMatrixMultiply(
+      XMMatrixScaling(10.f, 1.f, 10.f), 
+			XMMatrixTranslation(0.f, -100.f, 0.f));
+
   _renderer->BeginDraw();
 
   _renderer->_context->IASetPrimitiveTopology(
@@ -240,6 +249,8 @@ void DemoApp::Render() {
   _transformConstants.proj = XMMatrixTranspose(_proj);
   _transformConstants.sceneRotation =
       XMMatrixTranspose(XMMatrixScaling(0.8, 0.8, 0.8));
+  _transformConstants.shadowViewProj =
+      XMMatrixTranspose(XMMatrixMultiply(_shadowView, _shadowProj));
   _renderer->CopyDataToDeviceBuffer(_cboTransform, &_transformConstants);
 
   _shadingConstants.eyePosition = g_eyePos;
@@ -249,7 +260,74 @@ void DemoApp::Render() {
   _renderer->_context->VSSetConstantBuffers(0, 1, _cboTransform.GetAddressOf());
   _renderer->_context->PSSetConstantBuffers(0, 1, _cboShading.GetAddressOf());
 
+	// Draw depth buffer
+	// Change the render target to the depth frame buffer
+  _renderer->_context->OMSetRenderTargets(1, _depthBuffer.rtv.GetAddressOf(),
+                                          _depthBuffer.dsv.Get());
+  _renderer->_context->VSSetShader(_shadowProgram.vertexShader.Get(), nullptr,
+                                   0);
+  _renderer->_context->PSSetShader(_shadowProgram.pixelShader.Get(), nullptr,
+                                   0);
+  _renderer->_context->OMSetDepthStencilState(_defaultDepthStencilState.Get(),
+                                              0);
+  {
+    D3D11_VIEWPORT viewport{.TopLeftX = 0,
+                            .TopLeftY = 0,
+                            .Width = 2048,
+                            .Height = 2048,
+                            .MinDepth = 0,
+                            .MaxDepth = 1};
+    _renderer->_context->RSSetViewports(1, &viewport);
+  }
+	float clear_color[4] = {0, 0, 0, 0};
+  _renderer->_context->ClearRenderTargetView(_depthBuffer.rtv.Get(),
+                                             clear_color);
+  _renderer->_context->ClearDepthStencilView(_depthBuffer.dsv.Get(),
+                                             D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+	// PBR
+  _renderer->_context->IASetInputLayout(_shadowProgram.inputLayout.Get());
+  _renderer->_context->IASetVertexBuffers(0, 1,
+                                          _pbrModel.vertexBuffer.GetAddressOf(),
+                                          &_pbrModel.stride, &_pbrModel.offset);
+  _renderer->_context->IASetIndexBuffer(_pbrModel.indexBuffer.Get(),
+                                        DXGI_FORMAT_R32_UINT, 0);
+  _renderer->_context->DrawIndexed(_pbrModel.numElements, 0, 0);
+
+	// Ground
+	_transformConstants.sceneRotation = XMMatrixTranspose(groundTransform);
+  _renderer->CopyDataToDeviceBuffer(_cboTransform, &_transformConstants);
+
+	_renderer->_context->IASetVertexBuffers(0, 1,
+                                          _ground.vertexBuffer.GetAddressOf(),
+                                          &_ground.stride, &_ground.offset);
+  _renderer->_context->IASetIndexBuffer(_ground.indexBuffer.Get(),
+                                        DXGI_FORMAT_R32_UINT, 0);
+  _renderer->_context->DrawIndexed(_ground.numElements, 0, 0);
+	// End depth buffer
+
   // Draw skybox.
+  {
+    D3D11_VIEWPORT viewport{.TopLeftX = 0,
+                            .TopLeftY = 0,
+                            .Width = SCREEN_WIDTH,
+                            .Height = SCREEN_HEIGHT,
+                            .MinDepth = 0,
+                            .MaxDepth = 1};
+    _renderer->_context->RSSetViewports(1, &viewport);
+  }
+
+  _transformConstants.view = XMMatrixTranspose(_view);
+  _transformConstants.proj = XMMatrixTranspose(_proj);
+  _transformConstants.sceneRotation =
+      XMMatrixTranspose(XMMatrixScaling(0.8, 0.8, 0.8));
+  _transformConstants.shadowViewProj =
+      XMMatrixTranspose(_shadowView * _shadowProj);
+  _renderer->CopyDataToDeviceBuffer(_cboTransform, &_transformConstants);
+
+  _renderer->_context->OMSetRenderTargets(1, &_renderer->_backbufferRTV,
+                                          _renderer->_depthStencilView);
+
   if (_shadingConstants.useIBL) {
     _renderer->_context->IASetInputLayout(_skyboxProgram.inputLayout.Get());
     _renderer->_context->IASetVertexBuffers(0, 1,
@@ -270,14 +348,19 @@ void DemoApp::Render() {
 
   // Draw PBR model.
   ID3D11ShaderResourceView* const pbrModelSRVs[] = {
-      _albedoTexture.srv.Get(),    _normalTexture.srv.Get(),
-      _metalnessTexture.srv.Get(), _roughnessTexture.srv.Get(),
-      _specularTexture.srv.Get(),  _irradianceTexture.srv.Get(),
-      _specularBRDF_LUT.srv.Get(),
+    _albedoTexture.srv.Get(),
+    _normalTexture.srv.Get(),
+    _metalnessTexture.srv.Get(),
+    _roughnessTexture.srv.Get(),
+    _specularTexture.srv.Get(),
+    _irradianceTexture.srv.Get(),
+    _specularBRDF_LUT.srv.Get(),
+    _depthBuffer.depthSRV.Get(),
   };
   ID3D11SamplerState* const pbrModelSamplers[] = {
       _defaultSampler.Get(),
       _spBRDF_Sampler.Get(),
+			_shadowSampler.Get()
   };
 
   _renderer->_context->IASetInputLayout(_pbrProgram.inputLayout.Get());
@@ -288,18 +371,30 @@ void DemoApp::Render() {
                                         DXGI_FORMAT_R32_UINT, 0);
   _renderer->_context->VSSetShader(_pbrProgram.vertexShader.Get(), nullptr, 0);
   _renderer->_context->PSSetShader(_pbrProgram.pixelShader.Get(), nullptr, 0);
-  _renderer->_context->PSSetShaderResources(0, 7, pbrModelSRVs);
+  _renderer->_context->PSSetShaderResources(0, 8, pbrModelSRVs);
   _renderer->_context->PSSetSamplers(0, 2, pbrModelSamplers);
   _renderer->_context->OMSetDepthStencilState(_defaultDepthStencilState.Get(),
                                               0);
   _renderer->_context->DrawIndexed(_pbrModel.numElements, 0, 0);
+
+	// Draw Ground Model
+  ID3D11ShaderResourceView* const groundModelSRVs[] = {
+      _groundATexture.srv.Get(),   _groundNTexture.srv.Get(),
+      _groundMTexture.srv.Get(),   _groundRTexture.srv.Get(),
+      _specularTexture.srv.Get(),  _irradianceTexture.srv.Get(),
+      _specularBRDF_LUT.srv.Get(), _depthBuffer.depthSRV.Get(),
+  };
+
+  _transformConstants.sceneRotation = XMMatrixTranspose(groundTransform);
+  _renderer->CopyDataToDeviceBuffer(_cboTransform, &_transformConstants);
 
   _renderer->_context->IASetVertexBuffers(0, 1,
                                           _ground.vertexBuffer.GetAddressOf(),
                                           &_ground.stride, &_ground.offset);
   _renderer->_context->IASetIndexBuffer(_ground.indexBuffer.Get(),
                                         DXGI_FORMAT_R32_UINT, 0);
-  _renderer->_context->DrawIndexed(_ground.numElements, 0, 0);
+  _renderer->_context->PSSetShaderResources(0, 8, groundModelSRVs);
+	_renderer->_context->DrawIndexed(_ground.numElements, 0, 0);
 
   _renderer->EndDraw();
 
@@ -332,6 +427,9 @@ void DemoApp::Render() {
     ImGui::SliderFloat3("Light 3 Radiance",
                         (float*)&(_shadingConstants.lights[2].radiance), 0.f,
                         10.f);
+
+		ImTextureID imgID = (ImTextureID)(uintptr_t)_depthBuffer.depthSRV.Get();
+    ImGui::Image(imgID, ImVec2(400, 400));
 	}
   ImGui::End();
 
@@ -348,24 +446,76 @@ void DemoApp::Render() {
 }
 
 void DemoApp::InitShadowPass() {
+
+	// Shadow shader program
   const std::vector<D3D11_INPUT_ELEMENT_DESC> shadowInputLayout = {
     {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-      D3D11_INPUT_PER_VERTEX_DATA, 0},
-    {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12,
-      D3D11_INPUT_PER_VERTEX_DATA, 0},
-    {"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24,
-      D3D11_INPUT_PER_VERTEX_DATA, 0},
-    {"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36,
-      D3D11_INPUT_PER_VERTEX_DATA, 0},
-    {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48,
       D3D11_INPUT_PER_VERTEX_DATA, 0},
   };
 	
 	_shadowProgram = _renderer->CreateShaderProgram(
-    CompileShaderFromFile(L"shaders/PBR_VS.hlsl", "main", "vs_5_0"),
-    CompileShaderFromFile(L"shaders/PBR_PS.hlsl", "main", "ps_5_0"),
+    CompileShaderFromFile(L"shaders/Shadow_VS.hlsl", "main", "vs_5_0"),
+    CompileShaderFromFile(L"shaders/Shadow_PS.hlsl", "main", "ps_5_0"),
     &shadowInputLayout
   );
+
+	// Shadow sampler
+	D3D11_SAMPLER_DESC samplerDesc{};
+  samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+  samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+  samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+  samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+  samplerDesc.MaxAnisotropy = 1;
+  samplerDesc.MinLOD = 0;
+  samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+  samplerDesc.BorderColor[0] = 0.f;
+  samplerDesc.BorderColor[1] = 0.f;
+  samplerDesc.BorderColor[2] = 0.f;
+  samplerDesc.BorderColor[3] = 1.f;
+	_renderer->_device->CreateSamplerState(&samplerDesc,
+                                         _shadowSampler.GetAddressOf());
+
+	// Depth stencil state description
+  D3D11_DEPTH_STENCIL_DESC depthStencilDesc{};
+  // Set up the depth state
+  depthStencilDesc.DepthEnable = true;
+  // Turn on writes to the depth-stencil buffer
+  depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+  depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+  // Set up the stencil state
+  depthStencilDesc.StencilEnable = true;
+  depthStencilDesc.StencilReadMask = 0xFF;
+  depthStencilDesc.StencilWriteMask = 0xFF;
+
+  // Stencil operations if pixel is front-facing
+  depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+  depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+  depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+  depthStencilDesc.FrontFace.StencilFunc =
+      D3D11_COMPARISON_ALWAYS;  // Always pass the comparison
+
+  // Stencil operations if pixel is back-facing
+  depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+  depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+  depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+  depthStencilDesc.BackFace.StencilFunc =
+      D3D11_COMPARISON_ALWAYS;  // Always pass the comparison
+
+	// Depth stencil state
+	_renderer->_device->CreateDepthStencilState(
+      &depthStencilDesc, _shadowDepthStencilState.GetAddressOf());
+
+	// Depth buffer
+  _depthBuffer = _renderer->CreateFrameBuffer(2048, 2048, 1,
+                                              DXGI_FORMAT_R16G16B16A16_FLOAT,
+                                   DXGI_FORMAT_D24_UNORM_S8_UINT);
+
+	// Shadow transformation
+  _shadowView = XMMatrixLookAtLH({0.f, 400.f, -10.f, 1.f}, 
+																 {0.f, 0.f, -1.f, 1.f},
+                                 {0, 1, 0, 0});
+  _shadowProj = XMMatrixOrthographicLH(2048, 2048, 0.01f, 10000.f);
 }
 
 void DemoApp::InitTransformMatrices() {
@@ -375,7 +525,7 @@ void DemoApp::InitTransformMatrices() {
   float aspectRatio = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
 
   // Create the projection matrix
-  _proj = XMMatrixPerspectiveFovLH(vfov, aspectRatio, 0.01f, 10000.f);
+  _proj = XMMatrixPerspectiveFovLH(vfov, aspectRatio, 0.01f, 200000.f);
   // Create the Orthographic projection matrix
   //_proj = XMMatrixOrthographicLH((float)SCREEN_WIDTH, (float)SCREEN_HEIGHT,
   // 0.01f, 100.f);
@@ -453,6 +603,21 @@ void DemoApp::InitTextures() {
   _specularBRDF_LUT = _renderer->CreateTexture(
       Image::fromFile("assets/textures/BakerSpecularBRDF_LUT.dds"),
       DXGI_FORMAT_R32G32B32A32_FLOAT, 1);
+
+
+	// Ground
+  _groundATexture = _renderer->CreateTexture(
+      Image::fromFile("assets/textures/forrest_ground_A.jpg"),
+      DXGI_FORMAT_R8G8B8A8_UNORM);
+  _groundNTexture = _renderer->CreateTexture(
+      Image::fromFile("assets/textures/forrest_ground_N.png"),
+      DXGI_FORMAT_R8G8B8A8_UNORM);
+  _groundMTexture = _renderer->CreateTexture(
+      Image::fromFile("assets/textures/forrest_ground_M.jpg", 1),
+      DXGI_FORMAT_R8_UNORM);
+  _groundRTexture = _renderer->CreateTexture(
+      Image::fromFile("assets/textures/forrest_ground_R.png", 1),
+      DXGI_FORMAT_R8_UNORM);
 }
 
 void DemoApp::InitSamplers() {
@@ -475,7 +640,7 @@ void DemoApp::InitLights() {
   // Update shading constant buffer (for pixel shader).
   _shadingConstants.eyePosition = g_camPos;
   _shadingConstants.useIBL = _useIBL;
-  _shadingConstants.gamma = 1.f;
+  _shadingConstants.gamma = 2.2f;
 
   Light light1, light2, light3;
   light1.direction = {-1.0f, 0.0f, 0.0f, 0.f};
@@ -484,7 +649,7 @@ void DemoApp::InitLights() {
 
   light1.radiance = {1.0f, 1.0f, 1.0f, 1.f};
   light2.radiance = {1.0f, 1.0f, 1.0f, 1.f};
-  light3.radiance = {1.0f, 1.0f, 1.0f, 1.f};
+  light3.radiance = {5.0f, 5.0f, 5.0f, 1.f};
 
   light1.enabled = false;
   light2.enabled = false;

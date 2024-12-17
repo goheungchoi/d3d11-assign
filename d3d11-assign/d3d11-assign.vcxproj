@@ -176,6 +176,10 @@
 		<None Include="assets\textures\cerberus_N.png" />
 		<None Include="assets\textures\cerberus_R.png" />
 		<None Include="assets\textures\environment.hdr" />
+		<None Include="assets\textures\forrest_ground_A.jpg" />
+		<None Include="assets\textures\forrest_ground_M.jpg" />
+		<None Include="assets\textures\forrest_ground_N.png" />
+		<None Include="assets\textures\forrest_ground_R.png" />
 		<None Include="imgui.ini" />
 		<ClInclude Include="include\common.h" />
 		<ClInclude Include="include\config.h" />

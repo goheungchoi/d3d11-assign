@@ -13,6 +13,7 @@ struct cbTransformConstants {
 	XMMATRIX view;
 	XMMATRIX proj;
 	XMMATRIX sceneRotation;
+  XMMATRIX shadowViewProj;
 };
 
 struct Light {
