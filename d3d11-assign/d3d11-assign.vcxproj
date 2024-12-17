@@ -207,6 +207,16 @@
 		<None Include="shaders\ToneMapping_PS.hlsl" />
 		<None Include="shaders\ToneMapping_VS.hlsl" />
 		<None Include="shaders\compile.bat" />
+		<ClCompile Include="src\animation\animation.cpp" />
+		<ClInclude Include="src\animation\animation.h" />
+		<ClCompile Include="src\animation\animator.cpp" />
+		<ClInclude Include="src\animation\animator.h" />
+		<ClCompile Include="src\animation\bone.cpp" />
+		<ClInclude Include="src\animation\bone.h" />
+		<ClCompile Include="src\animation\mesh.cpp" />
+		<ClInclude Include="src\animation\mesh.h" />
+		<ClCompile Include="src\animation\model.cpp" />
+		<ClInclude Include="src\animation\model.h" />
 		<ClCompile Include="src\camera.cpp" />
 		<ClInclude Include="src\camera.h" />
 		<ClCompile Include="src\demo_app.cpp" />

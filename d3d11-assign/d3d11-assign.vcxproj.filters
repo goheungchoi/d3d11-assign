@@ -22,6 +22,9 @@
 		<Filter Include="shaders">
 			<UniqueIdentifier>{32C59C8B-74CC-4DA1-9154-7E1CA6838F10}</UniqueIdentifier>
 		</Filter>
+		<Filter Include="src\animation">
+			<UniqueIdentifier>{A749FECD-CC5A-4F18-84B6-026D25B87D9E}</UniqueIdentifier>
+		</Filter>
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="assets\textures\cerberus_R.png">
@@ -166,5 +169,35 @@
 		<None Include="assets\textures\forrest_ground_R.png">
 			<Filter>assets\textures</Filter>
 		</None>
+		<ClCompile Include="src\animation\model.cpp">
+			<Filter>src\animation</Filter>
+		</ClCompile>
+		<ClInclude Include="src\animation\model.h">
+			<Filter>src\animation</Filter>
+		</ClInclude>
+		<ClCompile Include="src\animation\mesh.cpp">
+			<Filter>src\animation</Filter>
+		</ClCompile>
+		<ClCompile Include="src\animation\animation.cpp">
+			<Filter>src\animation</Filter>
+		</ClCompile>
+		<ClInclude Include="src\animation\animator.h">
+			<Filter>src\animation</Filter>
+		</ClInclude>
+		<ClInclude Include="src\animation\mesh.h">
+			<Filter>src\animation</Filter>
+		</ClInclude>
+		<ClCompile Include="src\animation\bone.cpp">
+			<Filter>src\animation</Filter>
+		</ClCompile>
+		<ClInclude Include="src\animation\bone.h">
+			<Filter>src\animation</Filter>
+		</ClInclude>
+		<ClCompile Include="src\animation\animator.cpp">
+			<Filter>src\animation</Filter>
+		</ClCompile>
+		<ClInclude Include="src\animation\animation.h">
+			<Filter>src\animation</Filter>
+		</ClInclude>
 	</ItemGroup>
 </Project>

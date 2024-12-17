@@ -634,6 +634,12 @@ void DemoApp::InitMeshes() {
       _renderer->CreateMeshBuffer(Mesh::fromFile("assets/model/cerberus.fbx"));
   _skybox =
       _renderer->CreateMeshBuffer(Mesh::fromFile("assets/model/skybox.obj"));
+
+	// Animation
+  _model = new Model(_renderer->_device, _renderer->_deviceContext,
+                     "assets/vampire/SkinningTest.fbx");
+
+  _animation = new Animation("assets/vampire/SkinningTest.fbx", _model);
 }
 
 void DemoApp::InitLights() {
