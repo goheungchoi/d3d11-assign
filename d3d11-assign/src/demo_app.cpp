@@ -242,7 +242,7 @@ void DemoApp::Render() {
       XMMatrixTranspose(XMMatrixScaling(0.8, 0.8, 0.8));
   _renderer->CopyDataToDeviceBuffer(_cboTransform, &_transformConstants);
 
-  _shadingConstants.eyePosition = g_eyePos;
+  _shadingConstants.eyePosition = _camera->GetPosition();
 
   _renderer->CopyDataToDeviceBuffer(_cboShading, &_shadingConstants);
 
