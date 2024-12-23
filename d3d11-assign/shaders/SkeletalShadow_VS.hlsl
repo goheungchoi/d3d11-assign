@@ -31,10 +31,6 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
 	float4 Position : SV_POSITION;
-	float4 WorldPosition : POSITION;
-	float2 TexCoord : TEXCOORD;
-	float3 Normal : NORMAL;
-	float3x3 TBN : TBNMATRIX;
 };
 
 VS_OUTPUT main(VS_INPUT input)
@@ -57,21 +53,8 @@ VS_OUTPUT main(VS_INPUT input)
 	}
 	float4 totalPos = mul(pos, boneTransform);
 	
-	//matrix normalTransform = inverse(boneTransform) * inverseTransposeModel;
-	matrix normalTransform = boneTransform;
-	float3 T = normalize(mul(float4(input.Tangent, 0.f), normalTransform)).xyz;
-	float3 N = normalize(mul(float4(input.Normal, 0.f), normalTransform)).xyz;
-	// re-orthogonalize T with respect to N
-	T = normalize(T - dot(T, N) * N);
-	float3 B = cross(N, T);
-	float3x3 TBN = float3x3(T, B, N);
-	
 	VS_OUTPUT output;
 	matrix mvp = mul(model, viewProjection);
 	output.Position = mul(totalPos, mvp);
-	output.WorldPosition = mul(totalPos, model);
-	output.TexCoord = input.TexCoord;
-	output.Normal = N;
-	output.TBN = TBN;
 	return output;
 }

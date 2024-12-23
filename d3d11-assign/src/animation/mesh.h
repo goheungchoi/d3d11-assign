@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common.h"
+#include "animation_common.h"
 
 #include "bone.h"
 
@@ -14,27 +14,29 @@
  * - Build a mesh hierarchy
  *
  */
-class Mesh {
+class ModelMesh {
+ public:
   ID3D11Device* const _device;
   ID3D11DeviceContext* const _context;
 
-  // Mesh data
-  std::vector<Vertex> vertices;
-  std::vector<Index> indices;
-  std::vector<Texture> textures;
+  // ModelMesh data
+  std::vector<MVertex> vertices;
+  std::vector<MIndex> indices;
+  std::vector<MTexture> textures;
 
-  Transform _localTransform{};
+  MTransform _localTransform{};
 
   bool _bShouldUpdateModelTransform{true};
-  XMMATRIX _modelTransform{XMMatrixIdentity()};
+  XMMATRIX _modelTransform{
+      XMMatrixMultiply(XMMatrixRotationY(PI), XMMatrixTranslation(100, -10, 0))};
 
  public:
-  Mesh(ID3D11Device* device, ID3D11DeviceContext* context,
-       const std::vector<Vertex>& vertices, const std::vector<Index>& indices,
-       const std::vector<Texture>& textures) = delete;
-  Mesh(ID3D11Device* device, ID3D11DeviceContext* context,
-       std::vector<Vertex>&& vertices, std::vector<Index>&& indices,
-       std::vector<Texture>&& textures)
+  ModelMesh(ID3D11Device* device, ID3D11DeviceContext* context,
+       const std::vector<MVertex>& vertices, const std::vector<MIndex>& indices,
+       const std::vector<MTexture>& textures) = delete;
+  ModelMesh(ID3D11Device* device, ID3D11DeviceContext* context,
+       std::vector<MVertex>&& vertices, std::vector<MIndex>&& indices,
+       std::vector<MTexture>&& textures)
       : _device{device},
         _context{context},
         vertices(std::move(vertices)),
@@ -44,18 +46,18 @@ class Mesh {
     InitBuffers();
   }
 
-  ~Mesh();
+  ~ModelMesh();
 
-  void Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms);
+  // void Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms);
 
- private:
+ public:
   ID3D11InputLayout* _inputLayout{nullptr};
   ID3D11VertexShader* _vs{nullptr};
   ID3D11PixelShader* _ps{nullptr};
 
   bool InitPipeline();
 
- private:
+ public:
   ID3D11Buffer* _vbo{nullptr};
   UINT _vbStride{0U};
   UINT _vbOffset{0U};

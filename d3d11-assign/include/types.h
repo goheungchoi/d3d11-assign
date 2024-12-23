@@ -31,6 +31,10 @@ struct cbShadingConstants {
   FLOAT gamma;
   FLOAT g_metalness;
   FLOAT g_roughness;
+  //////////////////////////////////
+  UINT usePCF;
+  UINT shadowMapSize;
+  UINT paddings[2];
 };
 
 inline float g_camDist{150.f};

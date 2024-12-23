@@ -20,6 +20,10 @@ class DemoApp : public GameEngine
 	
 	class Camera* _camera;
   
+	class Model* _model;
+  class Animation* _animation;
+  class Animator* _animator;
+
 	cbTransformConstants _transformConstants;
 	cbShadingConstants _shadingConstants;
 
@@ -55,6 +59,7 @@ private:
   ComPtr<ID3D11Buffer> _cboShading;
 
   ShaderProgram _pbrProgram;
+  ShaderProgram _groundProgram;
   ShaderProgram _skyboxProgram;
   ShaderProgram _tonemapProgram;
 
@@ -84,6 +89,8 @@ private:
 	// Shadow
 	ComPtr<ID3D11DepthStencilState> _shadowDepthStencilState;
   ComPtr<ID3D11SamplerState> _shadowSampler;
+  ComPtr<ID3D11InputLayout> _skeletalShadowLayout;
+  ComPtr<ID3D11VertexShader> _skeletalShadowVS;
 	ShaderProgram _shadowProgram;
   FrameBuffer _depthBuffer;
   XMMATRIX _shadowView;

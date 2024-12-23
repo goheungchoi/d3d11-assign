@@ -119,6 +119,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 	
 	// Specular reflection
 	float3 R = 2.0 * NdotLo * N - Lo;
+	R = -R;
 	
 	// Fresnel reflectance 
 	float3 F0 = lerp(Fdielectric, albedo, metalness);

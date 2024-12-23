@@ -13,9 +13,10 @@ Model::Model(ID3D11Device* device, ID3D11DeviceContext* context,
 
 Model::~Model() {}
 
-void Model::Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms) {
-  for (Mesh& mesh : _meshes) mesh.Draw(topMat, boneTransforms);
-}
+//void Model::Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms) {
+//  for (ModelMesh& mesh : _meshes) 
+//		mesh.Draw(topMat, boneTransforms);
+//}
 
 void Model::LoadModel(const char* path) {
   Assimp::Importer import;
@@ -38,7 +39,7 @@ void Model::LoadModel(const char* path) {
 }
 
 void Model::ProcessNode(aiNode* node, const aiScene* scene) {
-  // TODO: Mesh hierarchy
+  // TODO: ModelMesh hierarchy
   //
   // Process all the node's meshes
   for (std::size_t i = 0; i < node->mNumMeshes; ++i) {
@@ -52,13 +53,13 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene) {
   }
 }
 
-Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
-  std::vector<Vertex> vertices(mesh->mNumVertices);
-  std::vector<Index> indices(mesh->mNumFaces * 3);
-  std::vector<Texture> textures;
+ModelMesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
+  std::vector<MVertex> vertices(mesh->mNumVertices);
+  std::vector<MIndex> indices(mesh->mNumFaces * 3);
+  std::vector<MTexture> textures;
 
   for (std::size_t i = 0; i < mesh->mNumVertices; i++) {
-    Vertex vertex = Vertex::Default();
+    MVertex vertex = MVertex::Default();
 
     // Process vertex position
     Vector3 vector;
@@ -112,35 +113,34 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
     // Diffuse maps
-    std::vector<Texture> diffuseMaps = LoadMaterialTextures(
+    std::vector<MTexture> diffuseMaps = LoadMaterialTextures(
         material, aiTextureType_DIFFUSE, TEXTURE_TYPE::DIFFUSE, scene);
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
     // Specular maps
-    std::vector<Texture> specularMaps = LoadMaterialTextures(
+    std::vector<MTexture> specularMaps = LoadMaterialTextures(
         material, aiTextureType_SPECULAR, TEXTURE_TYPE::SPECULAR, scene);
     textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
     // Normal maps
-    std::vector<Texture> normalMaps = LoadMaterialTextures(
+    std::vector<MTexture> normalMaps = LoadMaterialTextures(
         material, aiTextureType_NORMALS, TEXTURE_TYPE::NORMALS, scene);
     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
     // Height maps
-    std::vector<Texture> heightMaps = LoadMaterialTextures(
+    std::vector<MTexture> heightMaps = LoadMaterialTextures(
         material, aiTextureType_HEIGHT, TEXTURE_TYPE::HEIGHT, scene);
     textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
   }
 
-  return Mesh(_device, _context, std::move(vertices), std::move(indices),
-              std::move(textures));
+  return ModelMesh(_device, _context, std::move(vertices), std::move(indices), std::move(textures));
 }
 
-std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* material,
+std::vector<MTexture> Model::LoadMaterialTextures(aiMaterial* material,
                                                  aiTextureType type,
                                                  TEXTURE_TYPE textureType,
                                                  const aiScene* scene) {
-  std::vector<Texture> textures;
+  std::vector<MTexture> textures;
   for (UINT i = 0; i < material->GetTextureCount(type); ++i) {
     aiString str;
     material->GetTexture(type, i, &str);
@@ -156,7 +156,7 @@ std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* material,
     }
 
     if (!skip) {
-      Texture texture;
+      MTexture texture;
 
       const aiTexture* embeddedTexture = scene->GetEmbeddedTexture(str.C_Str());
       if (embeddedTexture != nullptr) {
@@ -181,7 +181,7 @@ std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* material,
   return textures;
 }
 
-void Model::ExtractBoneData(std::vector<Vertex>& vertices, aiMesh* mesh,
+void Model::ExtractBoneData(std::vector<MVertex>& vertices, aiMesh* mesh,
                             const aiScene* scene) {
   for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
     aiBone* currBone = mesh->mBones[boneIndex];

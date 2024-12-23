@@ -199,5 +199,23 @@
 		<ClInclude Include="src\animation\animation.h">
 			<Filter>src\animation</Filter>
 		</ClInclude>
+		<None Include="assets\model\SkinningTest.fbx">
+			<Filter>assets\model</Filter>
+		</None>
+		<ClInclude Include="src\animation\animation_common.h">
+			<Filter>src\animation</Filter>
+		</ClInclude>
+		<None Include="shaders\SkeletalShadow_VS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
+		<None Include="assets\textures\ibl_brdf_lut.dds">
+			<Filter>assets\textures</Filter>
+		</None>
+		<None Include="assets\textures\normal.png">
+			<Filter>assets\textures</Filter>
+		</None>
+		<None Include="shaders\PBR_Ground_PS.hlsl">
+			<Filter>shaders</Filter>
+		</None>
 	</ItemGroup>
 </Project>

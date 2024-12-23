@@ -558,6 +558,23 @@ Texture D3D11Renderer::CreateTexture(const std::shared_ptr<class Image>& image,
   return texture;
 }
 
+Texture D3D11Renderer::CreateTexture(const std::string& path,
+	DXGI_FORMAT format, UINT levels) const {
+  Texture texture;
+  if (FAILED(CreateDDSTextureFromFile(
+          _device, Utility::convertToUTF16(path).c_str(),
+          (ID3D11Resource**)texture.texture.GetAddressOf(),
+          texture.srv.GetAddressOf()))) {
+    throw std::runtime_error("Failed to create cubemap texture SRV");
+  }
+
+  if (levels == 0) {
+    _context->GenerateMips(texture.srv.Get());
+  }
+  return texture;
+
+}
+
 Texture D3D11Renderer::CreateTextureCube(UINT width, UINT height,
                                          DXGI_FORMAT format,
                                          UINT levels) const {

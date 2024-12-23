@@ -1,8 +1,8 @@
 #pragma once
 
-#include "common.h"
+#include "animation_common.h"
 
-class aiNodeAnim;
+struct aiNodeAnim;
 
 struct BoneInfo {
   // The id of the bone

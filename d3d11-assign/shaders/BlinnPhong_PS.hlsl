@@ -1,5 +1,5 @@
 
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS 3
 
 // Light types.
 
@@ -40,54 +40,43 @@ cbuffer MaterialProperties : register(b0)
 
 struct Light
 {
-	float4 Position; // 16 bytes
-  //----------------------------------- (16 byte boundary)
-	float4 Direction; // 16 bytes
-  //----------------------------------- (16 byte boundary)
-	float4 Color; // 16 bytes
-  //----------------------------------- (16 byte boundary)
-	float SpotAngle; // 4 bytes
-	float ConstantAttenuation; // 4 bytes
-	float LinearAttenuation; // 4 bytes
-	float QuadraticAttenuation; // 4 bytes
-  //----------------------------------- (16 byte boundary)
-	int LightType; // 4 bytes
-	bool Enabled; // 4 bytes
-	int2 Padding; // 8 bytes
-  //----------------------------------- (16 byte boundary)
-}; // Total:                           // 80 bytes (5 * 16)
+	float4 direction;
+	float4 radiance;
+	bool enabled;
+	uint3 paddings;
+};
 
-cbuffer LightProperties : register(b1)
+cbuffer ShadingConstants : register(b1)
 {
-	float4 EyePosition; // 16 bytes
-  //----------------------------------- (16 byte boundary)
-	float4 GlobalAmbient; // 16 bytes
-  //----------------------------------- (16 byte boundary)
-	Light Lights[MAX_LIGHTS]; // 80 * 8 = 640 bytes
-};  // Total:                           // 672 bytes (42 * 16)
-
+	Light lights[MAX_LIGHTS];
+	float4 eyePosition;
+	bool useIBL;
+	float gamma;
+	float g_metalness;
+	float g_roughness;
+};
 
 float4 CalculateDiffuse(Light light, float3 L, float3 N)
 {
 	float NdotL = max(0, dot(N, L));
 	
-	return light.Color * NdotL;
+	return light.radiance * NdotL;
 }
 
 float4 CalculateSpecular(Light light, float3 V, float3 L, float3 N)
 {
 	float3 H = normalize(V + L);
 	float NdotH = max(0, dot(N, H));
-	return light.Color * pow(NdotH, Material.Shineness);
+	return light.radiance * pow(NdotH, Material.Shineness);
 }
 
-float CalculateAttenuation(Light light, float d)
-{
-	return 1.0f / 
-		(light.ConstantAttenuation + 
-		light.LinearAttenuation * d + 
-		light.QuadraticAttenuation * d * d);
-}
+//float CalculateAttenuation(Light light, float d)
+//{
+//	return 1.0f /
+//		(light.ConstantAttenuation +
+//		light.LinearAttenuation * d +
+//		light.QuadraticAttenuation * d * d);
+//}
 
 struct LightingResult
 {
@@ -95,27 +84,27 @@ struct LightingResult
 	float4 specular;
 };
 
-LightingResult CalculatePointLight(Light light, float3 V, float4 P, float3 N)
-{
-	LightingResult res;
-	float3 L = (light.Position - P).xyz;
-	float distance = length(L);
+//LightingResult CalculatePointLight(Light light, float3 V, float4 P, float3 N)
+//{
+//	LightingResult res;
+//	float3 L = (light.Position - P).xyz;
+//	float distance = length(L);
 	
-	L = L / distance;		// Normalize
+//	L = L / distance; // Normalize
 	
-	float attenuation = CalculateAttenuation(light, distance);
+//	float attenuation = CalculateAttenuation(light, distance);
 	
-	res.diffuse = attenuation * CalculateDiffuse(light, L, N);
-	res.specular = attenuation * CalculateSpecular(light, V, L, N);
+//	res.diffuse = attenuation * CalculateDiffuse(light, L, N);
+//	res.specular = attenuation * CalculateSpecular(light, V, L, N);
 	
-	return res;
-}
+//	return res;
+//}
 
 LightingResult CalculateDirectionalLight(Light light, float3 V, float4 P, float3 N)
 {
 	LightingResult res;
 	
-	float3 L = -light.Direction.xyz;
+	float3 L = -light.direction.xyz;
 
 	res.diffuse = CalculateDiffuse(light, L, N);
 	res.specular = CalculateSpecular(light, V, L, N);
@@ -123,34 +112,34 @@ LightingResult CalculateDirectionalLight(Light light, float3 V, float4 P, float3
 	return res;
 }
 
-float CalculateSpotCone(Light light, float3 L)
-{
-	float minCos = cos(light.SpotAngle);
-	float maxCos = (minCos + 1.0f) / 2.0f;
-	float cosAngle = dot(light.Direction.xyz, -L);
-	return smoothstep(minCos, maxCos, cosAngle);
-}
+//float CalculateSpotCone(Light light, float3 L)
+//{
+//	float minCos = cos(light.SpotAngle);
+//	float maxCos = (minCos + 1.0f) / 2.0f;
+//	float cosAngle = dot(light.Direction.xyz, -L);
+//	return smoothstep(minCos, maxCos, cosAngle);
+//}
 
-LightingResult CalculateSpotLight(Light light, float3 V, float4 P, float3 N)
-{
-	LightingResult res;
+//LightingResult CalculateSpotLight(Light light, float3 V, float4 P, float3 N)
+//{
+//	LightingResult res;
 	
-	float3 L = (light.Position - P).xyz;
-	float distance = length(L);
-	L = L / distance;
+//	float3 L = (light.Position - P).xyz;
+//	float distance = length(L);
+//	L = L / distance;
 	
-	float attenuation = CalculateAttenuation(light, distance);
-	float spotIntensity = CalculateSpotCone(light, L);
+//	float attenuation = CalculateAttenuation(light, distance);
+//	float spotIntensity = CalculateSpotCone(light, L);
 	
-	res.diffuse = spotIntensity * attenuation * CalculateDiffuse(light, L, N);
-	res.specular = spotIntensity * attenuation * CalculateSpecular(light, V, L, N);
+//	res.diffuse = spotIntensity * attenuation * CalculateDiffuse(light, L, N);
+//	res.specular = spotIntensity * attenuation * CalculateSpecular(light, V, L, N);
 	
-	return res;
-}
+//	return res;
+//}
 
 LightingResult ComputeLighting(float4 P, float3 N)
 {
-	float3 V = normalize((EyePosition - P).xyz);
+	float3 V = normalize((eyePosition - P).xyz);
 	
 	LightingResult total;
 	total.diffuse = float4(0.f, 0.f, 0.f, 0.f);
@@ -163,29 +152,31 @@ LightingResult ComputeLighting(float4 P, float3 N)
 		res.diffuse = float4(0.f, 0.f, 0.f, 0.f);
 		res.specular = float4(0.f, 0.f, 0.f, 0.f);
 		
-		if (!Lights[i].Enabled)
+		if (!lights[i].enabled)
 			continue;
 		
-		switch (Lights[i].LightType)
-		{
-			case UNDEFINED_LIGHT:
-			break;
-			case DIRECTIONAL_LIGHT:
-      {
-				res = CalculateDirectionalLight(Lights[i], V, P, N);
-			}
-			break;
-			case POINT_LIGHT:
-			{
-				res = CalculatePointLight(Lights[i], V, P, N);
-			}
-			break;
-			case SPOT_LIGHT:
-      {
-				res = CalculateSpotLight(Lights[i], V, P, N);
-			}
-			break;
-		}
+		res = CalculateDirectionalLight(lights[i], V, P, N);
+		
+		//switch (lights[i].LightType)
+		//{
+		//	case UNDEFINED_LIGHT:
+		//		break;
+		//	case DIRECTIONAL_LIGHT:
+  //    {
+		//			res = CalculateDirectionalLight(lights[i], V, P, N);
+		//		}
+		//		break;
+		//	case POINT_LIGHT:
+		//	{
+		//			res = CalculatePointLight(lights[i], V, P, N);
+		//		}
+		//		break;
+		//	case SPOT_LIGHT:
+  //    {
+		//			res = CalculateSpotLight(lights[i], V, P, N);
+		//		}
+		//		break;
+		//}
 		total.diffuse += res.diffuse;
 		total.specular += res.specular;
 	}
@@ -217,10 +208,10 @@ float4 main(PS_INPUT input) : SV_TARGET
 		
 		LightingResult lit = ComputeLighting(input.WorldPosition, N);
 		
-		float4 color = diffuseTexture.Sample(diffuseSampler, input.TexCoord);
+		float4 color = pow(diffuseTexture.Sample(diffuseSampler, input.TexCoord), 2.2);
 				
 		// float4 emissive = Material.Emissive;	// TODO: Need emissive texture
-		float4 Ia = color * GlobalAmbient;
+		float4 Ia = color * 0.2f;
 		float4 Id = color * lit.diffuse;
 		float4 Is = lit.specular * specularTexture.Sample(specularSampler, input.TexCoord);
 	
@@ -235,15 +226,14 @@ float4 main(PS_INPUT input) : SV_TARGET
 	}
 	else
 	{
-		float3 N = input.Normal.xyz;
+		float3 N = normalize(input.Normal.xyz);
 		
 		LightingResult lit = ComputeLighting(
-			input.Position,
-			normalize(N)
+			input.WorldPosition, N
 		);
 		
 		float4 Ie = Material.EmissiveColor;
-		float4 Ia = Material.AmbientColor * GlobalAmbient;
+		float4 Ia = Material.AmbientColor * 0.2f;
 		float4 Id = lit.diffuse * Material.DiffuseColor;
 		float4 Is = lit.specular * Material.SpecularColor;
 		

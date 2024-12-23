@@ -1,8 +1,8 @@
 #pragma once
 
+#include "animation_common.h"
+
 #include "animation.h"
-#include "common.h"
-#include "d3d_utility.h"
 
 class Animator {
   std::vector<XMMATRIX> _finalBoneTransforms;

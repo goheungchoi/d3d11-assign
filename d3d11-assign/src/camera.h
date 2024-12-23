@@ -40,6 +40,8 @@ class Camera {
 public:
 	
 	Camera(HINSTANCE hInstance, HWND hwnd);
+
+	XMVECTOR GetPosition() { return position; }
 	
 	void AddMoveSpeed(float speed);
   void AddRotationSpeed(float speed);

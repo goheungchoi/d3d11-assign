@@ -130,6 +130,8 @@ class D3D11Renderer {
                         UINT levels = 0) const;
   Texture CreateTexture(const std::shared_ptr<class Image>& image,
                         DXGI_FORMAT format, UINT levels = 0) const;
+  Texture CreateTexture(const std::string& path,
+                                       DXGI_FORMAT format, UINT levels) const;
   Texture CreateTextureCube(UINT width, UINT height, DXGI_FORMAT format,
                             UINT levels = 0) const;
   Texture CreateTextureCube(const std::string& path,

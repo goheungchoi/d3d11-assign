@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common.h"
-#include "d3d_utility.h"
+#include "animation_common.h"
+
 #include "model.h"
 
 struct AnimationNode {

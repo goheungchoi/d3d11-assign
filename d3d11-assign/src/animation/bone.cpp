@@ -1,6 +1,7 @@
 #include "bone.h"
 
 #include <assimp/scene.h>
+#include <assimp/anim.h>
 
 Bone::Bone(const std::string& name, int ID, const aiNodeAnim* channel)
     : _name(std::move(const_cast<std::string&>(name))),

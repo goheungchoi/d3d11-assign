@@ -1,5 +1,7 @@
 #pragma once
 
+#include "animation_common.h"
+
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
@@ -24,7 +26,7 @@ class Model {
   ID3D11Device* const _device;
   ID3D11DeviceContext* const _context;
 
-  std::vector<Texture> _loadedTextures;
+  std::vector<MTexture> _loadedTextures;
 
   int _numBones{0};
   std::unordered_map<std::string, BoneInfo> _boneInfoMap;
@@ -36,17 +38,14 @@ class Model {
   auto& GetBoneInfoMap() { return _boneInfoMap; }
   int& GetNumBones() { return _numBones; }
 
-	void DrawShadow()
-  void Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms);
-
- private:
-  std::vector<Mesh> _meshes;
+  // void Draw(XMMATRIX topMat, const std::vector<XMMATRIX>& boneTransforms);
+  std::vector<ModelMesh> _meshes;
   std::string _directory;
-
+ private:
   void LoadModel(const char* path);
   void ProcessNode(aiNode* node, const aiScene* scene);
-  Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
-  std::vector<Texture> LoadMaterialTextures(aiMaterial* material,
+  ModelMesh ProcessMesh(aiMesh* mesh, const aiScene* scene);
+  std::vector<MTexture> LoadMaterialTextures(aiMaterial* material,
                                             aiTextureType type,
                                             TEXTURE_TYPE textureType,
                                             const aiScene* scene);
@@ -56,6 +55,6 @@ class Model {
    * @param mesh Assimp mesh that contains the bone data
    * @param scene ?
    */
-  void ExtractBoneData(std::vector<Vertex>& vertices, aiMesh* mesh,
+  void ExtractBoneData(std::vector<MVertex>& vertices, aiMesh* mesh,
                        const aiScene* scene);
 };

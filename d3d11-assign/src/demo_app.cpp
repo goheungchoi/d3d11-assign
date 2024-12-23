@@ -9,12 +9,13 @@
 #include "camera.h"
 #include <dinput.h>
 
+#include "animation/animator.h"
+#include "animation/model.h"
+
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "dxguid.lib")
-
-#include <d3d9helper.h>
 
 #define USE_FLIPMODE 1   // In order to not show warnings, use flip mode
 #define VSYNC_ENABLED 0  // diable v-sync when 0, otherwise v-sync is on
@@ -23,6 +24,10 @@
 DemoApp* loadedApp{nullptr};
 
 XMVECTOR g_eyePos{};
+
+const float g_sunDist{10000.f};
+XMVECTOR g_sunPos{0.f, 1000.f, -10.f, 1.f};
+XMVECTOR g_sunDir{0.01f, -1.f, 0.01f, 1.f};
 
 bool _enableCamera{false};
 IDirectInputDevice8* DIKeyboard;
@@ -137,7 +142,7 @@ void DemoApp::FixedUpdate(float dt) {
   if (keyboardState[DIK_ESCAPE] & 0x80) 
 		PostMessage(hWindow, WM_DESTROY, 0, 0);
 
-  if (mouseCurrState.rgbButtons[0] & 0x80) {
+  if (mouseCurrState.rgbButtons[1] & 0x80) {
     while (ShowCursor(false) >= 0);
 
     if (keyboardState[DIK_Q] & 0x80) {
@@ -210,17 +215,19 @@ void DemoApp::Update(float dt) {
   frameTime += dt;
 #endif
 
-  g_camPos.m128_f32[2] = g_camDist;
-  XMVECTOR eye = g_camPos;
-  XMVECTOR viewDir{0.f, 0.f, -1.f};
-  XMVECTOR upDir{0.f, 1.f, 0.f};
-  // _view = XMMatrixLookToLH(eye, viewDir, upDir);
-  XMMATRIX transform = XMMatrixTranslationFromVector(g_camPos) *
-                       XMMatrixRotationY(XMConvertToRadians(rotation));
-  XMVECTOR dump1, dump2;
-  XMMatrixDecompose(&dump1, &dump2, &eye, transform);
-  g_eyePos = eye;
-  _view = XMMatrixLookAtLH(eye, {0, 0, 0, 0}, upDir);
+  //g_camPos.m128_f32[2] = g_camDist;
+  //XMVECTOR eye = g_camPos;
+  //XMVECTOR viewDir{0.f, 0.f, -1.f};
+  //XMVECTOR upDir{0.f, 1.f, 0.f};
+  //// _view = XMMatrixLookToLH(eye, viewDir, upDir);
+  //XMMATRIX transform = XMMatrixTranslationFromVector(g_camPos) *
+  //                     XMMatrixRotationY(XMConvertToRadians(rotation));
+  //XMVECTOR dump1, dump2;
+  //XMMatrixDecompose(&dump1, &dump2, &eye, transform);
+  //g_eyePos = eye;
+  //_view = XMMatrixLookAtLH(eye, {0, 0, 0, 0}, upDir);
+
+	_animator->UpdateAnimation(dt);
 }
 
 void DemoApp::Render() {
@@ -233,9 +240,9 @@ void DemoApp::Render() {
   }
 #endif
 
-	XMMATRIX groundTransform = XMMatrixMultiply(
-      XMMatrixScaling(10.f, 1.f, 10.f), 
-			XMMatrixTranslation(0.f, -100.f, 0.f));
+	XMMATRIX groundTransform = 
+      XMMatrixScaling(10.f, 1.f, 10.f) *
+			XMMatrixTranslation(0.f, -100.f, 0.f);
 
   _renderer->BeginDraw();
 
@@ -245,6 +252,15 @@ void DemoApp::Render() {
 
   _view = _camera->GetViewTransform();
 
+	// Shadow transformation
+  g_sunDir = XMVector4Normalize(g_sunDir);
+  XMVECTOR sunFocus = XMVectorAdd(g_sunPos, 
+		XMVectorMultiply(g_sunDir, XMVECTOR{g_sunDist, g_sunDist, g_sunDist, 1.f}));
+  _shadingConstants.lights[0].direction = g_sunDir;
+
+  _shadowView = XMMatrixLookAtLH(g_sunPos, sunFocus, {0, 1, 0, 0});
+  _shadowProj = XMMatrixOrthographicLH(2048, 2048, 0.01f, 10000.f);
+
   _transformConstants.view = XMMatrixTranspose(_view);
   _transformConstants.proj = XMMatrixTranspose(_proj);
   _transformConstants.sceneRotation =
@@ -253,14 +269,14 @@ void DemoApp::Render() {
       XMMatrixTranspose(XMMatrixMultiply(_shadowView, _shadowProj));
   _renderer->CopyDataToDeviceBuffer(_cboTransform, &_transformConstants);
 
-  _shadingConstants.eyePosition = g_eyePos;
+  _shadingConstants.eyePosition = _camera->GetPosition();
 
   _renderer->CopyDataToDeviceBuffer(_cboShading, &_shadingConstants);
 
   _renderer->_context->VSSetConstantBuffers(0, 1, _cboTransform.GetAddressOf());
   _renderer->_context->PSSetConstantBuffers(0, 1, _cboShading.GetAddressOf());
 
-	// Draw depth buffer
+	/////////////////////// Draw depth buffer /////////////////////////////
 	// Change the render target to the depth frame buffer
   _renderer->_context->OMSetRenderTargets(1, _depthBuffer.rtv.GetAddressOf(),
                                           _depthBuffer.dsv.Get());
@@ -268,7 +284,7 @@ void DemoApp::Render() {
                                    0);
   _renderer->_context->PSSetShader(_shadowProgram.pixelShader.Get(), nullptr,
                                    0);
-  _renderer->_context->OMSetDepthStencilState(_defaultDepthStencilState.Get(),
+  _renderer->_context->OMSetDepthStencilState(_renderer->_depthStencilState,
                                               0);
   {
     D3D11_VIEWPORT viewport{.TopLeftX = 0,
@@ -304,7 +320,49 @@ void DemoApp::Render() {
   _renderer->_context->IASetIndexBuffer(_ground.indexBuffer.Get(),
                                         DXGI_FORMAT_R32_UINT, 0);
   _renderer->_context->DrawIndexed(_ground.numElements, 0, 0);
-	// End depth buffer
+
+	///////	Animation Model	////////
+	
+	{
+    XMMATRIX topMat = _view * _proj;
+    const auto& boneTransforms = _animator->GetFinalBoneTransforms();
+    for (ModelMesh& mesh : _model->_meshes) {
+      mesh._cbPerFrame.viewProj = _transformConstants.shadowViewProj;
+      mesh._cbPerObject.model = XMMatrixTranspose(mesh._modelTransform);
+      mesh._cbPerObject.inverseTransposeModel =
+          XMMatrixInverse(nullptr, mesh._modelTransform);
+      memcpy(mesh._cbPerObject.boneTransforms, boneTransforms.data(),
+             sizeof(XMMATRIX) * MAX_BONES);
+
+			/* INPUT ASSEMBLER STAGE */
+      mesh._context->IASetInputLayout(_skeletalShadowLayout.Get());
+      mesh._context->IASetVertexBuffers(0, 1, &mesh._vbo, &mesh._vbStride,
+                                        &mesh._vbOffset);
+      mesh._context->IASetIndexBuffer(mesh._ibo, DXGI_FORMAT_R32_UINT,
+                                      mesh._ibOffset);
+
+      /* VERTEX STAGE */
+      mesh._context->VSSetShader(_skeletalShadowVS.Get(), nullptr, 0);
+      D3D11_MAPPED_SUBRESOURCE cbPerFrameSubresource;
+      mesh._context->Map(mesh._cboPerFrame, NULL, D3D11_MAP_WRITE_DISCARD, NULL,
+                         &cbPerFrameSubresource);
+      memcpy(cbPerFrameSubresource.pData, &mesh._cbPerFrame,
+             sizeof(cbPerFrame));
+      mesh._context->Unmap(mesh._cboPerFrame, NULL);
+      mesh._context->VSSetConstantBuffers(0, 1, &mesh._cboPerFrame);
+      D3D11_MAPPED_SUBRESOURCE cbPerObjectSubresource;
+      mesh._context->Map(mesh._cboPerObject, NULL, D3D11_MAP_WRITE_DISCARD,
+                         NULL, &cbPerObjectSubresource);
+      memcpy(cbPerObjectSubresource.pData, &mesh._cbPerObject,
+             sizeof(cbPerObject));
+      mesh._context->Unmap(mesh._cboPerObject, NULL);
+      mesh._context->VSSetConstantBuffers(1, 1, &mesh._cboPerObject);
+
+      mesh._context->DrawIndexed(mesh._indexCount, 0, 0);
+		}
+	}
+
+	/////////////////////// End depth buffer //////////////////////////////
 
   // Draw skybox.
   {
@@ -316,6 +374,9 @@ void DemoApp::Render() {
                             .MaxDepth = 1};
     _renderer->_context->RSSetViewports(1, &viewport);
   }
+
+	_renderer->_context->VSSetConstantBuffers(0, 1, _cboTransform.GetAddressOf());
+  _renderer->_context->PSSetConstantBuffers(0, 1, _cboShading.GetAddressOf());
 
   _transformConstants.view = XMMatrixTranspose(_view);
   _transformConstants.proj = XMMatrixTranspose(_proj);
@@ -341,7 +402,7 @@ void DemoApp::Render() {
                                      0);
     _renderer->_context->PSSetShaderResources(0, 1, _environmentMap.srv.GetAddressOf());
     _renderer->_context->PSSetSamplers(0, 1, _defaultSampler.GetAddressOf());
-    _renderer->_context->OMSetDepthStencilState(_skyboxDepthStencilState.Get(),
+    _renderer->_context->OMSetDepthStencilState(_renderer->_depthStencilState,
                                                 0);
     _renderer->_context->DrawIndexed(_skybox.numElements, 0, 0);
   }
@@ -363,6 +424,7 @@ void DemoApp::Render() {
 			_shadowSampler.Get()
   };
 
+
   _renderer->_context->IASetInputLayout(_pbrProgram.inputLayout.Get());
   _renderer->_context->IASetVertexBuffers(0, 1,
                                           _pbrModel.vertexBuffer.GetAddressOf(),
@@ -372,8 +434,8 @@ void DemoApp::Render() {
   _renderer->_context->VSSetShader(_pbrProgram.vertexShader.Get(), nullptr, 0);
   _renderer->_context->PSSetShader(_pbrProgram.pixelShader.Get(), nullptr, 0);
   _renderer->_context->PSSetShaderResources(0, 8, pbrModelSRVs);
-  _renderer->_context->PSSetSamplers(0, 2, pbrModelSamplers);
-  _renderer->_context->OMSetDepthStencilState(_defaultDepthStencilState.Get(),
+  _renderer->_context->PSSetSamplers(0, 3, pbrModelSamplers);
+  _renderer->_context->OMSetDepthStencilState(_renderer->_depthStencilState,
                                               0);
   _renderer->_context->DrawIndexed(_pbrModel.numElements, 0, 0);
 
@@ -387,15 +449,97 @@ void DemoApp::Render() {
 
   _transformConstants.sceneRotation = XMMatrixTranspose(groundTransform);
   _renderer->CopyDataToDeviceBuffer(_cboTransform, &_transformConstants);
-
-  _renderer->_context->IASetVertexBuffers(0, 1,
+	_renderer->_context->IASetVertexBuffers(0, 1,
                                           _ground.vertexBuffer.GetAddressOf(),
                                           &_ground.stride, &_ground.offset);
   _renderer->_context->IASetIndexBuffer(_ground.indexBuffer.Get(),
                                         DXGI_FORMAT_R32_UINT, 0);
-  _renderer->_context->PSSetShaderResources(0, 8, groundModelSRVs);
+  _renderer->_context->VSSetShader(_groundProgram.vertexShader.Get(), nullptr,
+                                   0);
+  _renderer->_context->PSSetShader(_groundProgram.pixelShader.Get(), nullptr,
+                                   0);
+	_renderer->_context->PSSetShaderResources(0, 8, groundModelSRVs);
 	_renderer->_context->DrawIndexed(_ground.numElements, 0, 0);
 
+
+	///////	Draw Animation Model	////////////////////////////////////////
+
+	{
+    XMMATRIX topMat = _view * _proj;
+    const auto& boneTransforms = _animator->GetFinalBoneTransforms();
+    for (ModelMesh& mesh : _model->_meshes) {
+      mesh._cbPerFrame.viewProj = XMMatrixTranspose(topMat);
+      mesh._cbPerObject.model = XMMatrixTranspose(mesh._modelTransform);
+      mesh._cbPerObject.inverseTransposeModel =
+          XMMatrixInverse(nullptr, mesh._modelTransform);
+      memcpy(mesh._cbPerObject.boneTransforms, boneTransforms.data(),
+             sizeof(XMMATRIX) * MAX_BONES);
+
+      /* INPUT ASSEMBLER STAGE */
+      mesh._context->IASetVertexBuffers(0, 1, &mesh._vbo, &mesh._vbStride,
+                                        &mesh._vbOffset);
+      mesh._context->IASetIndexBuffer(mesh._ibo, DXGI_FORMAT_R32_UINT,
+                                      mesh._ibOffset);
+      mesh._context->IASetInputLayout(mesh._inputLayout);
+
+      /* VERTEX STAGE */
+      mesh._context->VSSetShader(mesh._vs, nullptr, 0);
+      D3D11_MAPPED_SUBRESOURCE cbPerFrameSubresource;
+      mesh._context->Map(mesh._cboPerFrame, NULL, D3D11_MAP_WRITE_DISCARD, NULL,
+                         &cbPerFrameSubresource);
+      memcpy(cbPerFrameSubresource.pData, &mesh._cbPerFrame,
+             sizeof(cbPerFrame));
+      mesh._context->Unmap(mesh._cboPerFrame, NULL);
+      mesh._context->VSSetConstantBuffers(0, 1, &mesh._cboPerFrame);
+      D3D11_MAPPED_SUBRESOURCE cbPerObjectSubresource;
+      mesh._context->Map(mesh._cboPerObject, NULL, D3D11_MAP_WRITE_DISCARD,
+                         NULL, &cbPerObjectSubresource);
+      memcpy(cbPerObjectSubresource.pData, &mesh._cbPerObject,
+             sizeof(cbPerObject));
+      mesh._context->Unmap(mesh._cboPerObject, NULL);
+      mesh._context->VSSetConstantBuffers(1, 1, &mesh._cboPerObject);
+
+      /* PIXEL STAGE */
+      mesh._context->PSSetShader(mesh._ps, nullptr, 0);
+      // Diffuse
+      //_context->PSSetShaderResources(0, 1, &textures[0].textureView);
+      //_context->PSSetSamplers(0, 1, &textures[0].samplerState);
+      //// Specular
+      //_context->PSSetShaderResources(1, 1, &textures[1].textureView);
+      //_context->PSSetSamplers(1, 1, &textures[1].samplerState);
+      //// Normal
+      //_context->PSSetShaderResources(2, 1, &textures[2].textureView);
+      //_context->PSSetSamplers(2, 1, &textures[2].samplerState);
+      // TODO: Shadow maps
+      ID3D11SamplerState* const samplers[] = {
+          _defaultSampler.Get(), _defaultSampler.Get(), _defaultSampler.Get()};
+      mesh._context->PSSetSamplers(0, 3, samplers);
+
+      // Bind constant buffers
+      // Material properties
+      D3D11_MAPPED_SUBRESOURCE cbMaterialPropertiesSubresource;
+      mesh._context->Map(mesh._cboMaterialProperties, NULL,
+                         D3D11_MAP_WRITE_DISCARD, NULL,
+                         &cbMaterialPropertiesSubresource);
+      memcpy(cbMaterialPropertiesSubresource.pData, &mesh._cbMaterialProperties,
+             sizeof(cbMaterialProperties));
+      mesh._context->Unmap(mesh._cboMaterialProperties, NULL);
+      mesh._context->PSSetConstantBuffers(0, 1, &mesh._cboMaterialProperties);
+      // Light properties
+      D3D11_MAPPED_SUBRESOURCE cbLightPropertiesSubresource;
+      mesh._context->Map(mesh._cboLightProperties, NULL,
+                         D3D11_MAP_WRITE_DISCARD, NULL,
+                         &cbLightPropertiesSubresource);
+      memcpy(cbLightPropertiesSubresource.pData, &_shadingConstants, sizeof(cbShadingConstants));
+      mesh._context->Unmap(mesh._cboLightProperties, NULL);
+      mesh._context->PSSetConstantBuffers(1, 1, &mesh._cboLightProperties);
+
+      // Start sending commands to the gpu.
+      mesh._context->DrawIndexed(mesh._indexCount, 0, 0);
+    }
+  }
+
+	//////////////////////////////////////////////////////////////////////
   _renderer->EndDraw();
 
 #if USE_GUI == 1
@@ -413,11 +557,14 @@ void DemoApp::Render() {
     ImGui::SliderFloat("Gamma value", &_shadingConstants.gamma, 0.0, 5.0);
     ImGui::Text("Use IBL: ");
     ImGui::Checkbox("UseIBL", (bool*)&_shadingConstants.useIBL);
-    ImGui::Text("Light 1 Properties: ");
-    ImGui::Checkbox("Enable Light 1", (bool*)&_shadingConstants.lights[0].enabled);
-    ImGui::SliderFloat3("Light 1 Radiance",
+    ImGui::Text("Use PCF: ");
+    ImGui::Checkbox("UsePCF", (bool*)&_shadingConstants.usePCF);
+    ImGui::Text("Light Properties: ");
+    ImGui::Checkbox("Enable Light", (bool*)&_shadingConstants.lights[0].enabled);
+    ImGui::SliderFloat3("Sun Direction", g_sunDir.m128_f32, -1, 1);
+		ImGui::SliderFloat3("Light Radiance",
                         (float*) & (_shadingConstants.lights[0].radiance), 0.f, 10.f);
-		ImGui::Text("Light 2 Properties: ");
+		/*ImGui::Text("Light 2 Properties: ");
     ImGui::Checkbox("Enable Light 2", (bool*)&_shadingConstants.lights[1].enabled);
     ImGui::SliderFloat3("Light 2 Radiance",
                         (float*)&(_shadingConstants.lights[1].radiance), 0.f,
@@ -426,7 +573,7 @@ void DemoApp::Render() {
     ImGui::Checkbox("Enable Light 3", (bool*)&_shadingConstants.lights[2].enabled);
     ImGui::SliderFloat3("Light 3 Radiance",
                         (float*)&(_shadingConstants.lights[2].radiance), 0.f,
-                        10.f);
+                        10.f);*/
 
 		ImTextureID imgID = (ImTextureID)(uintptr_t)_depthBuffer.depthSRV.Get();
     ImGui::Image(imgID, ImVec2(400, 400));
@@ -459,15 +606,199 @@ void DemoApp::InitShadowPass() {
     &shadowInputLayout
   );
 
+	// Skeletal vertex shader
+  std::vector<uint8_t> vsByteData =
+      CompileShaderFromFile(L"shaders/SkeletalShadow_VS.hlsl", "main", "vs_5_0");
+
+  // Create the input layout of the shader
+  // Input layout descriptor
+  D3D11_INPUT_ELEMENT_DESC vsInputLayoutDescriptors[] = {
+      // Position layout
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "POSITION",
+          .SemanticIndex = 0U,
+          .Format = DXGI_FORMAT_R32G32B32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      // Texture coordinate
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "TEXCOORD",
+          .SemanticIndex = 0U,
+          .Format = DXGI_FORMAT_R32G32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      // Normal layout
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "NORMAL",
+          .SemanticIndex = 0U,
+          .Format = DXGI_FORMAT_R32G32B32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      // Tangent layout
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "TANGENT",
+          .SemanticIndex = 0U,
+          .Format = DXGI_FORMAT_R32G32B32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      //------------------------------------------------------
+      // Bone IDs layout
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_IDS",
+          .SemanticIndex = 0U,
+          .Format = DXGI_FORMAT_R32_SINT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_IDS",
+          .SemanticIndex = 1U,
+          .Format = DXGI_FORMAT_R32_SINT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_IDS",
+          .SemanticIndex = 2U,
+          .Format = DXGI_FORMAT_R32_SINT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_IDS",
+          .SemanticIndex = 3U,
+          .Format = DXGI_FORMAT_R32_SINT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_IDS",
+          .SemanticIndex = 4U,
+          .Format = DXGI_FORMAT_R32_SINT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_IDS",
+          .SemanticIndex = 5U,
+          .Format = DXGI_FORMAT_R32_SINT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_IDS",
+          .SemanticIndex = 6U,
+          .Format = DXGI_FORMAT_R32_SINT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_IDS",
+          .SemanticIndex = 7U,
+          .Format = DXGI_FORMAT_R32_SINT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      // Bone weigths layout
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_WEIGHTS",
+          .SemanticIndex = 0U,
+          .Format = DXGI_FORMAT_R32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_WEIGHTS",
+          .SemanticIndex = 1U,
+          .Format = DXGI_FORMAT_R32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_WEIGHTS",
+          .SemanticIndex = 2U,
+          .Format = DXGI_FORMAT_R32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_WEIGHTS",
+          .SemanticIndex = 3U,
+          .Format = DXGI_FORMAT_R32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_WEIGHTS",
+          .SemanticIndex = 4U,
+          .Format = DXGI_FORMAT_R32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_WEIGHTS",
+          .SemanticIndex = 5U,
+          .Format = DXGI_FORMAT_R32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_WEIGHTS",
+          .SemanticIndex = 6U,
+          .Format = DXGI_FORMAT_R32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+      D3D11_INPUT_ELEMENT_DESC{
+          .SemanticName = "BONE_WEIGHTS",
+          .SemanticIndex = 7U,
+          .Format = DXGI_FORMAT_R32_FLOAT,
+          .InputSlot = 0,
+          .AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT,
+          .InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA,
+          .InstanceDataStepRate = 0},
+  };
+  
+	_renderer->_device->CreateInputLayout(
+      vsInputLayoutDescriptors, (UINT)std::size(vsInputLayoutDescriptors),
+      vsByteData.data(), vsByteData.size(), _skeletalShadowLayout.GetAddressOf());
+
+	_renderer->_device->CreateVertexShader(vsByteData.data(), vsByteData.size(),
+                                         NULL, _skeletalShadowVS.GetAddressOf());
+
 	// Shadow sampler
 	D3D11_SAMPLER_DESC samplerDesc{};
-  samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+  samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
   samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
   samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
   samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
   samplerDesc.MaxAnisotropy = 1;
   samplerDesc.MinLOD = 0;
   samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+  samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
   samplerDesc.BorderColor[0] = 0.f;
   samplerDesc.BorderColor[1] = 0.f;
   samplerDesc.BorderColor[2] = 0.f;
@@ -510,10 +841,16 @@ void DemoApp::InitShadowPass() {
   _depthBuffer = _renderer->CreateFrameBuffer(2048, 2048, 1,
                                               DXGI_FORMAT_R16G16B16A16_FLOAT,
                                    DXGI_FORMAT_D24_UNORM_S8_UINT);
+  _shadingConstants.shadowMapSize = 2048;
 
 	// Shadow transformation
-  _shadowView = XMMatrixLookAtLH({0.f, 400.f, -10.f, 1.f}, 
-																 {0.f, 0.f, -1.f, 1.f},
+  g_sunDir = XMVector4Normalize(g_sunDir);
+  XMVECTOR sunFocus = XMVectorAdd(
+      g_sunPos, XMVectorMultiply(
+                    g_sunDir, XMVECTOR{g_sunDist, g_sunDist, g_sunDist, 1.f}));
+  
+  _shadowView = XMMatrixLookAtLH(g_sunPos, 
+																 sunFocus,
                                  {0, 1, 0, 0});
   _shadowProj = XMMatrixOrthographicLH(2048, 2048, 0.01f, 10000.f);
 }
@@ -573,6 +910,11 @@ void DemoApp::InitShaders() {
       CompileShaderFromFile(L"shaders/PBR_PS.hlsl", "main", "ps_5_0"),
       &meshInputLayout);
 
+	_groundProgram = _renderer->CreateShaderProgram(
+      CompileShaderFromFile(L"shaders/PBR_VS.hlsl", "main", "vs_5_0"),
+      CompileShaderFromFile(L"shaders/PBR_Ground_PS.hlsl", "main", "ps_5_0"),
+      &meshInputLayout);
+
   _skyboxProgram = _renderer->CreateShaderProgram(
       CompileShaderFromFile(L"shaders/SkyBox_VS.hlsl", "main", "vs_5_0"),
       CompileShaderFromFile(L"shaders/SkyBox_PS.hlsl", "main", "ps_5_0"),
@@ -596,14 +938,20 @@ void DemoApp::InitTextures() {
       Image::fromFile("assets/textures/cerberus_R.png", 1),
       DXGI_FORMAT_R8_UNORM);
 
+	_defaultSampler = _renderer->CreateSamplerState(D3D11_FILTER_ANISOTROPIC,
+                                                  D3D11_TEXTURE_ADDRESS_WRAP);
+
   _specularTexture = _renderer->CreateTextureCube("assets/textures/BakerSpecularIBL.dds",
       DXGI_FORMAT_R32G32B32A32_FLOAT, 10);
   _irradianceTexture = _renderer->CreateTextureCube("assets/textures/BakerDiffuseIrradiance.dds",
       DXGI_FORMAT_R32G32B32A32_FLOAT, 1);
-  _specularBRDF_LUT = _renderer->CreateTexture(
-      Image::fromFile("assets/textures/BakerSpecularBRDF_LUT.dds"),
+  _specularBRDF_LUT = _renderer->CreateTexture("assets/textures/BakerSpecularBRDF_LUT.dds",
       DXGI_FORMAT_R32G32B32A32_FLOAT, 1);
+  /*_specularBRDF_LUT = _renderer->CreateTexture("assets/textures/ibl_brdf_lut.dds",
+                               DXGI_FORMAT_R32G32_FLOAT, 1);*/
 
+	_spBRDF_Sampler = _renderer->CreateSamplerState(
+      D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP);
 
 	// Ground
   _groundATexture = _renderer->CreateTexture(
@@ -636,10 +984,11 @@ void DemoApp::InitMeshes() {
       _renderer->CreateMeshBuffer(Mesh::fromFile("assets/model/skybox.obj"));
 
 	// Animation
-  _model = new Model(_renderer->_device, _renderer->_deviceContext,
-                     "assets/vampire/SkinningTest.fbx");
+  _model = new Model(_renderer->_device, _renderer->_context,
+                     "assets/model/SkinningTest.fbx");
 
-  _animation = new Animation("assets/vampire/SkinningTest.fbx", _model);
+  _animation = new Animation("assets/model/SkinningTest.fbx", _model);
+  _animator = new Animator(_animation);
 }
 
 void DemoApp::InitLights() {
@@ -649,15 +998,15 @@ void DemoApp::InitLights() {
   _shadingConstants.gamma = 2.2f;
 
   Light light1, light2, light3;
-  light1.direction = {-1.0f, 0.0f, 0.0f, 0.f};
+  light1.direction = XMVector4Normalize(g_sunDir);
   light2.direction = {1.0f, 0.0f, 0.0f, 0.f};
-  light3.direction = {0.0f, -1.0f, 0.0f, 0.f};
+  light3.direction = {-1.0f, 0.0f, 0.0f, 0.f};
 
-  light1.radiance = {1.0f, 1.0f, 1.0f, 1.f};
+  light1.radiance = {5.0f, 5.0f, 5.0f, 1.f};
   light2.radiance = {1.0f, 1.0f, 1.0f, 1.f};
-  light3.radiance = {5.0f, 5.0f, 5.0f, 1.f};
+  light3.radiance = {1.0f, 1.0f, 1.0f, 1.f};
 
-  light1.enabled = false;
+  light1.enabled = true;
   light2.enabled = false;
   light3.enabled = false;
 

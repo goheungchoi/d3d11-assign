@@ -166,6 +166,7 @@
   </ImportGroup>
 	<ItemGroup>
 		<ClCompile Include="app\main.cpp" />
+		<None Include="assets\model\SkinningTest.fbx" />
 		<None Include="assets\model\cerberus.fbx" />
 		<None Include="assets\textures\BakerDiffuseIrradiance.dds" />
 		<None Include="assets\textures\BakerEnv.dds" />
@@ -180,6 +181,8 @@
 		<None Include="assets\textures\forrest_ground_M.jpg" />
 		<None Include="assets\textures\forrest_ground_N.png" />
 		<None Include="assets\textures\forrest_ground_R.png" />
+		<None Include="assets\textures\ibl_brdf_lut.dds" />
+		<None Include="assets\textures\normal.png" />
 		<None Include="imgui.ini" />
 		<ClInclude Include="include\common.h" />
 		<ClInclude Include="include\config.h" />
@@ -194,12 +197,14 @@
 		<None Include="shaders\Equirect2Cube_CS.hlsl" />
 		<None Include="shaders\GammaCorrection.hlsli" />
 		<None Include="shaders\MatrixInverse.hlsli" />
+		<None Include="shaders\PBR_Ground_PS.hlsl" />
 		<None Include="shaders\PBR_PS.cso" />
 		<None Include="shaders\PBR_PS.hlsl" />
 		<None Include="shaders\PBR_VS.cso" />
 		<None Include="shaders\PBR_VS.hlsl" />
 		<None Include="shaders\Shadow_PS.hlsl" />
 		<None Include="shaders\Shadow_VS.hlsl" />
+		<None Include="shaders\SkeletalShadow_VS.hlsl" />
 		<None Include="shaders\SkyBox_PS.hlsl" />
 		<None Include="shaders\SkyBox_VS.hlsl" />
 		<None Include="shaders\SpecularBRDF_LUT_CS.hlsl" />
@@ -209,6 +214,7 @@
 		<None Include="shaders\compile.bat" />
 		<ClCompile Include="src\animation\animation.cpp" />
 		<ClInclude Include="src\animation\animation.h" />
+		<ClInclude Include="src\animation\animation_common.h" />
 		<ClCompile Include="src\animation\animator.cpp" />
 		<ClInclude Include="src\animation\animator.h" />
 		<ClCompile Include="src\animation\bone.cpp" />
