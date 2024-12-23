@@ -21,7 +21,7 @@ std::vector<uint8_t> CompileShaderFromFile(const WCHAR* filename,
   dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;  // Disable optimization
 #endif
 
-	std::wprintf(L"Compiling HLSL shader: %ls [%s]\n", filename, entryPoint);
+	std::wprintf(L"Compiling HLSL shader: %s [%S]\n", filename, entryPoint);
 
   ComPtr<ID3DBlob> shaderBlob;
   ComPtr<ID3DBlob> errorBlob;
@@ -45,51 +45,24 @@ std::vector<uint8_t> CompileShaderFromFile(const WCHAR* filename,
   return data;
 }
 
-HRESULT CompileShaderFromFile(const WCHAR* filename, LPCSTR entryPoint,
-                              LPCSTR shaderModel, ID3DBlob** outShaderBlob,
-                              ID3DBlob** outErrorBlob) {
-  DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#ifndef NDEBUG
-  dwShaderFlags |= D3DCOMPILE_DEBUG;  // Embed debug information in the shaders
-  dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;  // Disable optimization
-#endif
-
-  HRESULT res = D3DCompileFromFile(filename,  // File name
-                                   nullptr,   // Shader macro
-                                   D3D_COMPILE_STANDARD_FILE_INCLUDE,
-                                   entryPoint, shaderModel, dwShaderFlags,
-                                   0,  // Shader flags 1, and 2
-                                   outShaderBlob, outErrorBlob);
-
-  return res;
-}
-
-HRESULT ReadBinaryFile(const WCHAR* filename, std::vector<uint8_t>* outData,
-                       std::size_t* outSize) {
+std::vector<uint8_t> ReadBinaryFile(const WCHAR* filename) {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
-  if (!file.is_open()) {
-    return E_INVALIDARG;
+	if (!file.is_open()) {
+    std::wstring errorMsg = L"File can't be opened: ";
+    errorMsg += filename;
+    ErrorExit(errorMsg.data());
   }
 
-  std::size_t filesize = static_cast<std::size_t>(file.tellg());
-  // Return file size.
-  if (outSize != nullptr) *outSize = filesize;
+	std::size_t filesize = static_cast<std::size_t>(file.tellg());
 
-  if (outData == nullptr) {
-    file.close();
-    return S_OK;
-  }
-
-  std::vector<uint8_t> buffer(filesize);
+	std::vector<uint8_t> buffer(filesize);
 
   file.seekg(0);
   file.read((char*)buffer.data(), filesize);
   file.close();
 
-  *outData = std::move(buffer);
-
-  return S_OK;
+  return buffer;
 }
 
 void ErrorExit(LPCTSTR lpszFunction) {

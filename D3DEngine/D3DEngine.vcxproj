@@ -169,22 +169,27 @@
 		<ClInclude Include="External\nv_dds.h" />
 		<ClCompile Include="External\texture_formats.cpp" />
 		<ClInclude Include="External\texture_formats.h" />
-		<ClInclude Include="Include\D3DEngine\Core\Image.h" />
-		<ClInclude Include="Include\D3DEngine\Core\Mesh.h" />
+		<ClInclude Include="Include\D3DEngine\Core\Geometry.h" />
 		<ClInclude Include="Include\D3DEngine\Core\Timer.h" />
 		<ClInclude Include="Include\D3DEngine\EngineCommon.h" />
 		<ClInclude Include="Include\D3DEngine\GameEngine\GameEngine.h" />
-		<ClInclude Include="Include\D3DEngine\Renderer\D3D11Renderer.h" />
-		<ClInclude Include="Include\D3DEngine\Renderer\D3D11Utils.h" />
 		<ClInclude Include="Include\D3DEngine\Renderer\IRenderer.h" />
 		<ClInclude Include="Include\D3DEngine\WinApp\WinApp.h" />
 		<ClInclude Include="Include\D3DEngine\WinApp\WinBase.h" />
-		<ClCompile Include="Source\Core\Image.cpp" />
-		<ClCompile Include="Source\Core\Mesh.cpp" />
+		<None Include="Shaders\PBR_PS.hlsl" />
+		<None Include="Shaders\PBR_VS.hlsl" />
 		<ClCompile Include="Source\Core\Timer.cpp" />
 		<ClCompile Include="Source\GameEngine\GameEngine.cpp" />
+		<ClInclude Include="Source\Renderer\D3D11Common.h" />
 		<ClCompile Include="Source\Renderer\D3D11Renderer.cpp" />
+		<ClInclude Include="Source\Renderer\D3D11Renderer.h" />
+		<ClInclude Include="Source\Renderer\D3D11Types.h" />
 		<ClCompile Include="Source\Renderer\D3D11Utils.cpp" />
+		<ClInclude Include="Source\Renderer\D3D11Utils.h" />
+		<ClCompile Include="Source\Renderer\Resources\RenderDevice.cpp" />
+		<ClInclude Include="Source\Renderer\Resources\RenderDevice.h" />
+		<ClCompile Include="Source\Renderer\Resources\SwapChain.cpp" />
+		<ClInclude Include="Source\Renderer\Resources\SwapChain.h" />
 		<ClCompile Include="Source\WinApp\WinApp.cpp" />
 	</ItemGroup>
 </Project>

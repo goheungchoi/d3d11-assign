@@ -37,37 +37,28 @@
 		<Filter Include="External">
 			<UniqueIdentifier>{C9B8133B-E460-4E09-A00D-14C5A2599A4D}</UniqueIdentifier>
 		</Filter>
+		<Filter Include="Source\Renderer\Resources">
+			<UniqueIdentifier>{004DE25C-A5B8-400B-83D0-A10BC616D6B6}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Shaders">
+			<UniqueIdentifier>{88D452E8-3A29-4F73-94A0-653A8B91E108}</UniqueIdentifier>
+		</Filter>
 	</ItemGroup>
 	<ItemGroup>
 		<ClInclude Include="Include\D3DEngine\GameEngine\GameEngine.h">
 			<Filter>Include\D3DEngine\GameEngine</Filter>
 		</ClInclude>
-		<ClInclude Include="Include\D3DEngine\Core\Mesh.h">
-			<Filter>Include\D3DEngine\Core</Filter>
-		</ClInclude>
-		<ClInclude Include="Include\D3DEngine\Renderer\D3D11Utils.h">
-			<Filter>Include\D3DEngine\Renderer</Filter>
-		</ClInclude>
 		<ClCompile Include="Source\Renderer\D3D11Renderer.cpp">
 			<Filter>Source\Renderer</Filter>
 		</ClCompile>
-		<ClInclude Include="Include\D3DEngine\Core\Image.h">
-			<Filter>Include\D3DEngine\Core</Filter>
-		</ClInclude>
 		<ClInclude Include="Include\D3DEngine\WinApp\WinBase.h">
 			<Filter>Include\D3DEngine\WinApp</Filter>
 		</ClInclude>
-		<ClCompile Include="Source\Core\Mesh.cpp">
-			<Filter>Source\Core</Filter>
-		</ClCompile>
 		<ClCompile Include="Source\GameEngine\GameEngine.cpp">
 			<Filter>Source\GameEngine</Filter>
 		</ClCompile>
 		<ClInclude Include="Include\D3DEngine\WinApp\WinApp.h">
 			<Filter>Include\D3DEngine\WinApp</Filter>
-		</ClInclude>
-		<ClInclude Include="Include\D3DEngine\Renderer\D3D11Renderer.h">
-			<Filter>Include\D3DEngine\Renderer</Filter>
 		</ClInclude>
 		<ClCompile Include="Source\Core\Timer.cpp">
 			<Filter>Source\Core</Filter>
@@ -80,9 +71,6 @@
 		</ClInclude>
 		<ClCompile Include="Source\WinApp\WinApp.cpp">
 			<Filter>Source\WinApp</Filter>
-		</ClCompile>
-		<ClCompile Include="Source\Core\Image.cpp">
-			<Filter>Source\Core</Filter>
 		</ClCompile>
 		<ClCompile Include="Source\Renderer\D3D11Utils.cpp">
 			<Filter>Source\Renderer</Filter>
@@ -101,6 +89,39 @@
 		</ClCompile>
 		<ClInclude Include="External\nv_dds.h">
 			<Filter>External</Filter>
+		</ClInclude>
+		<None Include="Shaders\PBR_VS.hlsl">
+			<Filter>Shaders</Filter>
+		</None>
+		<ClInclude Include="Source\Renderer\D3D11Common.h">
+			<Filter>Source\Renderer</Filter>
+		</ClInclude>
+		<ClInclude Include="Include\D3DEngine\Core\Geometry.h">
+			<Filter>Include\D3DEngine\Core</Filter>
+		</ClInclude>
+		<ClInclude Include="Source\Renderer\D3D11Types.h">
+			<Filter>Source\Renderer</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\Renderer\Resources\SwapChain.cpp">
+			<Filter>Source\Renderer\Resources</Filter>
+		</ClCompile>
+		<ClInclude Include="Source\Renderer\Resources\SwapChain.h">
+			<Filter>Source\Renderer\Resources</Filter>
+		</ClInclude>
+		<ClInclude Include="Source\Renderer\Resources\RenderDevice.h">
+			<Filter>Source\Renderer\Resources</Filter>
+		</ClInclude>
+		<None Include="Shaders\PBR_PS.hlsl">
+			<Filter>Shaders</Filter>
+		</None>
+		<ClInclude Include="Source\Renderer\D3D11Utils.h">
+			<Filter>Source\Renderer</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\Renderer\Resources\RenderDevice.cpp">
+			<Filter>Source\Renderer\Resources</Filter>
+		</ClCompile>
+		<ClInclude Include="Source\Renderer\D3D11Renderer.h">
+			<Filter>Source\Renderer</Filter>
 		</ClInclude>
 	</ItemGroup>
 </Project>

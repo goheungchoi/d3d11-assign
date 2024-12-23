@@ -1,59 +1,10 @@
 #pragma once
 
-#include <d3d11_1.h>
-#include <dxgi1_5.h>
+#include "Internal/D3D11Common.h"
 
-#include "D3DEngine/EngineCommon.h"
-
-#ifdef _DEBUG
-#include <dxgidebug.h>
-#endif
-
-#include "D3D11Utils.h"
-#include "D3DEngine/Core/Image.h"
-#include "D3DEngine/Core/Mesh.h"
+#include "Internal/D3D11Types.h"
 
 #define MAX_SAMPLE 16
-
-inline ID3D11UnorderedAccessView* const nullUAV[] = {nullptr};
-inline ID3D11Buffer* const nullBuffer[] = {nullptr};
-
-struct MeshBuffer {
-  ComPtr<ID3D11Buffer> vertexBuffer;
-  ComPtr<ID3D11Buffer> indexBuffer;
-  UINT stride;
-  UINT offset;
-  UINT numElements;
-};
-
-struct FrameBuffer {
-  ComPtr<ID3D11Texture2D> colorTexture;
-  ComPtr<ID3D11Texture2D> depthStencilTexture;
-  ComPtr<ID3D11RenderTargetView> rtv;
-  ComPtr<ID3D11ShaderResourceView> srv;
-  ComPtr<ID3D11DepthStencilView> dsv;
-  ComPtr<ID3D11ShaderResourceView> depthSRV;
-  UINT width, height;
-  UINT samples;
-};
-
-struct ShaderProgram {
-  ComPtr<ID3D11VertexShader> vertexShader;
-  ComPtr<ID3D11PixelShader> pixelShader;
-  ComPtr<ID3D11InputLayout> inputLayout;
-};
-
-struct ComputeProgram {
-  ComPtr<ID3D11ComputeShader> computeShader;
-};
-
-struct Texture {
-  ComPtr<ID3D11Texture2D> texture;
-  ComPtr<ID3D11ShaderResourceView> srv;
-  ComPtr<ID3D11UnorderedAccessView> uav;
-  UINT width, height;
-  UINT levels;
-};
 
 class D3D11Renderer {
   
@@ -74,12 +25,13 @@ class D3D11Renderer {
   D3D11Renderer() {}
 
   HRESULT Initialize(HWND hWnd, UINT width, UINT height);
+
+	HRESULT 
+
   void Shutdown();
 
   void BeginDraw();
   void EndDraw();
-
-  Color backgroundColor{0.f, 0.5f, 0.5f, 1.f};
 
   ID3D11Device* _device{nullptr};
   ID3D11Debug* _d3dDebug{nullptr};
@@ -126,19 +78,19 @@ class D3D11Renderer {
   ComPtr<ID3D11SamplerState> CreateSamplerState(
       D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode) const;
 
-  Texture CreateTexture(UINT width, UINT height, DXGI_FORMAT format,
+	// Texture creation functions
+  TextureBuffer CreateTexture(UINT width, UINT height, DXGI_FORMAT format,
                         UINT levels = 0) const;
-  Texture CreateTexture(const std::shared_ptr<class Image>& image,
-                        DXGI_FORMAT format, UINT levels = 0) const;
-  Texture CreateTexture(const std::string& path,
-                                       DXGI_FORMAT format, UINT levels) const;
-  Texture CreateTextureCube(UINT width, UINT height, DXGI_FORMAT format,
+  TextureBuffer CreateDDSTexture(const std::string& path,
+													 DXGI_FORMAT format, UINT levels) const;
+  TextureBuffer CreateTextureCube(UINT width, UINT height, DXGI_FORMAT format,
                             UINT levels = 0) const;
-  Texture CreateTextureCube(const std::string& path,
+  TextureBuffer CreateTextureCube(const std::string& path,
                             DXGI_FORMAT format, UINT levels = 0) const;
 
-  void CreateTextureUAV(Texture& texture, UINT mipSlice) const;
+  void CreateTextureUAV(TextureBuffer& texture, UINT mipSlice) const;
 
+	// Frame buffer creation
   FrameBuffer CreateFrameBuffer(UINT width, UINT height, UINT samples,
                                 DXGI_FORMAT colorFormat,
                                 DXGI_FORMAT depthstencilFormat) const;
@@ -153,8 +105,4 @@ class D3D11Renderer {
   }
 
 	void CopyDataToDeviceBuffer(ComPtr<ID3D11Buffer>& buffer, const void* data);
-
-  static ComPtr<ID3DBlob> CompileShader(const std::string& filename,
-                                        const std::string& entryPoint,
-                                        const std::string& profile);
 };

@@ -67,24 +67,24 @@ private:
   MeshBuffer _pbrModel;
   MeshBuffer _skybox;
 
-	Texture _environmentMap;
+	TextureBuffer _environmentMap;
 
 	// Cerberus
-  Texture _albedoTexture;
-  Texture _normalTexture;
-  Texture _metalnessTexture;
-  Texture _roughnessTexture;
+  TextureBuffer _albedoTexture;
+  TextureBuffer _normalTexture;
+  TextureBuffer _metalnessTexture;
+  TextureBuffer _roughnessTexture;
 
 	// Ground
-	Texture _groundATexture;
-  Texture _groundNTexture;
-  Texture _groundMTexture;
-  Texture _groundRTexture;
+	TextureBuffer _groundATexture;
+  TextureBuffer _groundNTexture;
+  TextureBuffer _groundMTexture;
+  TextureBuffer _groundRTexture;
 
 	// Env
-  Texture _specularTexture;
-  Texture _irradianceTexture;
-  Texture _specularBRDF_LUT;
+  TextureBuffer _specularTexture;
+  TextureBuffer _irradianceTexture;
+  TextureBuffer _specularBRDF_LUT;
 
 	// Shadow
 	ComPtr<ID3D11DepthStencilState> _shadowDepthStencilState;

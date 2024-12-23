@@ -6,25 +6,6 @@
 
 #include <strsafe.h>
 
-#include <directxtk/SimpleMath.h>
-using namespace DirectX;
-using namespace DirectX::SimpleMath;
-
-struct Vertex {
-	Vector3 position;
-	Vector3 normal;
-	Vector3 tangent;
-	Vector3 bitangent;
-	Vector2 texcoord;
-	Vector4 color;
-};
-
-using Index = uint32_t;
-
-struct Face {
-	uint32_t v1, v2, v3;
-};
-
 // Utility class for COM exception
 class COMException : public std::exception {
 	HRESULT res;
@@ -47,7 +28,7 @@ LPCWSTR GetComErrorString(HRESULT hr);
 std::vector<uint8_t> CompileShaderFromFile(const WCHAR* filename, LPCSTR entryPoint, LPCSTR shaderModel);
 
 // Utility function to read the data and size of a binary file
-HRESULT ReadBinaryFile(const WCHAR* filename, std::vector<uint8_t>* data, std::size_t* size = nullptr);
+std::vector<uint8_t> ReadBinaryFile(const WCHAR* filename);
 
 // Utility macro to convert D3D API failures into exceptions
 #define CHECK(res) if (FAILED(res)) throw COMException(res);

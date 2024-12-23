@@ -1,4 +1,4 @@
-#include "D3DEngine/Renderer/D3D11Renderer.h"
+#include "Renderer/D3D11Renderer.h"
 
 #include "directxtk/DDSTextureLoader.h"
 using namespace DirectX;
@@ -506,9 +506,9 @@ ComPtr<ID3D11SamplerState> D3D11Renderer::CreateSamplerState(
   return samplerState;
 }
 
-Texture D3D11Renderer::CreateTexture(UINT width, UINT height,
+TextureBuffer D3D11Renderer::CreateTexture(UINT width, UINT height,
                                      DXGI_FORMAT format, UINT levels) const {
-  Texture texture;
+  TextureBuffer texture;
   texture.width = width;
   texture.height = height;
   texture.levels =
@@ -546,21 +546,9 @@ Texture D3D11Renderer::CreateTexture(UINT width, UINT height,
   return texture;
 }
 
-Texture D3D11Renderer::CreateTexture(const std::shared_ptr<class Image>& image,
-                                     DXGI_FORMAT format, UINT levels) const {
-  Texture texture =
-      CreateTexture(image->width(), image->height(), format, levels);
-  _context->UpdateSubresource(texture.texture.Get(), 0, nullptr,
-                               image->pixels<void>(), image->pitch(), 0);
-  if (levels == 0) {
-    _context->GenerateMips(texture.srv.Get());
-  }
-  return texture;
-}
-
-Texture D3D11Renderer::CreateTexture(const std::string& path,
+TextureBuffer D3D11Renderer::CreateDDSTexture(const std::string& path,
 	DXGI_FORMAT format, UINT levels) const {
-  Texture texture;
+  TextureBuffer texture;
   if (FAILED(CreateDDSTextureFromFile(
           _device, Utility::convertToUTF16(path).c_str(),
           (ID3D11Resource**)texture.texture.GetAddressOf(),
@@ -575,10 +563,10 @@ Texture D3D11Renderer::CreateTexture(const std::string& path,
 
 }
 
-Texture D3D11Renderer::CreateTextureCube(UINT width, UINT height,
+TextureBuffer D3D11Renderer::CreateTextureCube(UINT width, UINT height,
                                          DXGI_FORMAT format,
                                          UINT levels) const {
-  Texture texture;
+  TextureBuffer texture;
   texture.width = width;
   texture.height = height;
   texture.levels =
@@ -615,11 +603,11 @@ Texture D3D11Renderer::CreateTextureCube(UINT width, UINT height,
   return texture;
 }
 
-Texture D3D11Renderer::CreateTextureCube(
+TextureBuffer D3D11Renderer::CreateTextureCube(
     const std::string& path, DXGI_FORMAT format,
     UINT levels) const {
 
-	Texture texture;
+	TextureBuffer texture;
   if (FAILED(CreateDDSTextureFromFile(_device, Utility::convertToUTF16(path).c_str(),
 		(ID3D11Resource**)texture.texture.GetAddressOf(), texture.srv.GetAddressOf()))) {
     throw std::runtime_error("Failed to create cubemap texture SRV");
@@ -631,7 +619,7 @@ Texture D3D11Renderer::CreateTextureCube(
   return texture;
 }
 
-void D3D11Renderer::CreateTextureUAV(Texture& texture, UINT mipSlice) const {
+void D3D11Renderer::CreateTextureUAV(TextureBuffer& texture, UINT mipSlice) const {
   assert(texture.texture);
 
   D3D11_TEXTURE2D_DESC desc;
@@ -697,7 +685,7 @@ FrameBuffer D3D11Renderer::CreateFrameBuffer(
       srvDesc.Texture2D.MostDetailedMip = 0;
       srvDesc.Texture2D.MipLevels = 1;
       if (FAILED(_device->CreateShaderResourceView(fb.colorTexture.Get(),
-                                                    &srvDesc, &fb.srv))) {
+                                                    &srvDesc, &fb.colorSRV))) {
         throw std::runtime_error(
             "Failed to create FrameBuffer shader resource view");
       }
@@ -773,35 +761,4 @@ ComPtr<ID3D11Buffer> D3D11Renderer::CreateConstantBuffer(const void* data,
 void D3D11Renderer::CopyDataToDeviceBuffer(ComPtr<ID3D11Buffer>& buffer,
                                            const void* data) {
   _context->UpdateSubresource(buffer.Get(), 0, nullptr, data, 0, 0);
-}
-
-ComPtr<ID3DBlob> D3D11Renderer::CompileShader(const std::string& filename,
-                                              const std::string& entryPoint,
-                                              const std::string& profile) {
-  UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
-#if _DEBUG
-  flags |= D3DCOMPILE_DEBUG;
-  flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-  ComPtr<ID3DBlob> shader;
-  ComPtr<ID3DBlob> errorBlob;
-
-  std::printf("Compiling HLSL shader: %s [%s]\n", filename.c_str(),
-              entryPoint.c_str());
-
-  if (FAILED(D3DCompileFromFile(Utility::convertToUTF16(filename).c_str(),
-                                nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
-                                entryPoint.c_str(), profile.c_str(), flags, 0,
-                                &shader, &errorBlob))) {
-    ErrorExit(L"D3DCompileFromFile");
-
-    std::string errorMsg = "Shader compilation failed: " + filename;
-    if (errorBlob) {
-      errorMsg += std::string("\n") +
-                  static_cast<const char*>(errorBlob->GetBufferPointer());
-    }
-    throw std::runtime_error(errorMsg);
-  }
-  return shader;
 }
