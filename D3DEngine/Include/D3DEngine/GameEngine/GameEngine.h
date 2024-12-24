@@ -4,7 +4,7 @@
 
 class GameEngine {
 public:
-	AppWindow hWindow;
+	HWND hwnd;
 	bool stop_rendering{ false };
 
 	virtual void Initialize();

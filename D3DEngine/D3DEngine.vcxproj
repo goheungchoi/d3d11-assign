@@ -173,6 +173,9 @@
 		<ClInclude Include="Include\D3DEngine\Core\Timer.h" />
 		<ClInclude Include="Include\D3DEngine\EngineCommon.h" />
 		<ClInclude Include="Include\D3DEngine\GameEngine\GameEngine.h" />
+		<ClInclude Include="Include\D3DEngine\GameFramework\Components\StaticMeshComponent.h" />
+		<ClInclude Include="Include\D3DEngine\GameFramework\GameObject.h" />
+		<ClInclude Include="Include\D3DEngine\Renderer\D3D11Renderer.h" />
 		<ClInclude Include="Include\D3DEngine\Renderer\IRenderer.h" />
 		<ClInclude Include="Include\D3DEngine\WinApp\WinApp.h" />
 		<ClInclude Include="Include\D3DEngine\WinApp\WinBase.h" />
@@ -180,16 +183,19 @@
 		<None Include="Shaders\PBR_VS.hlsl" />
 		<ClCompile Include="Source\Core\Timer.cpp" />
 		<ClCompile Include="Source\GameEngine\GameEngine.cpp" />
-		<ClInclude Include="Source\Renderer\D3D11Common.h" />
+		<ClCompile Include="Source\GameFramework\Components\StaticMeshComponent.cpp" />
+		<ClCompile Include="Source\GameFramework\GameObject.cpp" />
 		<ClCompile Include="Source\Renderer\D3D11Renderer.cpp" />
-		<ClInclude Include="Source\Renderer\D3D11Renderer.h" />
-		<ClInclude Include="Source\Renderer\D3D11Types.h" />
-		<ClCompile Include="Source\Renderer\D3D11Utils.cpp" />
-		<ClInclude Include="Source\Renderer\D3D11Utils.h" />
-		<ClCompile Include="Source\Renderer\Resources\RenderDevice.cpp" />
-		<ClInclude Include="Source\Renderer\Resources\RenderDevice.h" />
-		<ClCompile Include="Source\Renderer\Resources\SwapChain.cpp" />
-		<ClInclude Include="Source\Renderer\Resources\SwapChain.h" />
+		<ClInclude Include="Source\Renderer\Internal\Components\PipelineState.h" />
+		<ClInclude Include="Source\Renderer\Internal\D3D11Common.h" />
+		<ClInclude Include="Source\Renderer\Internal\D3D11Desc.h" />
+		<ClInclude Include="Source\Renderer\Internal\D3D11Types.h" />
+		<ClCompile Include="Source\Renderer\Internal\D3D11Utils.cpp" />
+		<ClInclude Include="Source\Renderer\Internal\D3D11Utils.h" />
+		<ClCompile Include="Source\Renderer\Internal\Resources\RenderDevice.cpp" />
+		<ClInclude Include="Source\Renderer\Internal\Resources\RenderDevice.h" />
+		<ClCompile Include="Source\Renderer\Internal\Resources\SwapChain.cpp" />
+		<ClInclude Include="Source\Renderer\Internal\Resources\SwapChain.h" />
 		<ClCompile Include="Source\WinApp\WinApp.cpp" />
 	</ItemGroup>
 </Project>

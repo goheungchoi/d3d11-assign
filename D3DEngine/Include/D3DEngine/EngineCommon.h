@@ -1,14 +1,29 @@
 #pragma once
 
-#define NOMINMAX	// Use std minmax
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+// Use the C++ standard templated min/max
+#define NOMINMAX
+
+// DirectX apps don't need GDI
+#define NODRAWTEXT
+#define NOGDI
+#define NOBITMAP
+
+// Include <mcx.h> if you need this
+#define NOMCX
+
+// Include <winsvc.h> if you need this
+#define NOSERVICE
+
+// WinHelp is deprecated
+#define NOHELP
+
+#define WIN32_LEAN_AND_MEAN
+
 #include <windows.h>
 
 #include <wrl/client.h>	// ComPtr
 using Microsoft::WRL::ComPtr;
 
-// WinAPI types Re-definitions
-using AppWindow = HWND;
 using WindowStyleFlags = DWORD;
 
 // STL Libraries
