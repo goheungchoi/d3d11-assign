@@ -159,5 +159,28 @@
 		<ClInclude Include="Include\D3DEngine\Renderer\D3D11Renderer.h">
 			<Filter>Include\D3DEngine\Renderer</Filter>
 		</ClInclude>
+		<ClCompile Include="Source\Core\TypeRegistryID.cpp">
+			<Filter>Source\Core</Filter>
+		</ClCompile>
+		<ClInclude Include="Include\D3DEngine\Core\TypeRegistryID.h">
+			<Filter>Include\D3DEngine\Core</Filter>
+		</ClInclude>
+		<ClInclude Include="Include\D3DEngine\Core\Handle.h">
+			<Filter>Include\D3DEngine\Core</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\Renderer\Internal\Resources\RenderContext.cpp">
+			<Filter>Source\Renderer\Internal\Resources</Filter>
+		</ClCompile>
+		<ClInclude Include="Source\Renderer\Internal\Resources\RenderContext.h">
+			<Filter>Source\Renderer\Internal\Resources</Filter>
+		</ClInclude>
+	</ItemGroup>
+	<ItemGroup>
+		<ClCompile Include="RenderContext.cpp">
+			<Filter>Source\Renderer\Internal\Resources</Filter>
+		</ClCompile>
+		<ClCompile Include="TypeRegistryID.cpp">
+			<Filter>Source\Core</Filter>
+		</ClCompile>
 	</ItemGroup>
 </Project>

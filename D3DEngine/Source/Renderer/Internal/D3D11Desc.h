@@ -2,6 +2,8 @@
 
 #include "Renderer/Internal/D3D11Common.h"
 
+namespace DX {
+
 DXGI_SWAP_CHAIN_DESC1 CreateDXGISwapChainDesc1(UINT width, UINT height) {
   DXGI_SWAP_CHAIN_DESC1 desc1{
       .Width = width,
@@ -31,4 +33,18 @@ DXGI_SWAP_CHAIN_DESC1 CreateDXGISwapChainDesc1(UINT width, UINT height) {
 
 	return desc1;
 }
+
+
+D3D11_TEXTURE2D_DESC Texture2DDesc(DXGI_FORMAT format, UINT width, UINT height,
+                                   D3D11_BIND_FLAG binds) {
+	
+
+}
+
+D3D11_TEXTURE2D_DESC Texture2DDesc(DXGI_FORMAT format, UINT width, UINT height,
+                                 UINT mipLevel, D3D11_BIND_FLAG binds,
+                                 D3D11_USAGE usage, D3D11_CPU_ACCESS_FLAG access);
+
+}
+
 

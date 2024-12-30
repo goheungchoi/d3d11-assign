@@ -12,26 +12,21 @@ class RenderDevice {
   ComPtr<ID3D11Device1> _d3dDevice;
   ComPtr<ID3D11DeviceContext1> _d3dImmContext;
 
-  bool _vsync{true};
-  bool _enableHDR{true};
-  bool _isFlipPresent{true};
-
   RenderDevice() = default;
 
-	friend class SwapChain;
-
  public:
-  static RenderDevice* CreateRenderDevice(bool vsync, bool enableHDR) {
+  static RenderDevice* CreateRenderDevice() {
     RenderDevice* device = new RenderDevice();
-    device->Initialize(vsync, enableHDR);
+    device->Initialize();
     return device;
   }
 
 	ID3D11Device1* GetDevice() { return _d3dDevice.Get(); }
+  IDXGIFactory2* GetDXGIFactory() { return _dxgiFactory.Get(); }
+  IDXGIAdapter1* GetAdapter() { return _dxgiAdapter.Get(); }
+  ID3D11DeviceContext* GetImmediateContext() { return _d3dImmContext.Get(); }
 
-	FrameBuffer CreateFrameBuffer(UINT width, UINT height, UINT samples, DXGI_FORMAT colorFormat, ) {
-
-	}
+	class SwapChain* CreateSwapChain(HWND hwnd, UINT width, UINT height, bool allowTearing);
 
  private:
   bool CheckSdkLayersSupport() noexcept {
@@ -149,18 +144,15 @@ class RenderDevice {
     }
 #endif
 
-		if (!_vsync && !CheckAllowTearingSupport()) {
-      _vsync = true;
+		if (!CheckAllowTearingSupport()) {
       OutputDebugString(L"WARNING: Allow tearing is not supported!");
 		}
 
-		if (_enableHDR && !CheckHDRSupport()) {
-      _enableHDR = false;
+		if (!CheckHDRSupport()) {
       OutputDebugString(L"WARNING: HDR swapchain is not supported!");
 		}
 
-		if (_isFlipPresent && !CheckFlipPresent()) {
-      _isFlipPresent = false;
+		if (!CheckFlipPresent()) {
       OutputDebugString(L"WARNING: Flip mode is not supported!");
 		}
 
@@ -230,9 +222,7 @@ class RenderDevice {
     ThrowIfFailed(context.As(&_d3dImmContext));
 	}
 
-  void Initialize(bool vsync, bool enableHDR) {
-    _vsync = vsync;
-    _enableHDR = enableHDR;
+  void Initialize() {
 
 		// Create dxgi factory
     CreateFactory();

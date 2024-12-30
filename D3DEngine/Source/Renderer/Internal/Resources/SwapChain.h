@@ -9,23 +9,22 @@ namespace DX {
 
 class SwapChain {
   bool _windowed{false};
+  UINT _width, height;
+
+  RenderDevice& _device;
 
   ComPtr<IDXGISwapChain1> _swapchain;
 
-	ComPtr<ID3D11RenderTargetView> _backBufferRTV;
+  ComPtr<ID3D11RenderTargetView> _backBufferRTV;
 
-	SwapChain() = default;
+  SwapChain(RenderDevice& device) : _device{device} {};
+
+	friend class RenderDevice;
 
  public:
-  SwapChain* CreateSwapChain(HWND hwnd, UINT width, UINT height,
-                             RenderDevice* device) {
-    SwapChain* swapchain = new SwapChain();
-    swapchain->Initialize(hwnd, width, height, device);
-		return swapchain;
-	}
 
-	void SwitchWindowMode() {
-    if (_windowed) {	// To full-screen
+	void SetWindowMode(bool windowed) {
+    if (windowed) {  // To full-screen
       _swapchain->SetFullscreenState(TRUE, NULL);
 			// TODO:
 			
@@ -34,18 +33,17 @@ class SwapChain {
 			// TODO: 
 		}
 
-		_windowed = !_windowed;
+		_windowed = windowed;
 	}
 
 	void Resize(UINT width, UINT height) {
-
+		// TODO:
 	}
 
+	ID3D11RenderTargetView* GetBackBuffer() { return _backBufferRTV.Get(); }
+
  private:
-  void CreateDXGISwapChain(HWND hwnd, UINT width, UINT height,
-                           RenderDevice* device) {
-    bool swapFlip =
-        (!device->_vsync || device->_enableHDR || device->_isFlipPresent);
+  void CreateDXGISwapChain(HWND hwnd, UINT width, UINT height, bool allowTearing) {
 
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc{
         .Width = width,
@@ -55,10 +53,9 @@ class SwapChain {
 
         .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
         .BufferCount = 2,
-        .SwapEffect =
-            swapFlip ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD,
+        .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
         .AlphaMode = DXGI_ALPHA_MODE_IGNORE,
-        .Flags = (!device->_vsync) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0,
+        .Flags = allowTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0,
     };
     swapChainDesc.Flags |=
         DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;  // Allow full-screen switching
@@ -67,23 +64,23 @@ class SwapChain {
         .Windowed = _windowed,
     };
 
-		ThrowIfFailed(device->_dxgiFactory->CreateSwapChainForHwnd(
-        device->GetDevice(), hwnd, &swapChainDesc, &fullscreenDesc, nullptr,
+		ThrowIfFailed(_device.GetDXGIFactory()->CreateSwapChainForHwnd(
+        _device.GetDevice(), hwnd, &swapChainDesc, &fullscreenDesc, nullptr,
         _swapchain.ReleaseAndGetAddressOf()));
 	}
 
-  void CreateBackBufferView(RenderDevice* device) { 
+  void CreateBackBufferView() { 
 		
 		ComPtr<ID3D11Texture2D> backBuffer;
     ThrowIfFailed(_swapchain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)));
 
-		device->GetDevice()->CreateRenderTargetView(backBuffer.Get(), nullptr,
+		_device.GetDevice()->CreateRenderTargetView(backBuffer.Get(), nullptr,
                                                 &_backBufferRTV);
 	}
 
-  void Initialize(HWND hwnd, UINT width, UINT height, RenderDevice* device) {
-		
-	
+  void Initialize(HWND hwnd, UINT width, UINT height, bool allowTearing) {
+    CreateDXGISwapChain(hwnd, width, height, allowTearing);
+		CreateBackBufferView();
 	}
 };
 
