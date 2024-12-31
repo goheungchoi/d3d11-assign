@@ -11,7 +11,7 @@ WinApp::WinApp(HINSTANCE _hInstance, const wchar_t* _className) {
 		.setInstanceHandle(_hInstance)
 		.setWindowProcessCallback()
 		.setStyle(CS_HREDRAW | CS_VREDRAW)
-		.setBackgroundBrushHandle(CreateSolidBrush(RGB(0, 0, 0)))
+		.setBackgroundBrushHandle((HBRUSH)(COLOR_WINDOW + 1))
 		.setIconeHandle(LoadIcon(0, IDI_APPLICATION))
 		.setCursorHandle(LoadCursor(0, IDC_ARROW))
 		.endSetting()
@@ -45,7 +45,7 @@ void WinApp::App_Init(HINSTANCE _hInstance, const wchar_t* _className) {
 	winApp = new WinApp(_hInstance, _className);
 }
 
-AppWindow WinApp::App_CreateWindow(int _width, int _height, const wchar_t* _title, DWORD _style)
+HWND WinApp::App_CreateWindow(int _width, int _height, const wchar_t* _title, DWORD _style)
 {
 	winApp->getWindowStyleConfigurationHelper()
 		.setWindowTitle(_title)

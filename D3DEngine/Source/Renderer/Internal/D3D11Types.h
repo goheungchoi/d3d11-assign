@@ -17,6 +17,7 @@ struct MeshBuffer {
 };
 
 struct FrameBuffer {
+  DXGI_FORMAT colorFormat, depthFormat;
   ComPtr<ID3D11Texture2D> colorTexture;
   ComPtr<ID3D11Texture2D> depthStencilTexture;
   ComPtr<ID3D11RenderTargetView> rtv;
@@ -27,20 +28,19 @@ struct FrameBuffer {
   UINT samples;
 };
 
-struct ShaderProgram {
-  ComPtr<ID3D11VertexShader> vertexShader;
-  ComPtr<ID3D11PixelShader> pixelShader;
-  ComPtr<ID3D11InputLayout> inputLayout;
-};
-
 struct ComputeProgram {
   ComPtr<ID3D11ComputeShader> computeShader;
 };
 
 struct TextureBuffer {
+  DXGI_FORMAT format;
   ComPtr<ID3D11Texture2D> texture;
   ComPtr<ID3D11ShaderResourceView> srv;
   ComPtr<ID3D11UnorderedAccessView> uav;
   UINT width, height;
   UINT levels;
+};
+
+struct CubeTextureBuffer {
+
 };

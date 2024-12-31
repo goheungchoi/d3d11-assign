@@ -3,80 +3,54 @@
 #include "Renderer/Internal/D3D11Common.h"
 #include "Renderer/Internal/D3D11Types.h"
 
-#include "RenderDevice.h"
-
 namespace DX {
 
 class SwapChain {
   bool _windowed{false};
-  UINT _width, height;
+  bool _allowTearing{false};
+  UINT _width, _height;
 
-  RenderDevice& _device;
+  class RenderDevice& _device;
 
   ComPtr<IDXGISwapChain1> _swapchain;
 
+	D3D11_TEXTURE2D_DESC _backbufferDesc{};
   ComPtr<ID3D11RenderTargetView> _backBufferRTV;
 
-  SwapChain(RenderDevice& device) : _device{device} {};
+  SwapChain(class RenderDevice& device) : _device{device} {}
 
 	friend class RenderDevice;
 
  public:
 
-	void SetWindowMode(bool windowed) {
-    if (windowed) {  // To full-screen
-      _swapchain->SetFullscreenState(TRUE, NULL);
-			// TODO:
-			
-		} else {	// To windowed
-      _swapchain->SetFullscreenState(FALSE, NULL);
-			// TODO: 
-		}
+	void SetWindowMode(bool windowed);
 
-		_windowed = windowed;
-	}
-
-	void Resize(UINT width, UINT height) {
-		// TODO:
-	}
+	void Resize(UINT width = 0, UINT height = 0);
 
 	ID3D11RenderTargetView* GetBackBuffer() { return _backBufferRTV.Get(); }
 
+	HRESULT Present() { 
+		HRESULT res;
+
+		if (_allowTearing) {
+      // Recommended to always use tearing if supported when using a sync
+      // interval of 0.
+      res = _swapchain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
+    } else {
+      // The first argument instructs DXGI to block until VSync, putting the
+      // application to sleep until the next VSync. This ensures we don't waste
+      // any cycles rendering frames that will never be displayed to the screen.
+      res = _swapchain->Present(1, 0);
+		}
+    
+		return res;
+	}
+
  private:
-  void CreateDXGISwapChain(HWND hwnd, UINT width, UINT height, bool allowTearing) {
+  void CreateDXGISwapChain(HWND hwnd, UINT width, UINT height,
+                           bool allowTearing);
 
-    DXGI_SWAP_CHAIN_DESC1 swapChainDesc{
-        .Width = width,
-        .Height = height,
-        .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-        .SampleDesc = {.Count = 1},
-
-        .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-        .BufferCount = 2,
-        .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
-        .AlphaMode = DXGI_ALPHA_MODE_IGNORE,
-        .Flags = allowTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0,
-    };
-    swapChainDesc.Flags |=
-        DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;  // Allow full-screen switching
-  
-		DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc{
-        .Windowed = _windowed,
-    };
-
-		ThrowIfFailed(_device.GetDXGIFactory()->CreateSwapChainForHwnd(
-        _device.GetDevice(), hwnd, &swapChainDesc, &fullscreenDesc, nullptr,
-        _swapchain.ReleaseAndGetAddressOf()));
-	}
-
-  void CreateBackBufferView() { 
-		
-		ComPtr<ID3D11Texture2D> backBuffer;
-    ThrowIfFailed(_swapchain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)));
-
-		_device.GetDevice()->CreateRenderTargetView(backBuffer.Get(), nullptr,
-                                                &_backBufferRTV);
-	}
+  void CreateBackBufferView();
 
   void Initialize(HWND hwnd, UINT width, UINT height, bool allowTearing) {
     CreateDXGISwapChain(hwnd, width, height, allowTearing);

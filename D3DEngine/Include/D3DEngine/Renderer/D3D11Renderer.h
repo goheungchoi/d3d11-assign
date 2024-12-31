@@ -1,10 +1,10 @@
 #pragma once
 
-#include "D3DEngine/EngineCommon.h"
+#include "IRenderer.h"
 
 namespace DX {
 
-class D3D11Renderer {
+class D3D11Renderer : public IRenderer {
   class RenderDevice* _device{nullptr};
   class SwapChain* _swapchain{nullptr};
 
@@ -12,14 +12,14 @@ class D3D11Renderer {
   D3D11Renderer& operator=(const D3D11Renderer&) = delete;
 
  public:
-  void Initialize(HWND hWnd, UINT width, UINT height, bool allowTearing = false);
+  void Initialize(HWND hWnd, UINT width, UINT height, bool allowTearing = false) override;
 
-  void Shutdown();
+  void Shutdown() override;
 
-	void BeginFrame();
-  void BeginDraw();
-  void EndDraw();
-  void EndFrame();
+	void BeginFrame() override;
+  void BeginDraw() override;
+  void EndDraw() override;
+  void EndFrame() override;
 };
 
 }  // namespace DX

@@ -4,6 +4,8 @@
 
 namespace DX {
 
+constexpr UINT kMaxSample{16};
+
 class RenderDevice {
   D3D_FEATURE_LEVEL _d3dFeatureLevel{D3D_FEATURE_LEVEL_11_0};
 
@@ -26,7 +28,62 @@ class RenderDevice {
   IDXGIAdapter1* GetAdapter() { return _dxgiAdapter.Get(); }
   ID3D11DeviceContext* GetImmediateContext() { return _d3dImmContext.Get(); }
 
+	void GetMultisampleCountAndQualityLevels(DXGI_FORMAT format, UINT* outSampleCount, UINT* outQuality) {
+    UINT quality{0};
+    UINT samples = kMaxSample;
+
+		for (; samples > 1; samples /= 2) {
+      _d3dDevice->CheckMultisampleQualityLevels(format, samples, &quality);
+      if (quality > 0) break;
+		}
+
+		if (quality > 0) {
+      *outSampleCount = samples;
+      *outQuality = quality;
+    } else {
+      *outSampleCount = 0;
+      *outQuality = 0;
+		}
+	}
+
+	UINT GetMultisampleMaxCount(DXGI_FORMAT format) {
+    UINT quality{0};
+    UINT samples = kMaxSample;
+
+    for (; samples > 1; samples /= 2) {
+      _d3dDevice->CheckMultisampleQualityLevels(format, samples, &quality);
+      if (quality > 0) break;
+    }
+
+    return samples;
+	}
+
+	UINT GetMultisampleQualityLevels(DXGI_FORMAT format, UINT sampleCount) {
+    UINT quality{0};
+    _d3dDevice->CheckMultisampleQualityLevels(format, sampleCount, &quality);
+    return quality;
+	}
+
+  TextureBuffer CreateTextureBuffer(UINT width, UINT height, DXGI_FORMAT format,
+                                    D3D11_BIND_FLAG flags, UINT mipLevels = 1);
+  TextureBuffer CreateTextureBuffer(void* data, UINT width, UINT height,
+                                    DXGI_FORMAT format, D3D11_BIND_FLAG flags,
+                                    UINT mipLevels = 1);
+
+	CubeTextureBuffer CreateCubeTextureBuffer(UINT width, UINT height,
+                                            DXGI_FORMAT format,
+                                            D3D11_BIND_FLAG flags,
+                                            UINT mipLevels = 1, UINT arrayLayers= 6);
+
+	FrameBuffer CreateFrameBuffer(UINT width, UINT height, DXGI_FORMAT colorFormat, DXGI_FORMAT depthFormat, UINT sampleCount = 1);
+
+
 	class SwapChain* CreateSwapChain(HWND hwnd, UINT width, UINT height, bool allowTearing);
+
+	class RenderContext* CreateRenderContext();
+	
+	// TODO: Submit render context;
+  void SubmitCommandList(class RenderContext* deferredContext);
 
  private:
   bool CheckSdkLayersSupport() noexcept {
@@ -140,7 +197,7 @@ class RenderDevice {
     if (CheckSdkLayersSupport()) {
       creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
     } else {
-      OutputDebugString("WARNING: Direct3D Debug Device is not available!\n");
+      OutputDebugString(L"WARNING: Direct3D Debug Device is not available!\n");
     }
 #endif
 
@@ -191,7 +248,7 @@ class RenderDevice {
           context.GetAddressOf());
 
       if (SUCCEEDED(hr)) {
-        OutputDebugStringA("Direct3D Adapter - WARP\n");
+        OutputDebugString(L"Direct3D Adapter - WARP\n");
       }
     }
 

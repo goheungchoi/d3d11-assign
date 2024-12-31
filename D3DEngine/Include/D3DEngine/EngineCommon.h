@@ -41,6 +41,7 @@ using WindowStyleFlags = DWORD;
 #include <algorithm>
 
 #include <filesystem>
+namespace fs = std::filesystem;
 #include <fstream>
 #include <sstream>
 #include <string>

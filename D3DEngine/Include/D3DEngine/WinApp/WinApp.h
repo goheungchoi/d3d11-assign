@@ -21,6 +21,6 @@ public:
 public:
 
 	static void App_Init(HINSTANCE _hInstance = GetModuleHandle(NULL), const wchar_t* _className = L"WinClass");
-	static AppWindow App_CreateWindow(int _width, int _height, const wchar_t* _title = L"", DWORD _style = WS_OVERLAPPED);
+	static HWND App_CreateWindow(int _width, int _height, const wchar_t* _title = L"", DWORD _style = WS_OVERLAPPED);
 	static void App_Destroy();
 };

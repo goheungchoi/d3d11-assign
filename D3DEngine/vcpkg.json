@@ -1,8 +1,11 @@
 {
-  "dependencies": [
+	"dependencies": [
 		"directxtk",
 		"stb",
 		"assimp",
+		"stduuid",
+		"taskflow",
+		"flatbuffers",
 		{
 			"name": "imgui",
 			"features": [
@@ -10,5 +13,5 @@
 				"win32-binding"
 			]
 		}
-  ]
+	]
 }

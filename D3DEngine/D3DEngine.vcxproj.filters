@@ -61,6 +61,15 @@
 		<Filter Include="Source\GameFramework">
 			<UniqueIdentifier>{37F3ADEC-95A0-49FF-8F9B-D36D5078F3CA}</UniqueIdentifier>
 		</Filter>
+		<Filter Include="Source\ResourceManager">
+			<UniqueIdentifier>{14504E8B-E252-44BC-9003-9F00CE0B6105}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include\D3DEngine\ResourceManager">
+			<UniqueIdentifier>{27B13F5E-3DAB-4D2A-AC67-400E9BC63495}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source\ResourceManager\ResourcePool">
+			<UniqueIdentifier>{E903F650-06FF-4330-89E7-0227207D59FA}</UniqueIdentifier>
+		</Filter>
 	</ItemGroup>
 	<ItemGroup>
 		<ClInclude Include="Include\D3DEngine\GameEngine\GameEngine.h">
@@ -174,13 +183,56 @@
 		<ClInclude Include="Source\Renderer\Internal\Resources\RenderContext.h">
 			<Filter>Source\Renderer\Internal\Resources</Filter>
 		</ClInclude>
-	</ItemGroup>
-	<ItemGroup>
-		<ClCompile Include="RenderContext.cpp">
-			<Filter>Source\Renderer\Internal\Resources</Filter>
+		<ClInclude Include="Source\Renderer\Internal\Components\ComputeState.h">
+			<Filter>Source\Renderer\Internal\Components</Filter>
+		</ClInclude>
+		<ClInclude Include="Source\Renderer\Internal\Components\ComputePass.h">
+			<Filter>Source\Renderer\Internal\Components</Filter>
+		</ClInclude>
+		<ClInclude Include="Source\Renderer\Internal\Components\RenderPass.h">
+			<Filter>Source\Renderer\Internal\Components</Filter>
+		</ClInclude>
+		<ClInclude Include="Source\Renderer\Internal\Components\RenderGraph.h">
+			<Filter>Source\Renderer\Internal\Components</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\Renderer\Internal\Components\RenderGraph.cpp">
+			<Filter>Source\Renderer\Internal\Components</Filter>
 		</ClCompile>
-		<ClCompile Include="TypeRegistryID.cpp">
+		<ClCompile Include="Source\Core\CubeTexture.cpp">
 			<Filter>Source\Core</Filter>
 		</ClCompile>
+		<ClCompile Include="Source\Core\Texture.cpp">
+			<Filter>Source\Core</Filter>
+		</ClCompile>
+		<ClCompile Include="Source\ResourceManager\ResourcePool\MaterialResourcePool.cpp">
+			<Filter>Source\ResourceManager\ResourcePool</Filter>
+		</ClCompile>
+		<ClInclude Include="Include\D3DEngine\Core\ShaderData.h">
+			<Filter>Include\D3DEngine\Core</Filter>
+		</ClInclude>
+		<ClInclude Include="Include\D3DEngine\ResourceManager\ResourceManager.h">
+			<Filter>Include\D3DEngine\ResourceManager</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\ResourceManager\ResourceManager.cpp">
+			<Filter>Source\ResourceManager</Filter>
+		</ClCompile>
+		<ClCompile Include="Source\ResourceManager\ResourcePool\ModelResourcePool.cpp">
+			<Filter>Source\ResourceManager\ResourcePool</Filter>
+		</ClCompile>
+		<ClInclude Include="Include\D3DEngine\Core\UUID.h">
+			<Filter>Include\D3DEngine\Core</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\ResourceManager\ResourcePool\TextureResourcePool.cpp">
+			<Filter>Source\ResourceManager\ResourcePool</Filter>
+		</ClCompile>
+		<ClCompile Include="Source\ResourceManager\ResourcePool\MeshResourcePool.cpp">
+			<Filter>Source\ResourceManager\ResourcePool</Filter>
+		</ClCompile>
+		<ClCompile Include="Source\Core\UUID.cpp">
+			<Filter>Source\Core</Filter>
+		</ClCompile>
+		<ClInclude Include="Source\ResourceManager\ResourcePool\ResourcePool.h">
+			<Filter>Source\ResourceManager\ResourcePool</Filter>
+		</ClInclude>
 	</ItemGroup>
 </Project>

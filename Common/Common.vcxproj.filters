@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+	<ItemGroup>
+		<Filter Include="Source">
+			<UniqueIdentifier>{DF138FE3-B31A-47B5-B3EE-E8352E9A56F0}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include">
+			<UniqueIdentifier>{4F910DCA-8447-45BB-87DB-F7EB002618F0}</UniqueIdentifier>
+		</Filter>
+	</ItemGroup>
+	<ItemGroup />
+</Project>
