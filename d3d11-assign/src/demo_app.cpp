@@ -31,9 +31,8 @@ void DemoApp::Initialize() {
   //
   //
 
-  _renderer = new D3D11Renderer();
-  if (FAILED(_renderer->Initialize(hwnd, SCREEN_WIDTH, SCREEN_HEIGHT)))
-    throw std::runtime_error("Initialization of D3D 11 failed!");
+  _renderer = new DX::D3D11Renderer();
+  _renderer->Initialize(hwnd, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 
   // √ ±‚»≠ True

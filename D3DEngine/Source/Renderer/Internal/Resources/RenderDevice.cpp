@@ -1,7 +1,7 @@
 #include "RenderDevice.h"
 
-#include "SwapChain.h"
 #include "RenderContext.h"
+#include "SwapChain.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -12,6 +12,14 @@ TextureBuffer DX::RenderDevice::CreateTextureBuffer(UINT width, UINT height,
                                                     D3D11_BIND_FLAG flags,
                                                     UINT mipLevels) {
 	// TODO:
+  return TextureBuffer();
+}
+
+TextureBuffer DX::RenderDevice::CreateTextureBuffer(void* data, UINT width,
+                                                    UINT height,
+                                                    DXGI_FORMAT format,
+                                                    D3D11_BIND_FLAG flags,
+                                                    UINT mipLevels) {
   return TextureBuffer();
 }
 
@@ -47,7 +55,7 @@ FrameBuffer DX::RenderDevice::CreateFrameBuffer(UINT width, UINT height,
 		}
 	}
 
-	sampleCount = std::min(sampleCount, colorSampleCountMax, depthSampleCountMax);
+	sampleCount = std::min({sampleCount, colorSampleCountMax, depthSampleCountMax});
 
 	// Get the quality levels
   UINT colorQualityLevels =

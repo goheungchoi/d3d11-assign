@@ -4,10 +4,6 @@
 
 #include "D3DEngine/Core/Handle.h"
 
-#include <directxtk/SimpleMath.h>
-using namespace DirectX;
-using namespace DirectX::SimpleMath;
-
 #include <dxgiformat.h>
 
 namespace DX {
@@ -114,6 +110,27 @@ struct MeshData {
 
 	Handle material;
 };
+
+struct ModelNode {
+  std::string name;
+  // Matrix transformation;
+
+  uint32_t parent;
+  uint32_t firstChild;
+  uint32_t nextSibling;
+  uint32_t level;
+
+  std::vector<Handle> meshes;
+};
+
+struct ModelData {
+  uint32_t rootNode;
+  std::vector<ModelNode> nodes;
+  std::vector<Handle> meshes;
+  std::vector<Handle> materials;
+  std::vector<Handle> textures;
+};
+
 
 // Light
 enum class LightType : uint32_t { kUndefined = 0, kDirectional, kPoint, kSpot };

@@ -3,18 +3,16 @@
 #include "Renderer/Internal/D3D11Common.h"
 #include "Renderer/Internal/D3D11Types.h"
 
-#include "RenderDevice.h"
-
 namespace DX {
 
 class RenderContext {
 
-	RenderDevice& _device;
+	class RenderDevice& _device;
 
   ComPtr<ID3D11DeviceContext> _deferredContext;
   ComPtr<ID3D11CommandList> _commandList;
 
-	RenderContext(RenderDevice& device) : _device{device} {}
+	RenderContext(class RenderDevice& device) : _device{device} {}
 
 	friend class RenderDevice;
 

@@ -101,6 +101,10 @@ inline void SafeRelease(std::unique_ptr<Interface>& upInterface) {
 	}
 }
 
+#include <directxtk/SimpleMath.h>
+using namespace DirectX;
+using namespace DirectX::SimpleMath;
+
 constexpr float FLOAT_MIN = (std::numeric_limits<float>::min)();
 constexpr float FLOAT_MAX = (std::numeric_limits<float>::max)();
 constexpr float PI_F = std::numbers::pi_v<float>;

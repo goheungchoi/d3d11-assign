@@ -162,5 +162,8 @@
 	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 	<ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-	<ItemGroup />
+	<ItemGroup>
+		<None Include="Include\Schema\model.fbs" />
+		<ClInclude Include="Include\Schema\model_generated.h" />
+	</ItemGroup>
 </Project>

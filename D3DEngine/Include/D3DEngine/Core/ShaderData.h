@@ -2,6 +2,8 @@
 
 #include "D3DEngine/EngineCommon.h"
 
+namespace DX {
+
 enum class ShaderType : uint8_t {
   kUnknown = 0,
 
@@ -53,3 +55,5 @@ struct ShaderData {
 
   std::vector<uint8_t> data;
 };
+
+}  // namespace DX

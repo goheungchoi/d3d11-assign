@@ -2,11 +2,13 @@
 
 #include "Renderer/Internal/D3D11Common.h"
 
+#include "Renderer/Internal/D3D11Types.h"
+
 namespace DX {
 
-constexpr UINT kMaxSample{16};
-
 class RenderDevice {
+  static constexpr UINT kMaxSample{16};
+
   D3D_FEATURE_LEVEL _d3dFeatureLevel{D3D_FEATURE_LEVEL_11_0};
 
   ComPtr<IDXGIFactory2> _dxgiFactory;
@@ -73,7 +75,7 @@ class RenderDevice {
 	CubeTextureBuffer CreateCubeTextureBuffer(UINT width, UINT height,
                                             DXGI_FORMAT format,
                                             D3D11_BIND_FLAG flags,
-                                            UINT mipLevels = 1, UINT arrayLayers= 6);
+                                            UINT mipLevels = 1, UINT arrayLayers = 6);
 
 	FrameBuffer CreateFrameBuffer(UINT width, UINT height, DXGI_FORMAT colorFormat, DXGI_FORMAT depthFormat, UINT sampleCount = 1);
 

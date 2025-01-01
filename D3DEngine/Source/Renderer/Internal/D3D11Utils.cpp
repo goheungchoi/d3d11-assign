@@ -1,4 +1,4 @@
-#include "D3DEngine/Renderer/D3D11Utils.h"
+#include "D3D11Utils.h"
 
 #include <Directxtk/DDSTextureLoader.h>
 #include <Directxtk/WICTextureLoader.h>

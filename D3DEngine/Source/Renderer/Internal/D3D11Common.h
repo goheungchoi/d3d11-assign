@@ -13,7 +13,7 @@
 
 namespace DX {
 
-	XMMATRIX CreateReversedZBufferPerspectiveMatrix(float fov, float aspect,
+XMMATRIX CreateReversedZBufferPerspectiveMatrix(float fov, float aspect,
                                                 float nearPlane,
                                                 float farPlane) {
   float tan_half_fov = tanf(fov / 2.f);
@@ -49,4 +49,5 @@ inline void ThrowIfFailed(HRESULT hr) {
     throw com_exception(hr);
   }
 }
+
 }  // namespace DX

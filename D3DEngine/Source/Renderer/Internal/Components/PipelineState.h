@@ -33,7 +33,14 @@ enum RSFrontClockwiseFlag : uint8_t {
 	kFrontCounterClockwise = 1
 };
 
-enum RSMultisample : uint8_t { kDisabled = 0, kEnabled = 1 };
+enum RSMultisampleFlag : uint8_t {
+  kSampleCount_1_Bit = 0x1,
+  kSampleCount_2_Bit = 0x2,
+  kSampleCount_4_Bit = 0x3,
+  kSampleCount_8_Bit = 0x4,
+  kSampleCount_16_Bit = 0x5,
+  kSampleCount_32_Bit = 0x6,
+};
 
 enum OMDepthEnabled : uint8_t { kDisabled = 0, kEnabled = 1 };
 
@@ -50,7 +57,7 @@ struct PipelineStateFlags {
 	RSFillModeFlag fill : 1;
   RSCullModeFlag cull : 2;
   RSFrontClockwiseFlag frontClockwise : 1;
-  RSMultisample multisample : 1;
+  RSMultisampleFlag multisample : 4;
 
 	OMDepthEnabled depthEnabled : 1;
   OMBlendMode blendMode : 2;
@@ -64,8 +71,8 @@ class PipelineState {
   
 	D3D11_VIEWPORT _viewport;
 	
-  ID3D11VertexShader* _vs;
-	ID3D11PixelShader* _ps;
+  Handle _vs;
+	Handle _ps;
 
 	DXGI_FORMAT colorAttachmentFormat;
   DXGI_FORMAT depthAttachmentFormat;
@@ -90,6 +97,8 @@ class PipelineStateBuilder {
 	void OMDisableBlending();
   void OMEnableAdditiveBlending();
   void OMEnableAlphaBlending();
+
+	PipelineState Build();
 
 	// TODO:
 };

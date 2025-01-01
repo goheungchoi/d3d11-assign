@@ -5,7 +5,7 @@
 
 struct __ResourceManagerPrivate__ {
   ResourcePool<DX::TextureData> texturePool;
-  ResourcePool<ShaderData> shaderPool;
+  ResourcePool<DX::ShaderData> shaderPool;
   ResourcePool<DX::MeshData> meshPool;
   ResourcePool<DX::MaterialData> materialPool;
   ResourcePool<DX::ModelData> modelPool;
@@ -18,42 +18,39 @@ static __ResourceManagerPrivate__& _m() {
   return _resourceManagerPrivate;
 }
 
-static TextureHandle __LoadTexture__(const std::string& path,
-                                     TextureType type) {
-  return TextureHandle();
+static Handle __LoadTexture__(const std::string& path,
+                                     DX::TextureType type) {
+  return Handle();
 }
-static const TextureData& __AccessTextureData__(TextureHandle handle) {
-  return TextureData();
+static const DX::TextureData& __AccessTextureData__(Handle handle) {
+  return DX::TextureData();
 }
 
-static void __UnloadTexture__(TextureHandle& handle) {}
+static void __UnloadTexture__(Handle& handle) {}
 
-static ShaderHandle __LoadShader__(const std::string& path, ShaderType type) {
-  return ShaderHandle();
+static Handle __LoadShader__(const std::string& path, DX::ShaderType type) {
+  return Handle();
 }
-static const ShaderData& __AccessShaderData__(ShaderHandle handle) {
-  return ShaderData();
+static const DX::ShaderData& __AccessShaderData__(Handle handle) {
+  return DX::ShaderData();
 }
-static void __UnloadShader__(ShaderHandle handle) {}
+static void __UnloadShader__(Handle handle) {}
+static Handle __LoadMesh__(const std::string& path) { return Handle(); }
+static const DX::MeshData& __AccessMeshData__(Handle handle) { return DX::MeshData(); }
+static void __UnloadMesh__(Handle handle) {}
 
-static MeshHandle __LoadMesh__(const std::string& path) { return MeshHandle(); }
-static const MeshData& __AccessMeshData__(MeshHandle handle) {
-  return MeshData();
-}
-static void __UnloadMesh__(MeshHandle handle) {}
-
-static MaterialHandle __LoadMaterial__(const std::string& path) {
+static Handle __LoadMaterial__(const std::string& path) {
   // TODO:
   // Load the material data
 
   // Load textures used in the material
 
-  return MaterialHandle();
+  return Handle();
 }
-static const MaterialData& __AccessMaterialData__(MaterialHandle handle) {
-  return MaterialData();
+static const DX::MaterialData& __AccessMaterialData__(Handle handle) {
+  return DX::MaterialData();
 }
-static void __UnloadMaterial__(MaterialHandle handle) {}
+static void __UnloadMaterial__(Handle handle) {}
 static ResourceType __GetResourceType__(const Handle& handle) {
   return ResourceType::kUnknown;
 }

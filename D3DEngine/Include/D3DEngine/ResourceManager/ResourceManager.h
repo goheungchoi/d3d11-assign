@@ -25,8 +25,8 @@ struct ResourceManager {
   const DX::TextureData& (*AccessTextureData)(Handle handle);
   void (*UnloadTexture)(Handle& handle);
 
-  Handle (*LoadShader)(const std::string& path, ShaderType type);
-  const ShaderData& (*AccessShaderData)(Handle handle);
+  Handle (*LoadShader)(const std::string& path, DX::ShaderType type);
+  const DX::ShaderData& (*AccessShaderData)(Handle handle);
   void (*UnloadShader)(Handle handle);
 
   Handle (*LoadMesh)(const std::string& path);
@@ -45,11 +45,11 @@ struct ResourceManager {
 
 const ResourceManager* GetResourceManager();
 
-inline Handle LoadTexture(const std::string& path, TextureType type) {
+inline Handle LoadTexture(const std::string& path, DX::TextureType type) {
   GetResourceManager()->LoadTexture(path, type);
 }
 
-inline const TextureData& AccessTextureData(Handle handle) {
+inline const DX::TextureData& AccessTextureData(Handle handle) {
   return GetResourceManager()->AccessTextureData(handle);
 }
 
@@ -57,11 +57,11 @@ inline void UnloadTexture(Handle handle) {
   GetResourceManager()->UnloadTexture(handle);
 }
 
-inline Handle LoadShader(const std::string& path, ShaderType type) {
+inline Handle LoadShader(const std::string& path, DX::ShaderType type) {
   GetResourceManager()->LoadShader(path, type);
 }
 
-inline const ShaderData& AccessShaderData(Handle handle) {
+inline const DX::ShaderData& AccessShaderData(Handle handle) {
   return GetResourceManager()->AccessShaderData(handle);
 }
 
@@ -73,7 +73,7 @@ inline Handle LoadMesh(const std::string& path) {
   GetResourceManager()->LoadMesh(path);
 }
 
-inline const MeshData& AccessMeshData(Handle handle) {
+inline const DX::MeshData& AccessMeshData(Handle handle) {
   return GetResourceManager()->AccessMeshData(handle);
 }
 
@@ -85,7 +85,7 @@ inline Handle LoadMaterial(const std::string& path) {
   GetResourceManager()->LoadMaterial(path);
 }
 
-inline const MaterialData& AccessMaterialData(Handle handle) {
+inline const DX::MaterialData& AccessMaterialData(Handle handle) {
   return GetResourceManager()->AccessMaterialData(handle);
 }
 

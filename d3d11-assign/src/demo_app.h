@@ -16,16 +16,7 @@ class DemoApp : public GameEngine
 	std::size_t count{ 0 };
 #endif
 
-	class D3D11Renderer* _renderer;
-	
-	class Camera* _camera;
-  
-	class Model* _model;
-  class Animation* _animation;
-  class Animator* _animator;
-
-	cbTransformConstants _transformConstants;
-	cbShadingConstants _shadingConstants;
+	class IRenderer* _renderer;
 
  public:
 

@@ -1,16 +1,22 @@
 #pragma once 
 
-#include ""
+#include "D3DEngine/EngineCommon.h"
+
+#include "D3DEngine/Core/Handle.h"
+#include "D3DEngine/Core/UUID.h"
+
+#include "D3DEngine/Core/Geometry.h"
+#include "D3DEngine/Core/ShaderData.h"
 
 template <typename T, size_t GROW_SIZE = 1024>
 class ResourcePool {
-  std::unordered_map<xUUID, uint32_t> _uuidMap;
+  std::unordered_map<core::UUID, uint32_t> _uuidMap;
 
   HandleTable<T, GROW_SIZE> _handleTable;
 
  public:
   Handle Load(const char* path, void* pUser) {
-    xUUID uuid = GenerateUUIDFromName(path);
+    core::UUID uuid = core::GenerateUUIDFromName(path);
 
     // Check if the asset is already loaded
     if (auto it = _uuidMap.find(uuid); it == _uuidMap.end()) {
@@ -44,13 +50,15 @@ class ResourcePool {
   }
 
  private:
-  Handle LoadImpl(xUUID uuid, void* pUser) { return Handle::kInvalidHandle; }
+  Handle LoadImpl(core::UUID uuid, void* pUser) {
+    return Handle::kInvalidHandle;
+  }
 
   bool UnloadImpl(Handle& handle) { return false; }
 };
 
 template <>
-Handle ResourcePool<TextureData>::LoadImpl(xUUID uuid, void* pUser);
+Handle ResourcePool<DX::TextureData>::LoadImpl(core::UUID uuid, void* pUser);
 
 template <>
-bool ResourcePool<TextureData>::UnloadImpl(Handle& handle);
+bool ResourcePool<DX::TextureData>::UnloadImpl(Handle& handle);

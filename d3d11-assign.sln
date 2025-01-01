@@ -16,6 +16,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3DEngine", "D3DEngine\D3DE
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "Common\Common.vcxproj", "{5C0F33E2-D4E1-4E0C-B1FD-3EC94CE4B5A3}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AssetManager", "AssetManager\AssetManager.vcxproj", "{0D914B36-F7B8-4020-ADC6-82CB46E2E88A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -48,6 +50,14 @@ Global
 		{5C0F33E2-D4E1-4E0C-B1FD-3EC94CE4B5A3}.Release|x64.Build.0 = Release|x64
 		{5C0F33E2-D4E1-4E0C-B1FD-3EC94CE4B5A3}.Release|x86.ActiveCfg = Release|Win32
 		{5C0F33E2-D4E1-4E0C-B1FD-3EC94CE4B5A3}.Release|x86.Build.0 = Release|Win32
+		{0D914B36-F7B8-4020-ADC6-82CB46E2E88A}.Debug|x64.ActiveCfg = Debug|x64
+		{0D914B36-F7B8-4020-ADC6-82CB46E2E88A}.Debug|x64.Build.0 = Debug|x64
+		{0D914B36-F7B8-4020-ADC6-82CB46E2E88A}.Debug|x86.ActiveCfg = Debug|x64
+		{0D914B36-F7B8-4020-ADC6-82CB46E2E88A}.Debug|x86.Build.0 = Debug|x64
+		{0D914B36-F7B8-4020-ADC6-82CB46E2E88A}.Release|x64.ActiveCfg = Release|x64
+		{0D914B36-F7B8-4020-ADC6-82CB46E2E88A}.Release|x64.Build.0 = Release|x64
+		{0D914B36-F7B8-4020-ADC6-82CB46E2E88A}.Release|x86.ActiveCfg = Release|x64
+		{0D914B36-F7B8-4020-ADC6-82CB46E2E88A}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -165,10 +165,16 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{5c0f33e2-d4e1-4e0c-b1fd-3ec94ce4b5a3}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="External\nv_dds.cpp" />
     <ClInclude Include="External\nv_dds.h" />
     <ClCompile Include="External\texture_formats.cpp" />
     <ClInclude Include="External\texture_formats.h" />
+    <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="Include\D3DEngine\Core\Geometry.h" />
     <ClInclude Include="Include\D3DEngine\Core\Handle.h" />
     <ClInclude Include="Include\D3DEngine\Core\ShaderData.h" />
@@ -186,8 +192,8 @@
     <ClInclude Include="Include\D3DEngine\WinApp\WinBase.h" />
     <None Include="Shaders\PBR_PS.hlsl" />
     <None Include="Shaders\PBR_VS.hlsl" />
-    <ClCompile Include="Source\Core\CubeTexture.cpp" />
-    <ClCompile Include="Source\Core\Texture.cpp" />
+    <ClCompile Include="RenderPass.cpp" />
+    <ClCompile Include="ShaderResourcePool.cpp" />
     <ClCompile Include="Source\Core\Timer.cpp" />
     <ClCompile Include="Source\Core\TypeRegistryID.cpp" />
     <ClCompile Include="Source\Core\UUID.cpp" />
@@ -219,10 +225,5 @@
     <ClInclude Include="Source\ResourceManager\ResourcePool\ResourcePool.h" />
     <ClCompile Include="Source\ResourceManager\ResourcePool\TextureResourcePool.cpp" />
     <ClCompile Include="Source\WinApp\WinApp.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Common\Common.vcxproj">
-      <Project>{5c0f33e2-d4e1-4e0c-b1fd-3ec94ce4b5a3}</Project>
-    </ProjectReference>
   </ItemGroup>
 </Project>

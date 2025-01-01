@@ -49,7 +49,7 @@ void SwapChain::CreateDXGISwapChain(HWND hwnd, UINT width, UINT height,
       .BufferCount = 2,
       .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
       .AlphaMode = DXGI_ALPHA_MODE_IGNORE,
-      .Flags = allowTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0,
+      .Flags = allowTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0U,
   };
   swapChainDesc.Flags |=
       DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;  // Allow full-screen switching
