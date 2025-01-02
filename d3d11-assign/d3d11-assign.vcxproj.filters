@@ -84,12 +84,6 @@
 		<ClCompile Include="src\demo_app.cpp">
 			<Filter>src</Filter>
 		</ClCompile>
-		<ClCompile Include="src\skybox.cpp">
-			<Filter>src</Filter>
-		</ClCompile>
-		<ClCompile Include="src\camera.cpp">
-			<Filter>src</Filter>
-		</ClCompile>
 		<None Include="shaders\BlinnPhong_VS.hlsl">
 			<Filter>shaders</Filter>
 		</None>
@@ -102,9 +96,6 @@
 		<None Include="assets\textures\cerberus_A.png">
 			<Filter>assets\textures</Filter>
 		</None>
-		<ClInclude Include="src\camera.h">
-			<Filter>src</Filter>
-		</ClInclude>
 		<None Include="shaders\GammaCorrection.hlsli">
 			<Filter>shaders</Filter>
 		</None>
@@ -120,9 +111,6 @@
 		<None Include="assets\textures\cerberus_M.png">
 			<Filter>assets\textures</Filter>
 		</None>
-		<ClInclude Include="src\skybox.h">
-			<Filter>src</Filter>
-		</ClInclude>
 		<None Include="shaders\SkyBox_PS.hlsl">
 			<Filter>shaders</Filter>
 		</None>

@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+	<ItemGroup>
+		<Filter Include="Source">
+			<UniqueIdentifier>{9BED1652-676B-4C02-A227-2E7734DDCBC2}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include">
+			<UniqueIdentifier>{8D59EEF1-24ED-4830-9466-527428F150D6}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Application">
+			<UniqueIdentifier>{54A2AA56-4F38-46C3-9887-137FA99CC6A1}</UniqueIdentifier>
+		</Filter>
+	</ItemGroup>
+	<ItemGroup>
+		<ClCompile Include="Application\WinMain.cpp">
+			<Filter>Application</Filter>
+		</ClCompile>
+		<ClCompile Include="Source\DemoApp.cpp">
+			<Filter>Source</Filter>
+		</ClCompile>
+		<ClInclude Include="Include\Common.h">
+			<Filter>Include</Filter>
+		</ClInclude>
+		<ClInclude Include="Source\DemoApp.h">
+			<Filter>Source</Filter>
+		</ClInclude>
+		<ClInclude Include="Include\Config.h">
+			<Filter>Include</Filter>
+		</ClInclude>
+	</ItemGroup>
+</Project>

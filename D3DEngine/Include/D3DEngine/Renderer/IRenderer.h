@@ -2,6 +2,8 @@
 
 #include "D3DEngine/EngineCommon.h"
 
+#include "D3DEngine/Core/MathUtils.h"
+
 #include "D3DEngine/Core/Handle.h"
 
 class IRenderer {

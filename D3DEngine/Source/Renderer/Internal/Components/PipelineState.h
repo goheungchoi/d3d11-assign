@@ -67,7 +67,7 @@ struct PipelineStateFlags {
 class PipelineState {
   PipelineStateFlags _stateFlags;
 
-  ID3D11InputLayout* _layout;
+  ComPtr<ID3D11InputLayout> _layout;
   
 	D3D11_VIEWPORT _viewport;
 	

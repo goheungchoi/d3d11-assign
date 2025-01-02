@@ -1,22 +1,49 @@
 <?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
 	<ItemGroup>
-		<Filter Include="Source">
-			<UniqueIdentifier>{DF138FE3-B31A-47B5-B3EE-E8352E9A56F0}</UniqueIdentifier>
-		</Filter>
 		<Filter Include="Include">
 			<UniqueIdentifier>{4F910DCA-8447-45BB-87DB-F7EB002618F0}</UniqueIdentifier>
 		</Filter>
-		<Filter Include="Include\Schema">
-			<UniqueIdentifier>{707F7269-C40E-4A08-BAFD-68F6DBA428C6}</UniqueIdentifier>
+		<Filter Include="Source">
+			<UniqueIdentifier>{E87359FF-2221-4EDB-ABCB-C38253995006}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source\Config">
+			<UniqueIdentifier>{37E24A4C-5F57-4EA9-8FFB-9659ED49528F}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source\UUID">
+			<UniqueIdentifier>{203B26BB-CB50-4F57-A54C-B38C47542FAA}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include\Common">
+			<UniqueIdentifier>{308A5907-0D03-41AE-AE1F-4DB3AB347FFB}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include\Common\Schema">
+			<UniqueIdentifier>{0A46CFFB-5716-417B-BC0E-6851E848F6AC}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include\Common\UUID">
+			<UniqueIdentifier>{EAD6D28C-4588-4C57-A019-3905E1C35646}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Include\Common\Config">
+			<UniqueIdentifier>{82C35D86-DF28-475A-AF7B-E7CCF52E4D61}</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>
-		<None Include="Include\Schema\model.fbs">
-			<Filter>Include\Schema</Filter>
-		</None>
-		<ClInclude Include="Include\Schema\model_generated.h">
-			<Filter>Include\Schema</Filter>
+		<ClCompile Include="Source\Config\Config.cpp">
+			<Filter>Source\Config</Filter>
+		</ClCompile>
+		<ClCompile Include="Source\UUID\UUID.cpp">
+			<Filter>Source\UUID</Filter>
+		</ClCompile>
+		<ClInclude Include="Include\Common\Schema\model_generated.h">
+			<Filter>Include\Common\Schema</Filter>
 		</ClInclude>
+		<ClInclude Include="Include\Common\Config\Config.h">
+			<Filter>Include\Common\Config</Filter>
+		</ClInclude>
+		<ClInclude Include="Include\Common\UUID\UUID.h">
+			<Filter>Include\Common\UUID</Filter>
+		</ClInclude>
+		<None Include="Include\Common\Schema\model.fbs">
+			<Filter>Include\Common\Schema</Filter>
+		</None>
 	</ItemGroup>
 </Project>

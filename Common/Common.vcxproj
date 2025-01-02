@@ -163,7 +163,11 @@
 	<ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 	<ItemGroup>
-		<None Include="Include\Schema\model.fbs" />
-		<ClInclude Include="Include\Schema\model_generated.h" />
+		<ClInclude Include="Include\Common\Config\Config.h" />
+		<None Include="Include\Common\Schema\model.fbs" />
+		<ClInclude Include="Include\Common\Schema\model_generated.h" />
+		<ClInclude Include="Include\Common\UUID\UUID.h" />
+		<ClCompile Include="Source\Config\Config.cpp" />
+		<ClCompile Include="Source\UUID\UUID.cpp" />
 	</ItemGroup>
 </Project>

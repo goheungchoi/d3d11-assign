@@ -1,14 +1,13 @@
 #pragma once
 
 #include "PipelineState.h"
-
 #include "FrameBuffer.h"
 
 class RenderPass {
 
 	PipelineState _state;
 
-	// Frame Buffers
+	// Frame Buffer
   FrameBuffer _fbo;
 
 public:
@@ -23,8 +22,6 @@ public:
   void BindSamplers(Handle sampler, UINT slot);
 
 	void BindFrameBuffer(FrameBuffer frameBuffers);
-
-	void Execute(class DX::RenderContext* context);
 
 };
 

@@ -6,6 +6,8 @@
 
 #include <dxgiformat.h>
 
+#include "MathUtils.h"
+
 namespace DX {
 
 enum class TextureType : uint8_t {

@@ -11,11 +11,14 @@ using namespace DX;
 #include "directxtk/DDSTextureLoader.h"
 using namespace DirectX;
 
+#include "D3DEngine/Core/Handle.h"
+
 struct D3D11Renderer::Private {
   RenderPass geometryPass;
   RenderPass lightingPass;
 
-
+	HandleTable<ComPtr<ID3D11VertexShader>> vsHandleTable;
+  HandleTable<ComPtr<ID3D11PixelShader>> psHandleTable;
 };
 
 void D3D11Renderer::Initialize(HWND hWnd, UINT width, UINT height, bool allowTearing) {
