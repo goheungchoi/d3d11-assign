@@ -7,7 +7,7 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "dxguid.lib")
 
-TextureBuffer DX::RenderDevice::CreateTextureBuffer(UINT width, UINT height,
+DX::TextureBuffer DX::RenderDevice::CreateTextureBuffer(UINT width, UINT height,
                                                     DXGI_FORMAT format,
                                                     D3D11_BIND_FLAG flags,
                                                     UINT mipLevels) {
@@ -15,7 +15,7 @@ TextureBuffer DX::RenderDevice::CreateTextureBuffer(UINT width, UINT height,
   return TextureBuffer();
 }
 
-TextureBuffer DX::RenderDevice::CreateTextureBuffer(void* data, UINT width,
+DX::TextureBuffer DX::RenderDevice::CreateTextureBuffer(void* data, UINT width,
                                                     UINT height,
                                                     DXGI_FORMAT format,
                                                     D3D11_BIND_FLAG flags,
@@ -23,14 +23,33 @@ TextureBuffer DX::RenderDevice::CreateTextureBuffer(void* data, UINT width,
   return TextureBuffer();
 }
 
-CubeTextureBuffer DX::RenderDevice::CreateCubeTextureBuffer(
+DX::CubeTextureBuffer DX::RenderDevice::CreateCubeTextureBuffer(
     UINT width, UINT height, DXGI_FORMAT format, D3D11_BIND_FLAG flags,
     UINT mipLevels, UINT arrayLayers) {
   // TODO:
 	return CubeTextureBuffer();
 }
 
-FrameBuffer DX::RenderDevice::CreateFrameBuffer(UINT width, UINT height,
+DX::RenderTargetBuffer DX::RenderDevice::CreateRenderTargetBuffer(
+    UINT width, UINT height, DXGI_FORMAT format, UINT samples) {
+	// TODO:
+  return RenderTargetBuffer();
+}
+
+DX::DepthStensilBuffer DX::RenderDevice::CreateDepthStencilBuffer(
+    UINT width, UINT height, DXGI_FORMAT format, UINT samples) {
+	// TODO: 
+  return DepthStensilBuffer();
+}
+
+DX::FrameBuffer DX::RenderDevice::CreateFrameBuffer(
+    UINT width, UINT height, UINT samples,
+    std::initializer_list<RenderTargetBuffer> colorAttachments,
+    std::optional<DepthStensilBuffer> depthAttachment) {
+  return DX::FrameBuffer{0, 0, 0};
+}
+
+DX::FrameBuffer DX::RenderDevice::CreateFrameBuffer(UINT width, UINT height,
                                                 DXGI_FORMAT colorFormat,
                                                 DXGI_FORMAT depthFormat,
                                                 UINT sampleCount) {
@@ -44,7 +63,7 @@ FrameBuffer DX::RenderDevice::CreateFrameBuffer(UINT width, UINT height,
 								<< " was inputted." << std::endl;
 		}
 	}
-
+	
   UINT depthSampleCountMax = UINT_MAX;
 	if (depthFormat != DXGI_FORMAT_UNKNOWN) {
     depthSampleCountMax = GetMultisampleMaxCount(depthFormat);

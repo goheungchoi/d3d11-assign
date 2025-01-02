@@ -2,12 +2,14 @@
 
 #include "Renderer/Internal/D3D11Common.h"
 
+namespace DX {
+
 using StateFlags = uint64_t;
 
-enum IATopologyStateFlag : uint8_t { 
-	kPointList = 0,
-	kTriangleList = 1 
-};	// 1 bit
+enum IATopologyStateFlag : uint8_t {
+  kPointList = 0,
+  kTriangleList = 1
+};  // 1 bit
 
 enum IAInputLayoutFlag : uint8_t {
   kNormal = 1U << 0,
@@ -15,22 +17,15 @@ enum IAInputLayoutFlag : uint8_t {
   kBitangent = 1U << 2,
   kTexcoord = 1U << 3,
   kColor = 1U << 4
-};	// 5 bits
+};  // 5 bits
 
-enum RSFillModeFlag : uint8_t { 
-	kSolid = 0,
-	kWireFrame = 1
-};
+enum RSFillModeFlag : uint8_t { kSolid = 0, kWireFrame = 1 };
 
-enum RSCullModeFlag : uint8_t { 
-	kNone = 0x0, 
-	kFront = 0x1, 
-	kBack = 0x2
-};
+enum RSCullModeFlag : uint8_t { kNone = 0x0, kFront = 0x1, kBack = 0x2 };
 
 enum RSFrontClockwiseFlag : uint8_t {
-	kFrontClockwise = 0,
-	kFrontCounterClockwise = 1
+  kFrontClockwise = 0,
+  kFrontCounterClockwise = 1
 };
 
 enum RSMultisampleFlag : uint8_t {
@@ -50,34 +45,47 @@ enum OMBlendMode : uint8_t {
   kAlphaBlend = 1U << 2,
 };
 
-struct PipelineStateFlags {
+struct PipelineStateAbstract {
   IATopologyStateFlag topology : 1;
   IAInputLayoutFlag inputLayout : 5;
-	
-	RSFillModeFlag fill : 1;
+
+  RSFillModeFlag fill : 1;
   RSCullModeFlag cull : 2;
   RSFrontClockwiseFlag frontClockwise : 1;
   RSMultisampleFlag multisample : 4;
 
-	OMDepthEnabled depthEnabled : 1;
+  OMDepthEnabled depthEnabled : 1;
   OMBlendMode blendMode : 2;
+
+	Handle vertexShader;
+  Handle pixelShader;
 };
 
-
 class PipelineState {
-  PipelineStateFlags _stateFlags;
+  PipelineStateAbstract _stateFlags;
 
   ComPtr<ID3D11InputLayout> _layout;
-  
-	D3D11_VIEWPORT _viewport;
-	
-  Handle _vs;
-	Handle _ps;
 
-	DXGI_FORMAT colorAttachmentFormat;
-  DXGI_FORMAT depthAttachmentFormat;
+  D3D11_VIEWPORT _viewport;
+
+  ComPtr<ID3D11VertexShader> _vs;
+  ComPtr<ID3D11PixelShader> _ps;
+
+  std::vector<DXGI_FORMAT> _colorAttachmentFormats;
+  DXGI_FORMAT _depthStencilAttachmentFormat{DXGI_FORMAT_UNKNOWN};
+
+	friend class PipelineStateBuilder;
+
  public:
-	 // TODO:
+  // TODO:
+	
+	UINT GetColorAttachmentCount() const { 
+		return _colorAttachmentFormats.size();
+	}
+
+	const std::vector<DXGI_FORMAT> GetColorAttachmentFormats() const {
+    return _colorAttachmentFormats;
+	}
 };
 
 class PipelineStateBuilder {
@@ -85,20 +93,21 @@ class PipelineStateBuilder {
   D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
 
  public:
+  void SetInputTopology(D3D_PRIMITIVE_TOPOLOGY topology);
 
-	void SetInputTopology(D3D_PRIMITIVE_TOPOLOGY topology);
-
-	void RSDisableMultisample();
+  void RSDisableMultisample();
   void RSEnableMultisample();
 
-	void OMDisableDepthTesting();
+  void OMDisableDepthTesting();
   void OMEnableDepthTesting(D3D11_COMPARISON_FUNC compOp);
 
-	void OMDisableBlending();
+  void OMDisableBlending();
   void OMEnableAdditiveBlending();
   void OMEnableAlphaBlending();
 
-	PipelineState Build();
+  PipelineState Build();
 
-	// TODO:
+  // TODO:
 };
+
+}  // namespace DX

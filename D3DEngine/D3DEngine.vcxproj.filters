@@ -240,5 +240,11 @@
 		<ClInclude Include="Include\D3DEngine\Core\MathUtils.h">
 			<Filter>Include\D3DEngine\Core</Filter>
 		</ClInclude>
+		<ClCompile Include="Source\Renderer\Internal\Components\FrameBuffer.cpp">
+			<Filter>Source\Renderer\Internal\Components</Filter>
+		</ClCompile>
+		<ClCompile Include="Source\Renderer\Internal\Components\PipelineState.cpp">
+			<Filter>Source\Renderer\Internal\Components</Filter>
+		</ClCompile>
 	</ItemGroup>
 </Project>

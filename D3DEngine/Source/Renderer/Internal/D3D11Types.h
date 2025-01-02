@@ -2,13 +2,12 @@
 
 #include "D3DEngine/EngineCommon.h"
 
+namespace DX {
+
 inline ID3D11UnorderedAccessView* const nullUAV[] = {nullptr};
 inline ID3D11Buffer* const nullBuffer[] = {nullptr};
 
-struct MaterialInstance {
-
-
-};
+struct MaterialInstance {};
 
 struct MeshBuffer {
   ComPtr<ID3D11Buffer> vertexBuffer;
@@ -31,9 +30,7 @@ struct TextureBuffer {
   UINT levels;
 };
 
-struct CubeTextureBuffer {
-
-};
+struct CubeTextureBuffer {};
 
 struct DepthStensilBuffer {
   DXGI_FORMAT format;
@@ -50,3 +47,5 @@ struct RenderTargetBuffer {
   ComPtr<ID3D11RenderTargetView> rtv;
   ComPtr<ID3D11ShaderResourceView> srv;
 };
+
+}  // namespace DX

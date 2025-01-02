@@ -201,7 +201,9 @@
 		<ClCompile Include="Source\Renderer\D3D11Renderer.cpp" />
 		<ClInclude Include="Source\Renderer\Internal\Components\ComputePass.h" />
 		<ClInclude Include="Source\Renderer\Internal\Components\ComputeState.h" />
+		<ClCompile Include="Source\Renderer\Internal\Components\FrameBuffer.cpp" />
 		<ClInclude Include="Source\Renderer\Internal\Components\FrameBuffer.h" />
+		<ClCompile Include="Source\Renderer\Internal\Components\PipelineState.cpp" />
 		<ClInclude Include="Source\Renderer\Internal\Components\PipelineState.h" />
 		<ClCompile Include="Source\Renderer\Internal\Components\RenderGraph.cpp" />
 		<ClInclude Include="Source\Renderer\Internal\Components\RenderGraph.h" />

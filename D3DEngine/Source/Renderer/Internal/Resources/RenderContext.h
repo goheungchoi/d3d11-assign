@@ -26,6 +26,15 @@ public:
 
 	// TODO: Subresource update
 
+
+  void BeginRendering(const class RenderPass& pass);
+
+	void BindPipelineState(const class PipelineState& pipeline);
+
+	void DrawMesh(Handle mesh);
+
+	void EndRendering();
+
 	void FinishCommandList() {
 		_deferredContext->FinishCommandList(FALSE, _commandList.GetAddressOf());
 	}

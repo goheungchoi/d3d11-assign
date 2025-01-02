@@ -4,6 +4,8 @@
 
 #include "Renderer/Internal/D3D11Types.h"
 
+#include "Renderer/Internal/Components/FrameBuffer.h"
+
 namespace DX {
 
 class RenderDevice {
@@ -77,7 +79,16 @@ class RenderDevice {
                                             D3D11_BIND_FLAG flags,
                                             UINT mipLevels = 1, UINT arrayLayers = 6);
 
-	FrameBuffer CreateFrameBuffer(UINT width, UINT height, DXGI_FORMAT colorFormat, DXGI_FORMAT depthFormat, UINT sampleCount = 1);
+	RenderTargetBuffer CreateRenderTargetBuffer(UINT width, UINT height, DXGI_FORMAT format,
+                                 UINT samples = 1);
+  DepthStensilBuffer CreateDepthStencilBuffer(UINT width, UINT height,
+                                              DXGI_FORMAT format,
+                                              UINT samples = 1);
+
+	FrameBuffer CreateFrameBuffer(
+      UINT width, UINT height, UINT samples,
+      std::initializer_list<RenderTargetBuffer> colorAttachments,
+      std::optional<DepthStensilBuffer> depthAttachment = std::nullopt);
 
 
 	class SwapChain* CreateSwapChain(HWND hwnd, UINT width, UINT height, bool allowTearing);

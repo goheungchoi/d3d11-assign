@@ -3,25 +3,34 @@
 #include "PipelineState.h"
 #include "FrameBuffer.h"
 
+namespace DX {
+
 class RenderPass {
+  PipelineState _state;
 
-	PipelineState _state;
+	MeshBuffer _mesh;
 
-	// Frame Buffer
+	std::unordered_map<UINT, ComPtr<ID3D11Buffer>> _constantBuffers;
+  std::unordered_map<UINT, ComPtr<ID3D11ShaderResourceView>> _shaderResources;
+  std::unordered_map<UINT, ComPtr<ID3D11SamplerState>> _samplers;
+
+  // Frame Buffer
   FrameBuffer _fbo;
 
-public:
+ public:
+  // TODO:
 
-	// TODO:
+  void SetPipelineState(PipelineState state);
 
-	void SetPipelineState(PipelineState state);
+	void BindMeshBuffer(Handle mesh);
 
-	void BindConstantBuffer(Handle buffer, UINT slot);
-  void BindBuffer(Handle buffer, UINT slot);
-	void BindTexture(Handle texture, UINT slot);
-  void BindSamplers(Handle sampler, UINT slot);
+  void BindConstantBuffer(UINT slot, Handle buffer);
+  void BindResource(UINT slot, Handle resource);
+  void BindSamplers(UINT slot, Handle sampler);
 
-	void BindFrameBuffer(FrameBuffer frameBuffers);
+  void BindFrameBuffer(FrameBuffer frameBuffers);
 
+	void Execute(class RenderContext& context);
 };
 
+}  // namespace DX
