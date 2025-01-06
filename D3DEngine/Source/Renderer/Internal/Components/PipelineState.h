@@ -101,8 +101,8 @@ class PipelineState {
   ComPtr<ID3D11VertexShader> _vs;
   ComPtr<ID3D11PixelShader> _ps;
 
-	ComPtr<ID3D11BlendState> _blendState;
   ComPtr<ID3D11DepthStencilState> _depthState;
+	ComPtr<ID3D11BlendState> _blendState;
 
   std::vector<DXGI_FORMAT> _colorAttachmentFormats;
   DXGI_FORMAT _depthStencilAttachmentFormat{DXGI_FORMAT_UNKNOWN};
@@ -130,16 +130,29 @@ class PipelineState {
 };
 
 class PipelineStateBuilder {
-  D3D_PRIMITIVE_TOPOLOGY topology;
-  D3D11_RASTERIZER_DESC rasterizerDesc;
-  D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+  PipelineStateAbstract _stateAbstract{};
 
+  std::vector<D3D11_INPUT_ELEMENT_DESC> _inputLayoutDesc;
+  D3D_PRIMITIVE_TOPOLOGY _topology{D3D_PRIMITIVE_TOPOLOGY_UNDEFINED};
+
+	D3D11_VIEWPORT _viewport{};
+  D3D11_RECT _scissor{};
+
+  D3D11_RASTERIZER_DESC _rasterizerDesc{};
+  D3D11_DEPTH_STENCIL_DESC _depthStencilDesc{};
+  D3D11_BLEND_DESC _blendDesc{};
+
+	Handle _vs{};
+  Handle _ps{};
  public:
+  // TODO:
+
   PipelineStateBuilder& IAInputTopology(D3D_PRIMITIVE_TOPOLOGY topology);
   PipelineStateBuilder& IAInputLayout(IAInputLayoutFlags flags);
 
 	PipelineStateBuilder& VSSetVertexShader(Handle vs);
 
+	PipelineStateBuilder& RSSetViewport(UINT x, UINT y, UINT width, UINT height);
 	PipelineStateBuilder& RSSetFillMode(D3D11_FILL_MODE fillMode);
   PipelineStateBuilder& RSSetCullMode(D3D11_CULL_MODE cullMode);
   PipelineStateBuilder& RSEnableFrontFaceCounterClockwise();
@@ -159,7 +172,7 @@ class PipelineStateBuilder {
 
   PipelineState Build();
 
-  // TODO:
+  void Reset();
 };
 
 }  // namespace DX

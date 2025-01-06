@@ -33,6 +33,17 @@ DX::CubeTextureBuffer DX::RenderDevice::CreateCubeTextureBuffer(
 DX::RenderTargetBuffer DX::RenderDevice::CreateRenderTargetBuffer(
     UINT width, UINT height, DXGI_FORMAT format, UINT samples) {
 	// TODO:
+  // Get the maximun sample count of the formats
+  UINT colorSampleCountMax = UINT_MAX;
+  if (format != DXGI_FORMAT_UNKNOWN) {
+    colorSampleCountMax = GetMultisampleMaxCount(format);
+    if (samples > colorSampleCountMax) {
+      std::cout << "The max sample count of frame buffer in type (" << format
+                << ") is " << colorSampleCountMax << ", but " << samples
+                << " was inputted." << std::endl;
+    }
+  }
+
   return RenderTargetBuffer();
 }
 
