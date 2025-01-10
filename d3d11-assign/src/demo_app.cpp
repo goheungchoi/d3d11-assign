@@ -165,8 +165,8 @@ void DemoApp::FixedUpdate(float dt) {
     }
     if ((mouseCurrState.lX != mouseLastState.lX) ||
         (mouseCurrState.lY != mouseLastState.lY)) {
-      _camera->RotateAroundXAxis(mouseCurrState.lY * 0.1f);
-      _camera->RotateAroundYAxis(mouseCurrState.lX * 0.1f);
+      _camera->RotateAroundXAxis(mouseCurrState.lY);
+      _camera->RotateAroundYAxis(mouseCurrState.lX);
       mouseLastState = mouseCurrState;
     }
 
@@ -869,7 +869,7 @@ void DemoApp::InitTransformMatrices() {
 }
 
 void DemoApp::InitCamera() {
-  _camera = new Camera(GetModuleHandle(NULL), hWindow);
+  _camera = new Camera();
   _view = _camera->GetViewTransform();
   /*XMVECTOR eye = g_camPos;
   XMVECTOR viewDir{ 0.f, 0.f, -1.f };
