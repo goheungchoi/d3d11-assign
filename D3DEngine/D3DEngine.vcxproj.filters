@@ -70,6 +70,12 @@
 		<Filter Include="Source\ResourceManager\ResourcePool">
 			<UniqueIdentifier>{E903F650-06FF-4330-89E7-0227207D59FA}</UniqueIdentifier>
 		</Filter>
+		<Filter Include="External\nvpro">
+			<UniqueIdentifier>{DD6E4CC2-9561-444E-B81F-F37AF4A936EF}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source\Core\Utils">
+			<UniqueIdentifier>{6266B387-C120-400D-8501-5468D35C2CB2}</UniqueIdentifier>
+		</Filter>
 	</ItemGroup>
 	<ItemGroup>
 		<ClInclude Include="Include\D3DEngine\GameEngine\GameEngine.h">
@@ -101,18 +107,6 @@
 		</ClCompile>
 		<ClInclude Include="Include\D3DEngine\Renderer\IRenderer.h">
 			<Filter>Include\D3DEngine\Renderer</Filter>
-		</ClInclude>
-		<ClInclude Include="External\texture_formats.h">
-			<Filter>External</Filter>
-		</ClInclude>
-		<ClCompile Include="External\nv_dds.cpp">
-			<Filter>External</Filter>
-		</ClCompile>
-		<ClCompile Include="External\texture_formats.cpp">
-			<Filter>External</Filter>
-		</ClCompile>
-		<ClInclude Include="External\nv_dds.h">
-			<Filter>External</Filter>
 		</ClInclude>
 		<None Include="Shaders\PBR_VS.hlsl">
 			<Filter>Shaders</Filter>
@@ -245,6 +239,33 @@
 		</ClCompile>
 		<ClCompile Include="Source\Renderer\Internal\Components\PipelineState.cpp">
 			<Filter>Source\Renderer\Internal\Components</Filter>
+		</ClCompile>
+		<ClInclude Include="Source\ResourceManager\ResourcePool\Utils.h">
+			<Filter>Source\ResourceManager\ResourcePool</Filter>
+		</ClInclude>
+		<ClCompile Include="External\nvpro\nv_dds.cpp">
+			<Filter>External\nvpro</Filter>
+		</ClCompile>
+		<ClCompile Include="External\nvpro\texture_formats.cpp">
+			<Filter>External\nvpro</Filter>
+		</ClCompile>
+		<ClInclude Include="External\nvpro\texture_formats.h">
+			<Filter>External\nvpro</Filter>
+		</ClInclude>
+		<ClInclude Include="External\nvpro\nv_dds.h">
+			<Filter>External\nvpro</Filter>
+		</ClInclude>
+		<ClInclude Include="Source\Core\Utils\IOUtils.h">
+			<Filter>Source\Core\Utils</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\Core\Utils\IOUtils.cpp">
+			<Filter>Source\Core\Utils</Filter>
+		</ClCompile>
+		<ClInclude Include="Source\Core\Utils\ShaderCompiler.h">
+			<Filter>Source\Core\Utils</Filter>
+		</ClInclude>
+		<ClCompile Include="Source\Core\Utils\ShaderCompiler.cpp">
+			<Filter>Source\Core\Utils</Filter>
 		</ClCompile>
 	</ItemGroup>
 </Project>

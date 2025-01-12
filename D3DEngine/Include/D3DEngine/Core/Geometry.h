@@ -35,6 +35,7 @@ struct TextureData {
   TextureType type;
 
   bool isSRGB;
+  bool isNormal;
   bool isCubeMap;
 
   DXGI_FORMAT format;
@@ -106,7 +107,14 @@ enum class MeshMutability {
 
 enum class MeshConstancy { kInconstant, kConstant };
 
+struct AABB {
+  XMVECTOR min;
+  XMVECTOR max;
+};
+
 struct MeshData {
+  AABB boundingBox;
+
   std::vector<Vertex> vertices;
   std::vector<Index> indices;
 
@@ -117,20 +125,21 @@ struct ModelNode {
   std::string name;
   // Matrix transformation;
 
-  uint32_t parent;
-  uint32_t firstChild;
-  uint32_t nextSibling;
-  uint32_t level;
+  int level;
+  int parent;
+  int firstChild;
+  int nextSibling;
 
   std::vector<Handle> meshes;
 };
 
 struct ModelData {
-  uint32_t rootNode;
+  std::string name;
+
   std::vector<ModelNode> nodes;
-  std::vector<Handle> meshes;
-  std::vector<Handle> materials;
-  std::vector<Handle> textures;
+  std::unordered_set<Handle> meshes;
+  std::unordered_set<Handle> materials;
+  std::unordered_set<Handle> textures;
 };
 
 

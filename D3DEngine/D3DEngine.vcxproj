@@ -170,10 +170,10 @@
 		</ProjectReference>
 	</ItemGroup>
 	<ItemGroup>
-		<ClCompile Include="External\nv_dds.cpp" />
-		<ClInclude Include="External\nv_dds.h" />
-		<ClCompile Include="External\texture_formats.cpp" />
-		<ClInclude Include="External\texture_formats.h" />
+		<ClCompile Include="External\nvpro\nv_dds.cpp" />
+		<ClInclude Include="External\nvpro\nv_dds.h" />
+		<ClCompile Include="External\nvpro\texture_formats.cpp" />
+		<ClInclude Include="External\nvpro\texture_formats.h" />
 		<ClInclude Include="Include\D3DEngine\Core\Geometry.h" />
 		<ClInclude Include="Include\D3DEngine\Core\Handle.h" />
 		<ClInclude Include="Include\D3DEngine\Core\MathUtils.h" />
@@ -195,6 +195,10 @@
 		<ClCompile Include="Source\Core\Timer.cpp" />
 		<ClCompile Include="Source\Core\TypeRegistryID.cpp" />
 		<ClCompile Include="Source\Core\UUID.cpp" />
+		<ClCompile Include="Source\Core\Utils\IOUtils.cpp" />
+		<ClInclude Include="Source\Core\Utils\IOUtils.h" />
+		<ClCompile Include="Source\Core\Utils\ShaderCompiler.cpp" />
+		<ClInclude Include="Source\Core\Utils\ShaderCompiler.h" />
 		<ClCompile Include="Source\GameEngine\GameEngine.cpp" />
 		<ClCompile Include="Source\GameFramework\Components\StaticMeshComponent.cpp" />
 		<ClCompile Include="Source\GameFramework\GameObject.cpp" />
@@ -227,6 +231,7 @@
 		<ClInclude Include="Source\ResourceManager\ResourcePool\ResourcePool.h" />
 		<ClCompile Include="Source\ResourceManager\ResourcePool\ShaderResourcePool.cpp" />
 		<ClCompile Include="Source\ResourceManager\ResourcePool\TextureResourcePool.cpp" />
+		<ClInclude Include="Source\ResourceManager\ResourcePool\Utils.h" />
 		<ClCompile Include="Source\WinApp\WinApp.cpp" />
 	</ItemGroup>
 </Project>

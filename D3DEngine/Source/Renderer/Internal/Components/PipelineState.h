@@ -2,6 +2,8 @@
 
 #include "Renderer/Internal/D3D11Common.h"
 
+#include <functional>
+
 namespace DX {
 
 using StateFlags = uint8_t;
@@ -24,8 +26,7 @@ using IAInputLayoutFlags = StateFlags;
 
 enum RSFillModeFlag : uint8_t { 
 	kSolid = 0x0, 
-	kWireFrame = 0x1, 
-	kPoint = 0x2 
+	kWireFrame = 0x1
 };
 
 enum RSCullModeFlag : uint8_t { kNone = 0x0, kFront = 0x1, kBack = 0x2 };
@@ -67,6 +68,9 @@ enum OMBlendMode : uint8_t {
 };
 
 struct PipelineStateAbstract {
+  D3D11_VIEWPORT viewport;
+  D3D11_RECT scissor;
+
   IATopologyStateFlag topology : 1;
   IAInputLayoutFlags inputLayout : 5;
 
@@ -105,35 +109,49 @@ class PipelineState {
 	ComPtr<ID3D11BlendState> _blendState;
 
   std::vector<DXGI_FORMAT> _colorAttachmentFormats;
-  DXGI_FORMAT _depthStencilAttachmentFormat{DXGI_FORMAT_UNKNOWN};
+  std::optional<DXGI_FORMAT> _depthStencilAttachmentFormat;
 
 	friend class PipelineStateBuilder;
 
  public:
-  // TODO:
-  PipelineStateAbstract GetAbstract() { return _stateAbstract; }
 
-	D3D11_VIEWPORT GetViewport() { return _viewport; }
+  PipelineStateAbstract GetAbstract() const { return _stateAbstract; }
 
-	ID3D11InputLayout* GetInputLayout() { return _layout.Get(); }
+	D3D11_VIEWPORT GetViewport() const { return _viewport; }
 
-	ID3D11VertexShader* GetVertexShader() { return _vs.Get(); }
-  ID3D11PixelShader* GetPixelShader() { return _ps.Get(); }
+	ID3D11InputLayout* GetInputLayout() const { return _layout.Get(); }
+
+	ID3D11VertexShader* GetVertexShader() const { return _vs.Get(); }
+  ID3D11PixelShader* GetPixelShader() const { return _ps.Get(); }
 	
 	UINT GetColorAttachmentCount() const { 
 		return _colorAttachmentFormats.size();
 	}
 
-	const std::vector<DXGI_FORMAT> GetColorAttachmentFormats() const {
+	const std::vector<DXGI_FORMAT>& GetColorAttachmentFormats() const {
     return _colorAttachmentFormats;
+	}
+
+	std::optional<DXGI_FORMAT> GetDepthStencilAttachmentFormat() const {
+    return _depthStencilAttachmentFormat;
+	}
+
+	bool operator==(const PipelineState& other) const { 
+		return _stateAbstract == other._stateAbstract &&
+           _colorAttachmentFormats == other._colorAttachmentFormats &&
+           _depthStencilAttachmentFormat == other._depthStencilAttachmentFormat;
+	}
+
+	bool operator!=(const PipelineState& other) const {
+    return !(*this == other);
 	}
 };
 
 class PipelineStateBuilder {
   PipelineStateAbstract _stateAbstract{};
 
-  std::vector<D3D11_INPUT_ELEMENT_DESC> _inputLayoutDesc;
   D3D_PRIMITIVE_TOPOLOGY _topology{D3D_PRIMITIVE_TOPOLOGY_UNDEFINED};
+  std::vector<D3D11_INPUT_ELEMENT_DESC> _inputLayoutDesc;
 
 	D3D11_VIEWPORT _viewport{};
   D3D11_RECT _scissor{};
@@ -141,6 +159,9 @@ class PipelineStateBuilder {
   D3D11_RASTERIZER_DESC _rasterizerDesc{};
   D3D11_DEPTH_STENCIL_DESC _depthStencilDesc{};
   D3D11_BLEND_DESC _blendDesc{};
+
+	std::vector<DXGI_FORMAT> _colorAttachmentFormats;
+  std::optional<DXGI_FORMAT> _depthStencilAttachmentFormat;
 
 	Handle _vs{};
   Handle _ps{};
@@ -170,25 +191,98 @@ class PipelineStateBuilder {
   PipelineStateBuilder& OMEnableAdditiveBlending();
   PipelineStateBuilder& OMEnableAlphaBlending();
 
-  PipelineState Build();
+	PipelineStateBuilder& OMSetColorAttachmentFormats(std::initializer_list<DXGI_FORMAT> formats);
+  PipelineStateBuilder& OMSetDepthAttachmentFormat(DXGI_FORMAT format);
+
+  PipelineState Build(class RenderDevice* device);
 
   void Reset();
 };
 
 }  // namespace DX
 
+bool operator==(const DX::PipelineStateAbstract& lhs,
+								const DX::PipelineStateAbstract& rhs) {
+  /*lhs.viewport == rhs.viewport;
+  lhs.scissor == rhs.scissor;
+
+  lhs.topology == rhs.topology;
+  lhs.inputLayout == rhs.inputLayout;
+
+  lhs.fill == rhs.fill;
+  lhs.cull == rhs.cull;
+  lhs.frontClockwise == rhs.frontClockwise;
+  lhs.multisampleCount == rhs.multisampleCount;
+  lhs.depthClipEnabled == rhs.depthClipEnabled;
+  lhs.scissorEnabled == rhs.scissorEnabled;
+
+  lhs.depthEnabled == rhs.depthEnabled;
+  lhs.depthCompOp == rhs.depthCompOp;
+
+  lhs.blendMode == rhs.blendMode;
+
+  lhs.vertexShader == rhs.vertexShader;
+  lhs.pixelShader == rhs.pixelShader;*/
+
+	return memcmp(&lhs, &rhs, sizeof(DX::PipelineStateAbstract)) == 0;
+}
+
+bool operator!=(const DX::PipelineStateAbstract& lhs,
+								const DX::PipelineStateAbstract& rhs) {
+  return !(lhs == rhs);
+}
+
 namespace std {
 template<>
 struct hash<DX::PipelineStateAbstract> {
-	std::size_t operator()(const DX::PipelineStateAbstract& abstract) const noexcept {
+	std::size_t operator()(const DX::PipelineStateAbstract& state) const noexcept {
+    std::size_t hash{0};
 
+		// Combine hashes of basic fields
+    hash_combine(hash, std::hash<int>{}(state.viewport.TopLeftX));
+    hash_combine(hash, std::hash<int>{}(state.viewport.TopLeftY));
+    hash_combine(hash, std::hash<int>{}(state.viewport.Width));
+    hash_combine(hash, std::hash<int>{}(state.viewport.Height));
+    hash_combine(hash, std::hash<float>{}(state.viewport.MinDepth));
+    hash_combine(hash, std::hash<float>{}(state.viewport.MaxDepth));
+
+    hash_combine(hash, std::hash<int>{}(state.scissor.left));
+    hash_combine(hash, std::hash<int>{}(state.scissor.top));
+    hash_combine(hash, std::hash<int>{}(state.scissor.right));
+    hash_combine(hash, std::hash<int>{}(state.scissor.bottom));
+
+    // Combine hashes of bitfields
+    hash_combine(hash, std::hash<uint8_t>{}(state.topology));
+    hash_combine(hash, std::hash<uint8_t>{}(state.inputLayout));
+    hash_combine(hash, std::hash<uint8_t>{}(state.fill));
+    hash_combine(hash, std::hash<uint8_t>{}(state.cull));
+    hash_combine(hash, std::hash<uint8_t>{}(state.frontClockwise));
+    hash_combine(hash, std::hash<uint8_t>{}(state.multisampleCount));
+    hash_combine(hash, std::hash<bool>{}(state.depthClipEnabled));
+    hash_combine(hash, std::hash<bool>{}(state.scissorEnabled));
+
+    hash_combine(hash, std::hash<bool>{}(state.depthEnabled));
+    hash_combine(hash, std::hash<uint8_t>{}(state.depthCompOp));
+    hash_combine(hash, std::hash<uint8_t>{}(state.blendMode));
+
+    // Combine hashes of Handle fields
+    hash_combine(hash, std::hash<Handle>{}(state.vertexShader));
+    hash_combine(hash, std::hash<Handle>{}(state.pixelShader));
+
+    return hash;
 	}
+
+private:
+  // Helper function to combine hashes
+  static void hash_combine(std::size_t& seed, std::size_t value) noexcept {
+    seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  }
 };
 
 template <>
 struct hash<DX::PipelineState> {
-  std::size_t operator()(const DX::PipelineState& abstract) const noexcept {
-    return 0;
+  std::size_t operator()(const DX::PipelineState& pipelineState) const noexcept {
+    return std::hash<DX::PipelineStateAbstract>()(pipelineState.GetAbstract());
 	}
 };
 }  // namespace std

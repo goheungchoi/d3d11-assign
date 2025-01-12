@@ -17,7 +17,7 @@ class RenderPass {
   // Frame Buffer
   FrameBuffer _fbo;
 
-	friend class DX::RenderContext;
+	friend class RenderContext;
 
  public:
   // TODO:

@@ -7,12 +7,12 @@ namespace DX {
 
 class RenderContext {
 
-	class RenderDevice& _device;
+	class RenderDevice* _device;
 
   ComPtr<ID3D11DeviceContext> _deferredContext;
   ComPtr<ID3D11CommandList> _commandList;
 
-	RenderContext(class RenderDevice& device) : _device{device} {}
+	RenderContext(class RenderDevice* device) : _device{device} {}
 
 	friend class RenderDevice;
 

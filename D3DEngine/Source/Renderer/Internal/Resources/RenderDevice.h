@@ -68,11 +68,15 @@ class RenderDevice {
     return quality;
 	}
 
+	MeshBuffer CreateMeshBuffer(const MeshData& data);
+
   TextureBuffer CreateTextureBuffer(UINT width, UINT height, DXGI_FORMAT format,
                                     D3D11_BIND_FLAG flags, UINT mipLevels = 1);
-  TextureBuffer CreateTextureBuffer(void* data, UINT width, UINT height,
+  TextureBuffer CreateTextureBuffer(void* data, UINT pixelByteSize, UINT width, UINT height,
                                     DXGI_FORMAT format, D3D11_BIND_FLAG flags,
                                     UINT mipLevels = 1);
+  TextureBuffer CreateTextureBuffer(const TextureData& data,
+                                    D3D11_BIND_FLAG flags);
 
 	CubeTextureBuffer CreateCubeTextureBuffer(UINT width, UINT height,
                                             DXGI_FORMAT format,

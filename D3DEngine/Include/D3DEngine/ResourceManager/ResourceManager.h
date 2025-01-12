@@ -1,15 +1,11 @@
 #pragma once
 
-#include "D3DEngine/EngineCommon.h"
-
-#include "D3DEngine/Core/Handle.h"
-
 #include "D3DEngine/Core/Geometry.h"
-
 #include "D3DEngine/Core/ShaderData.h"
 
-enum class ResourceType : uint8_t {
-  kUnknown,
+namespace DX {
+enum class ResourceType : uint16_t {
+  kUnknown = 0x0,
   kShader,
   kMesh,
   kMaterial,
@@ -18,24 +14,30 @@ enum class ResourceType : uint8_t {
   kAnimation,
   kAnimator,
   kAudio,
+
+  kInvalid = 0xFFFF
 };
 
 struct ResourceManager {
-  Handle (*LoadTexture)(const std::string& path, DX::TextureType type);
-  const DX::TextureData& (*AccessTextureData)(Handle handle);
-  void (*UnloadTexture)(Handle& handle);
-
-  Handle (*LoadShader)(const std::string& path, DX::ShaderType type);
-  const DX::ShaderData& (*AccessShaderData)(Handle handle);
+  Handle (*LoadShader)(const std::string& path, ShaderType type);
+  const ShaderData& (*AccessShaderData)(Handle handle);
   void (*UnloadShader)(Handle handle);
 
-  Handle (*LoadMesh)(const std::string& path);
-  const DX::MeshData& (*AccessMeshData)(Handle handle);
-  void (*UnloadMesh)(Handle handle);
+  Handle (*LoadTexture)(const std::string& path, TextureType type);
+  const TextureData& (*AccessTextureData)(Handle handle);
+  void (*UnloadTexture)(Handle& handle);
 
   Handle (*LoadMaterial)(const std::string& path);
-  const DX::MaterialData& (*AccessMaterialData)(Handle handle);
+  const MaterialData& (*AccessMaterialData)(Handle handle);
   void (*UnloadMaterial)(Handle handle);
+
+  Handle (*LoadMesh)(const std::string& path);
+  const MeshData& (*AccessMeshData)(Handle handle);
+  void (*UnloadMesh)(Handle handle);
+
+  Handle (*LoadModel)(const std::string& path);
+  const ModelData& (*AccessModelData)(Handle handle);
+  void (*UnloadModel)(Handle handle);
 
   ResourceType (*GetResourceType)(const Handle& handle);
   bool (*IsValidHandle)(const Handle& handle);
@@ -45,23 +47,11 @@ struct ResourceManager {
 
 const ResourceManager* GetResourceManager();
 
-inline Handle LoadTexture(const std::string& path, DX::TextureType type) {
-  GetResourceManager()->LoadTexture(path, type);
+inline Handle LoadShader(const std::string& path, ShaderType type) {
+  return GetResourceManager()->LoadShader(path, type);
 }
 
-inline const DX::TextureData& AccessTextureData(Handle handle) {
-  return GetResourceManager()->AccessTextureData(handle);
-}
-
-inline void UnloadTexture(Handle handle) {
-  GetResourceManager()->UnloadTexture(handle);
-}
-
-inline Handle LoadShader(const std::string& path, DX::ShaderType type) {
-  GetResourceManager()->LoadShader(path, type);
-}
-
-inline const DX::ShaderData& AccessShaderData(Handle handle) {
+inline const ShaderData& AccessShaderData(Handle handle) {
   return GetResourceManager()->AccessShaderData(handle);
 }
 
@@ -69,11 +59,35 @@ inline void UnloadShader(Handle handle) {
   GetResourceManager()->UnloadShader(handle);
 }
 
-inline Handle LoadMesh(const std::string& path) {
-  GetResourceManager()->LoadMesh(path);
+inline Handle LoadTexture(const std::string& path, TextureType type) {
+  return GetResourceManager()->LoadTexture(path, type);
 }
 
-inline const DX::MeshData& AccessMeshData(Handle handle) {
+inline const TextureData& AccessTextureData(Handle handle) {
+  return GetResourceManager()->AccessTextureData(handle);
+}
+
+inline void UnloadTexture(Handle handle) {
+  GetResourceManager()->UnloadTexture(handle);
+}
+
+inline Handle LoadMaterial(const std::string& path) {
+  return GetResourceManager()->LoadMaterial(path);
+}
+
+inline const MaterialData& AccessMaterialData(Handle handle) {
+  return GetResourceManager()->AccessMaterialData(handle);
+}
+
+inline void UnloadMaterial(Handle handle) {
+  GetResourceManager()->UnloadMaterial(handle);
+}
+
+inline Handle LoadMesh(const std::string& path) {
+  return GetResourceManager()->LoadMesh(path);
+}
+
+inline const MeshData& AccessMeshData(Handle handle) {
   return GetResourceManager()->AccessMeshData(handle);
 }
 
@@ -81,16 +95,21 @@ inline void UnloadMesh(Handle handle) {
   GetResourceManager()->UnloadMesh(handle);
 }
 
-inline Handle LoadMaterial(const std::string& path) {
-  GetResourceManager()->LoadMaterial(path);
+/**
+ * @brief Load the model
+ * @param path The relative path to the model data from the Asset directory.
+ * @return Invalid handle if not available, otherwise, returns a valid handle.
+ */
+inline Handle LoadModel(const std::string& path) {
+  return GetResourceManager()->LoadModel(path);
 }
 
-inline const DX::MaterialData& AccessMaterialData(Handle handle) {
-  return GetResourceManager()->AccessMaterialData(handle);
+inline const ModelData& AccessModelData(Handle handle) {
+  return GetResourceManager()->AccessModelData(handle);
 }
 
-inline void UnloadMaterial(Handle handle) {
-  GetResourceManager()->UnloadMaterial(handle);
+inline void UnloadModel(Handle handle) {
+  GetResourceManager()->UnloadModel(handle);
 }
 
 inline ResourceType GetResourceType(const Handle& handle) {
@@ -102,3 +121,4 @@ inline bool IsValidHandle(const Handle& handle) {
 }
 
 inline void UnloadAll() { GetResourceManager()->UnloadAll(); }
+}  // namespace DX

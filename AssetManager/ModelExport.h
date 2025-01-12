@@ -5,6 +5,7 @@
 #include <fstream>
 #include <filesystem>
 namespace fs = std::filesystem;
+#include <unordered_map>
 
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
@@ -15,11 +16,12 @@ namespace fs = std::filesystem;
 
 #include "dxgiformat.h"
 
-#include "model_generated.h"
-#include "flatbuffers/flatbuffers.h"
+#include "Shared/Serialize/model_generated.h"
+#include <flatbuffers/flatbuffers.h>
 
 enum class ModelFileFormat
 {
+	kUnknown,
 	kFBX,
 	kOBJ,
 	kGLTF
@@ -30,8 +32,19 @@ class ModelExporter
 	// TODO: Animation export
 
 	// TODO: Skeleton extraction
+  struct Bone
+  {
+    std::string name;
+    int id;
+    float offset[4][4];
+  };
 
-	// TODO: Mesh AABB
+	// Mesh AABB
+  struct AABB
+  {
+    float min[3];
+    float max[3];
+	};
 
 	// Type definitions to store the model data
   enum AlphaMode : int16_t
@@ -93,10 +106,14 @@ class ModelExporter
     std::string path;
     std::string name;
 
+		AABB aabb;
 		std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
 
 		std::string materialPath;
+
+    // Bone info
+    std::vector<Bone> bones;
 	};
 
 	// Geometry data
@@ -109,6 +126,8 @@ class ModelExporter
     int myIndex;
     int firstChild;
     int nextSibling;
+
+		float transform[4][4];
 
 		std::vector<std::string> meshPaths;
 	};
@@ -123,6 +142,9 @@ class ModelExporter
     std::unordered_map<std::string, Mesh> meshPathMap;
     std::unordered_map<std::string, Material> materialPathMap;
     std::unordered_map<std::string, Texture> texturePathMap;
+		
+		// Model bone data
+    std::vector<Bone> bones;
 	};
 
 	GeometryModel _geoModel;
@@ -151,9 +173,12 @@ public:
    * @param fileFormat 
    * @return 
    */
-  bool ExportModel(const char* path, ModelFileFormat fileFormat);
+  bool ExportModel(const char* path, ModelFileFormat fileFormat,
+                   bool preCalculateVertex = false, bool extractBones = false);
 
 private:
+  bool _extractBones{false};
+
   void ProcessScene(const aiScene* scene);
   void ProcessNode(GeometryModel& geoModel, GeometryNode& parentGeoNode, aiNode* node, const aiScene* scene);
   void ProcessMesh(GeometryModel& geoModel, GeometryNode& geoNode, aiMesh* mesh,
@@ -170,4 +195,16 @@ private:
 	void ExportModelTexture(Texture& texture);
 
 	std::string GetExportPath(std::string path);
+
+	void GenerateGeometryModelInfoFile(GeometryModel& geoModel);
+	void GenerateModelMeshInfoFile(Mesh& geoMesh);
+	void GenerateModelMaterialInfoFile(Material& geoMat);
+
+
+private:
+  void ExtractBones(aiMesh* mesh, const aiScene* scene);
+
+  /*void ProcessSkeleton(const aiScene* scene);
+	void ProcessSkeletonNode(aiNode* node, const aiScene* scene);
+	void ProcessSkeletonMesh(aiMesh* mesh, const aiScene* scene);*/
 };

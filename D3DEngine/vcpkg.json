@@ -6,6 +6,8 @@
 		"stduuid",
 		"taskflow",
 		"flatbuffers",
+		"nlohmann-json",
+		"magic-enum",
 		{
 			"name": "imgui",
 			"features": [
