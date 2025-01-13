@@ -194,7 +194,9 @@ class PipelineStateBuilder {
 	PipelineStateBuilder& OMSetColorAttachmentFormats(std::initializer_list<DXGI_FORMAT> formats);
   PipelineStateBuilder& OMSetDepthAttachmentFormat(DXGI_FORMAT format);
 
-  PipelineState Build(class RenderDevice* device);
+	const PipelineStateAbstract& GetPipelineStateAbstract() const { return _stateAbstract; }
+
+  PipelineState* Build(class RenderDevice* device);
 
   void Reset();
 };

@@ -76,7 +76,7 @@ class HandleTable {
 
   using TableEntry = std::pair<uint16_t, std::optional<T>>;
 
-  std::stack<uint64_t> _slotStack{{0}};
+  std::stack<uint32_t> _slotStack{{0}};
 
   std::vector<TableEntry> _table;
   std::vector<uint32_t> _refCounts;
@@ -90,7 +90,7 @@ class HandleTable {
    */
   Handle ClaimHandle(T&& obj) {
     // TODO: Can be optimized with a mem queue.
-    uint64_t i = _slotStack.top();
+    uint32_t i = _slotStack.top();
     _slotStack.pop();
 
     // If the current slot is not empty,
@@ -107,7 +107,7 @@ class HandleTable {
     _refCounts[i] = 1;
 
     // Push the next empty slot to the stack if available.
-    uint64_t nextSlot = i + 1;
+    uint32_t nextSlot = i + 1;
 
 		// If the next slot is out of bounds, increase the capacity.
     if (nextSlot >= _table.size()) {

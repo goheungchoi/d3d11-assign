@@ -108,15 +108,9 @@
 		<ClInclude Include="Include\D3DEngine\Renderer\IRenderer.h">
 			<Filter>Include\D3DEngine\Renderer</Filter>
 		</ClInclude>
-		<None Include="Shaders\PBR_VS.hlsl">
-			<Filter>Shaders</Filter>
-		</None>
 		<ClInclude Include="Include\D3DEngine\Core\Geometry.h">
 			<Filter>Include\D3DEngine\Core</Filter>
 		</ClInclude>
-		<None Include="Shaders\PBR_PS.hlsl">
-			<Filter>Shaders</Filter>
-		</None>
 		<ClCompile Include="Source\Renderer\Internal\D3D11Utils.cpp">
 			<Filter>Source\Renderer\Internal</Filter>
 		</ClCompile>
@@ -267,5 +261,23 @@
 		<ClCompile Include="Source\Core\Utils\ShaderCompiler.cpp">
 			<Filter>Source\Core\Utils</Filter>
 		</ClCompile>
+		<None Include="Shaders\Geometry_PS.hlsl">
+			<Filter>Shaders</Filter>
+		</None>
+		<None Include="Shaders\Passthrough_PS.hlsl">
+			<Filter>Shaders</Filter>
+		</None>
+		<None Include="Shaders\Light_PS.hlsl">
+			<Filter>Shaders</Filter>
+		</None>
+		<None Include="Shaders\Light_VS.hlsl">
+			<Filter>Shaders</Filter>
+		</None>
+		<None Include="Shaders\Passthrough_VS.hlsl">
+			<Filter>Shaders</Filter>
+		</None>
+		<None Include="Shaders\Geometry_VS.hlsl">
+			<Filter>Shaders</Filter>
+		</None>
 	</ItemGroup>
 </Project>

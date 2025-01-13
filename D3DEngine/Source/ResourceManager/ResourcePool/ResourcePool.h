@@ -18,7 +18,7 @@ class ResourcePool
 public:
   Handle Load(const char* path, void* pReserved)
   {
-    xUUID uuid = GenerateUUIDFromName(path);
+    ns::UUID uuid = ns::GenerateUUIDFromName(path);
 
 		// Check if the asset is already loaded
     if (auto it = _uuidMap.find(uuid); it == _uuidMap.end())

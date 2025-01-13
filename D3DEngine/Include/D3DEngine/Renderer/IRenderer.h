@@ -18,6 +18,7 @@ class IRenderer {
 
 	// Resource bindings
   virtual void DrawMesh(Handle meshHandle, XMMATRIX transform) = 0;
+  virtual void DrawLight(const LightData& light) = 0;
 
   virtual void EndDraw() = 0;
   virtual void EndFrame() = 0;
@@ -28,6 +29,7 @@ class IRenderer {
 
 
 	// Resource management
+  virtual Handle CreateShader(Handle shaderHandle) = 0;
   virtual Handle CreateTexture(Handle textureHandle) = 0;
   virtual Handle CreateMesh(Handle meshHandle) = 0;
 

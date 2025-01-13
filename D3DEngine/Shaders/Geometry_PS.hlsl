@@ -1,0 +1,54 @@
+
+Texture2D albedoTexture : register(t0);
+Texture2D normalTexture : register(t1);
+Texture2D metalRoughnessTexture : register(t2);
+
+SamplerState defaultSampler : register(s0);
+SamplerState wrapSampler : register(s1);
+
+cbuffer ShadingMaterial : register(b0)
+{
+	float4 albedoFactor;
+	float metallicFactor;
+	float roughnessFactor;
+	float emissiveFactor;
+	float alphaCutoff;
+	////////////////////////
+}
+
+struct PS_INPUT
+{
+	float4 position : SV_POSITION;
+	float4 worldPosition : POSITION;
+	float2 texcoord : TEXCOORD;
+	float3x3 tangentBasis : TBASIS;
+};
+
+struct PS_OUTPUT
+{
+	float4 position : SV_Target0;
+	float4 color : SV_Target1;
+	float4 normal : SV_Target2;
+	float2 metalRoughness : SV_Target3;
+};
+
+PS_OUTPUT main(PS_INPUT input)
+{
+	PS_OUTPUT output;
+	
+	float4 albedo = pow(albedoTexture.Sample(defaultSampler, input.texcoord).rgba, 2.2);
+	
+	// Normal
+	float3 N = normalize(normalTexture.Sample(defaultSampler, input.texcoord).rgb);
+	N = 2.0 * N - 1.0;
+	N = normalize(mul(input.tangentBasis, N));
+	
+	float2 metalRoughness = metalRoughnessTexture.Sample(defaultSampler, input.texcoord).rg;
+	
+	output.position = input.worldPosition;
+	output.color = albedo;
+	output.normal = float4(N, 0.f);
+	output.metalRoughness = metalRoughness;
+	
+	return output;
+}

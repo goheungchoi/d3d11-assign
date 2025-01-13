@@ -15,7 +15,7 @@ class RenderPass {
   std::unordered_map<UINT, ComPtr<ID3D11SamplerState>> _samplers;*/
 
   // Frame Buffer
-  FrameBuffer _fbo;
+  FrameBuffer* _fbo;
 
 	friend class RenderContext;
 
@@ -30,7 +30,7 @@ class RenderPass {
   void BindResource(UINT slot, Handle resource);
   void BindSamplers(UINT slot, Handle sampler);*/
 
-  void BindFrameBuffer(FrameBuffer frameBuffers);
+	void BindFrameBuffer(FrameBuffer* frameBuffers) { _fbo = frameBuffers; }
 };
 
 }  // namespace DX

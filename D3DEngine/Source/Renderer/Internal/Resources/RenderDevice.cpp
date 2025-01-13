@@ -44,9 +44,42 @@ DepthFormatMapping GetDepthFormatMapping(DXGI_FORMAT requestedFormat) {
 DX::MeshBuffer DX::RenderDevice::CreateMeshBuffer(const MeshData& data) {
   MeshBuffer mesh;
 
-	// TODO:
+	// Create a vertex buffer.
+	D3D11_BUFFER_DESC vertexBufferDesc{
+      .ByteWidth = (UINT)(sizeof(Vertex) * std::size(data.vertices)),
+      .Usage = D3D11_USAGE_IMMUTABLE,
+      .BindFlags = D3D11_BIND_VERTEX_BUFFER,
+      .CPUAccessFlags = 0};
 
-return MeshBuffer();
+	// Vertex buffer data
+	D3D11_SUBRESOURCE_DATA vertexBufferSubresource{.pSysMem =
+                                                     data.vertices.data()};
+
+	if (FAILED(_d3dDevice->CreateBuffer(&vertexBufferDesc,
+                                      &vertexBufferSubresource,
+                                      mesh.vertexBuffer.GetAddressOf()))) {
+    throw std::runtime_error("Failed to create a vertex buffer.");
+	}
+
+	mesh.stride = sizeof(Vertex);
+  mesh.offset = 0U;
+  mesh.numElements = (UINT)std::size(data.vertices);
+
+	// Create an index buffer.
+  D3D11_BUFFER_DESC indexBufferDesc{
+      .ByteWidth = (UINT)(sizeof(Index) * std::size(data.indices)),
+      .Usage = D3D11_USAGE_IMMUTABLE,
+      .BindFlags = D3D11_BIND_INDEX_BUFFER};
+
+	// Index buffer data
+	D3D11_SUBRESOURCE_DATA indexBufferSubresource{.pSysMem = data.indices.data()};
+
+  if (FAILED(_d3dDevice->CreateBuffer(&indexBufferDesc, &indexBufferSubresource,
+                                      mesh.indexBuffer.GetAddressOf()))) {
+    throw std::runtime_error("Failed to create an index buffer.");
+  }
+
+	return mesh;
 }
 
 DX::TextureBuffer DX::RenderDevice::CreateTextureBuffer(UINT width, UINT height,

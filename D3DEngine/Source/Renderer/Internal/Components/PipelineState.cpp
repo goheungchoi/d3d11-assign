@@ -306,13 +306,13 @@ DX::PipelineStateBuilder& DX::PipelineStateBuilder::OMSetDepthAttachmentFormat(
   _depthStencilAttachmentFormat = format;
 }
 
-DX::PipelineState DX::PipelineStateBuilder::Build(class RenderDevice* device) { 
-	PipelineState pipeline;
+DX::PipelineState* DX::PipelineStateBuilder::Build(class RenderDevice* device) { 
+	PipelineState* pipeline = new PipelineState;
 
 	// State abstract
-  pipeline._stateAbstract = _stateAbstract;
+  pipeline->_stateAbstract = _stateAbstract;
 	// Topoloty
-  pipeline._topology = _topology;
+  pipeline->_topology = _topology;
 
 	const DX::ShaderData& vs = AccessShaderData(_vs);
   const DX::ShaderData& ps = AccessShaderData(_ps);
@@ -320,38 +320,38 @@ DX::PipelineState DX::PipelineStateBuilder::Build(class RenderDevice* device) {
 	// Input layout
 	device->GetDevice()->CreateInputLayout(
       _inputLayoutDesc.data(), _inputLayoutDesc.size(), vs.data.data(),
-      vs.data.size(), pipeline._layout.GetAddressOf());
+      vs.data.size(), pipeline->_layout.GetAddressOf());
 	
 	// Viewport
-  pipeline._viewport = _viewport;
+  pipeline->_viewport = _viewport;
 	// Scissor
-  pipeline._scissor = _scissor;
+  pipeline->_scissor = _scissor;
 
 	// Rasterizer state
   device->GetDevice()->CreateRasterizerState(
-      &_rasterizerDesc, pipeline._rasterizerState.GetAddressOf());
+      &_rasterizerDesc, pipeline->_rasterizerState.GetAddressOf());
 
 	// Vertex shader
   device->GetDevice()->CreateVertexShader(vs.data.data(), vs.data.size(), NULL,
-                                          pipeline._vs.GetAddressOf());
+                                          pipeline->_vs.GetAddressOf());
 
 	// Pixel shader
   device->GetDevice()->CreatePixelShader(ps.data.data(), ps.data.size(), NULL,
-                                         pipeline._ps.GetAddressOf());
+                                         pipeline->_ps.GetAddressOf());
 
 	// Depth-stencil state
   device->GetDevice()->CreateDepthStencilState(
-      &_depthStencilDesc, pipeline._depthState.GetAddressOf());
+      &_depthStencilDesc, pipeline->_depthState.GetAddressOf());
 
 	// Blend state
   device->GetDevice()->CreateBlendState(&_blendDesc,
-                                        pipeline._blendState.GetAddressOf());
+                                        pipeline->_blendState.GetAddressOf());
 
 	// Color attachments
-  pipeline._colorAttachmentFormats = _colorAttachmentFormats;
+  pipeline->_colorAttachmentFormats = _colorAttachmentFormats;
 
 	// Depth stencil attachments
-  pipeline._depthStencilAttachmentFormat = _depthStencilAttachmentFormat;
+  pipeline->_depthStencilAttachmentFormat = _depthStencilAttachmentFormat;
 
 	return pipeline; 
 }

@@ -7,7 +7,17 @@ namespace DX {
 inline ID3D11UnorderedAccessView* const nullUAV[] = {nullptr};
 inline ID3D11Buffer* const nullBuffer[] = {nullptr};
 
-struct MaterialInstance {};
+enum class MaterialPass : uint8_t {
+	kOpaque,
+	kTransparent,
+	kLight,
+};
+
+struct MaterialInstance {
+  MaterialPass passType;
+
+  class PipelineState* pipeline;
+};
 
 struct MeshBuffer {
   ComPtr<ID3D11Buffer> vertexBuffer;
@@ -15,10 +25,6 @@ struct MeshBuffer {
   UINT stride;
   UINT offset;
   UINT numElements;
-};
-
-struct ComputeProgram {
-  ComPtr<ID3D11ComputeShader> computeShader;
 };
 
 struct TextureBuffer {
@@ -46,6 +52,16 @@ struct RenderTargetBuffer {
   ComPtr<ID3D11Texture2D> texture;
   ComPtr<ID3D11RenderTargetView> rtv;
   ComPtr<ID3D11ShaderResourceView> srv;
+};
+
+struct FrameData {
+  XMMATRIX view, invView;
+  XMMATRIX proj, invProj;
+  XMMATRIX viewProj;
+};
+
+struct ObjectData {
+  XMMATRIX world;
 };
 
 }  // namespace DX

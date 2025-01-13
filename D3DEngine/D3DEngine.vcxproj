@@ -190,8 +190,12 @@
 		<ClInclude Include="Include\D3DEngine\ResourceManager\ResourceManager.h" />
 		<ClInclude Include="Include\D3DEngine\WinApp\WinApp.h" />
 		<ClInclude Include="Include\D3DEngine\WinApp\WinBase.h" />
-		<None Include="Shaders\PBR_PS.hlsl" />
-		<None Include="Shaders\PBR_VS.hlsl" />
+		<None Include="Shaders\Geometry_PS.hlsl" />
+		<None Include="Shaders\Geometry_VS.hlsl" />
+		<None Include="Shaders\Light_PS.hlsl" />
+		<None Include="Shaders\Light_VS.hlsl" />
+		<None Include="Shaders\Passthrough_PS.hlsl" />
+		<None Include="Shaders\Passthrough_VS.hlsl" />
 		<ClCompile Include="Source\Core\Timer.cpp" />
 		<ClCompile Include="Source\Core\TypeRegistryID.cpp" />
 		<ClCompile Include="Source\Core\UUID.cpp" />

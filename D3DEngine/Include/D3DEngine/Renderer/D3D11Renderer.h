@@ -2,6 +2,36 @@
 
 #include "IRenderer.h"
 
+//struct D3D11Renderer::Private {
+//  PipelineState* _opaquePipeline;
+//  PipelineState* _lightPipeline;
+//
+//  FrameBuffer* _geometryPassFBO;
+//  FrameBuffer* _lightPassFBO;
+//
+//  RenderPass _geometryPass;
+//  RenderPass _lightingPass;
+//
+//  DX::FrameData _frameData;
+//  ComPtr<ID3D11Buffer> _frameDataCB;
+//  DX::ObjectData _objectData;
+//  ComPtr<ID3D11Buffer> _objectDataCB;
+//
+//  std::unordered_map<Handle, Handle> meshHandleMap;
+//  HandleTable<DX::MeshBuffer> meshHandleTable;
+//
+//  std::unordered_map<Handle, Handle> materialHandleMap;
+//  HandleTable<DX::MaterialInstance> materialHandleTable;
+//
+//  std::unordered_map<Handle, Handle> textureHandleMap;
+//  HandleTable<DX::TextureBuffer> textureHandleTable;
+//
+//  std::unordered_map<Handle, Handle> vsHandleMap;
+//  HandleTable<ComPtr<ID3D11VertexShader>> vsHandleTable;
+//  std::unordered_map<Handle, Handle> psHandleMap;
+//  HandleTable<ComPtr<ID3D11PixelShader>> psHandleTable;
+//};
+
 namespace DX {
 
 class D3D11Renderer : public IRenderer {
@@ -22,18 +52,24 @@ class D3D11Renderer : public IRenderer {
   void BeginDraw() override;
 
 	// Resource bindings
-  void DrawMesh(Handle meshHandle, XMMATRIX transform) override;
+  void DrawMesh(Handle renderMeshHandle, XMMATRIX transform) override;
+  void DrawLight(const LightData& light) override;
 
   void EndDraw() override;
   void EndFrame() override;
 
 	// Resource management
+  Handle CreateShader(Handle shaderHandle) override;
   Handle CreateTexture(Handle textureHandle) override;
   Handle CreateMesh(Handle meshHandle) override;
 
  private:
   struct Private;
-  std::unique_ptr<Private> _m;
+  Private* _m;
+
+	void InitShaders();
+	void InitPipelineState();
+  void InitRenderPass();
 };
 
 }  // namespace DX
