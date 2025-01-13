@@ -6,7 +6,8 @@
 namespace DX {
 
 class SwapChain {
-  bool _windowed{false};
+  HWND _hwnd;
+  bool _windowed{true};
   bool _allowTearing{false};
   UINT _width, _height;
 
@@ -27,6 +28,10 @@ class SwapChain {
 
 	void Resize(UINT width = 0, UINT height = 0);
 
+	HWND GetWindowHandle() { return _hwnd; }
+	UINT GetWidth() { return _width; }
+  UINT GetHeight() { return _height; }
+	
 	ID3D11RenderTargetView* GetBackBuffer() { return _backBufferRTV.Get(); }
 
 	HRESULT Present() { 

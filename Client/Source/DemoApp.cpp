@@ -6,6 +6,8 @@
 #include "D3DEngine/WinApp/WinApp.h"
 #include "DemoApp.h"
 
+#include "D3DEngine/ResourceManager/ResourceManager.h"
+
 DemoApp* loadedApp{nullptr};
 
 void DemoApp::Initialize() {
@@ -29,6 +31,16 @@ void DemoApp::Initialize() {
   //
   //
   //
+
+	Handle geometryVS_Handle =
+      DX::LoadShader("Geometry_VS.hlsl", DX::ShaderType::kVertex);
+  Handle geometryPS_Handle =
+      DX::LoadShader("Geometry_PS.hlsl", DX::ShaderType::kPixel);
+
+	Handle lightVS_Handle =
+      DX::LoadShader("Light_VS.hlsl", DX::ShaderType::kVertex);
+  Handle lightPS_Handle =
+      DX::LoadShader("Light_PS.hlsl", DX::ShaderType::kPixel);
 
   _renderer = new DX::D3D11Renderer();
   _renderer->Initialize(hwnd, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -69,4 +81,12 @@ void DemoApp::FixedUpdate(float dt) {}
 
 void DemoApp::Update(float dt) {}
 
-void DemoApp::Render() {}
+void DemoApp::Render() {
+  _renderer->BeginFrame(XMMatrixIdentity(), XMMatrixIdentity());
+	
+
+
+
+	_renderer->DrawImGui();
+	_renderer->EndFrame();
+}

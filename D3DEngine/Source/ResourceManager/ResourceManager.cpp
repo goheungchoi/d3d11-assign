@@ -34,10 +34,14 @@ static ::Pools& _pools() {
 }
 
 static Handle __LoadShader__(const std::string& path, DX::ShaderType type) {
+  Handle shaderHandle = _m().shaderPool.Load(path.c_str(), &type);
+  if (_m().shaderPool.IsValidHandle(shaderHandle)) {
+    return shaderHandle;
+  }
   return Handle();
 }
 static const DX::ShaderData& __AccessShaderData__(Handle handle) {
-  return DX::ShaderData();
+  return _m().shaderPool.AccessResourceData(handle);
 }
 static void __UnloadShader__(Handle handle) {}
 
@@ -115,7 +119,7 @@ static void __UnloadAll__() {
 }
 
 
-const DX::ResourceManager* GetResourceManager() { 
+const DX::ResourceManager* DX::GetResourceManager() { 
 	static DX::ResourceManager _resourceManager{
 
       .LoadShader = __LoadShader__,

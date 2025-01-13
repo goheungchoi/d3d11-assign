@@ -48,7 +48,9 @@ std::string ns::UUID::ToString(bool separated /* = false */) {
   return s;
 }
 
-bool ns::UUID::operator==(const ns::UUID& other) const { return false; }
+bool ns::UUID::operator==(const ns::UUID& other) const { 
+	return memcmp(byte, other.byte, kNumBytes) == 0; 
+}
 
 bool ns::UUID::IsValidUUIDString(const std::string& uuid) {
   return uuids::uuid::is_valid_uuid(uuid);

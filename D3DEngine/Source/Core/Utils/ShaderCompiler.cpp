@@ -203,9 +203,10 @@ bool DX::GenerateShaderVariantsFile(const char* shaderDir) {
 				}
 			} else if (it.value()[0].is_string()) {
         for (size_t j = 0; j < it->size(); ++j) {
-          auto optionIt = std::find(shaderOptions.begin(), shaderOptions.end(),
+          auto optionIt = std::find_if(shaderOptions.begin(), shaderOptions.end(),
                                     [&](const ShaderOption& option) {
-                                      return option.name == it.value()[j];
+                                      std::string str = it.value()[j];
+                                      return option.name == str;
                                     });
           if (optionIt != shaderOptions.end()) {
             possibleShaderOptions.push_back(*optionIt);

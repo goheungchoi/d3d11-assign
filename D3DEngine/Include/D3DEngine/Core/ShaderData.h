@@ -37,7 +37,7 @@ enum class ShaderDefineValueType : uint8_t {
 };
 
 union ShaderDefineValue {
-  char vNone[0];
+  char vNone;
   bool vBool;
   int vInt;
   float vFloat;

@@ -37,6 +37,7 @@ void SwapChain::Resize(UINT width, UINT height) {
 
 void SwapChain::CreateDXGISwapChain(HWND hwnd, UINT width, UINT height,
                          bool allowTearing) {
+  _hwnd = hwnd;
   _allowTearing = allowTearing;
 
   DXGI_SWAP_CHAIN_DESC1 swapChainDesc{

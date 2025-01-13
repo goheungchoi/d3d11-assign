@@ -40,6 +40,40 @@ DepthFormatMapping GetDepthFormatMapping(DXGI_FORMAT requestedFormat) {
 
 }
 
+ComPtr<ID3D11Buffer> DX::RenderDevice::CreateConstantBuffer(D3D11_USAGE usage,
+                                                            const void* data,
+                                                            UINT size) const {
+  D3D11_BUFFER_DESC desc = {};
+  desc.ByteWidth = static_cast<UINT>(size);
+  desc.Usage = usage;
+  desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  desc.CPUAccessFlags =
+      usage == D3D11_USAGE_DYNAMIC ? D3D11_CPU_ACCESS_WRITE : 0;
+
+  D3D11_SUBRESOURCE_DATA bufferData = {};
+  bufferData.pSysMem = data;
+
+  ComPtr<ID3D11Buffer> buffer;
+  const D3D11_SUBRESOURCE_DATA* bufferDataPtr = data ? &bufferData : nullptr;
+  if (FAILED(_d3dDevice->CreateBuffer(&desc, bufferDataPtr, &buffer))) {
+    throw std::runtime_error("Failed to create constant buffer");
+  }
+  return buffer;
+}
+
+void DX::RenderDevice::CopyMappedData(ComPtr<ID3D11Buffer>& buffer,
+                                      const void* data, UINT size) {
+   D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+  _d3dImmContext->Map(buffer.Get(), NULL, D3D11_MAP_WRITE_DISCARD, NULL,
+                       &mappedSubresource);
+   memcpy(mappedSubresource.pData, data, size);
+  _d3dImmContext->Unmap(buffer.Get(), NULL);
+}
+
+void DX::RenderDevice::CopyData(ComPtr<ID3D11Buffer>& buffer,
+                                const void* data) {
+  _d3dImmContext->UpdateSubresource(buffer.Get(), 0, nullptr, data, 0, 0);
+}
 
 DX::MeshBuffer DX::RenderDevice::CreateMeshBuffer(const MeshData& data) {
   MeshBuffer mesh;
@@ -352,12 +386,12 @@ DX::DepthStensilBuffer DX::RenderDevice::CreateDepthStencilBuffer(
   return depthBuffer;
 }
 
-DX::FrameBuffer DX::RenderDevice::CreateFrameBuffer(
+DX::FrameBuffer* DX::RenderDevice::CreateFrameBuffer(
     UINT width, UINT height, UINT samples,
     std::initializer_list<RenderTargetBuffer> colorAttachments,
     std::optional<DepthStensilBuffer> depthAttachment) {
 	// Set width and height of frame buffer.
-  DX::FrameBuffer frameBuf{width, height, samples};
+  DX::FrameBuffer* frameBuf = new DX::FrameBuffer{width, height, samples};
 
 	// Attach render targets
 	for (int i = 0; i < colorAttachments.size(); ++i) {
@@ -370,7 +404,7 @@ DX::FrameBuffer DX::RenderDevice::CreateFrameBuffer(
                               .height = it->height,
                               .samples = it->samples};
 
-    frameBuf.SetColorAttachment(i, attachment);
+    frameBuf->SetColorAttachment(i, attachment);
 	}
 
 	// Attach depth buffer
@@ -382,10 +416,29 @@ DX::FrameBuffer DX::RenderDevice::CreateFrameBuffer(
                               .height = depthAttachment->height,
                               .samples = depthAttachment->samples};
 		
-		frameBuf.SetDepthStencilAttachment(attachment);
+		frameBuf->SetDepthStencilAttachment(attachment);
 	}
 
   return frameBuf;
+}
+
+ComPtr<ID3D11SamplerState> DX::RenderDevice::CreateSamplerState(
+    D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode) const {
+  D3D11_SAMPLER_DESC desc = {};
+  desc.Filter = filter;
+  desc.AddressU = addressMode;
+  desc.AddressV = addressMode;
+  desc.AddressW = addressMode;
+  desc.MaxAnisotropy =
+      (filter == D3D11_FILTER_ANISOTROPIC) ? D3D11_REQ_MAXANISOTROPY : 1;
+  desc.MinLOD = 0;
+  desc.MaxLOD = D3D11_FLOAT32_MAX;
+
+  ComPtr<ID3D11SamplerState> samplerState;
+  if (FAILED(_d3dDevice->CreateSamplerState(&desc, &samplerState))) {
+    throw std::runtime_error("Failed to create sampler state");
+  }
+  return samplerState;
 }
 
 //DX::FrameBuffer DX::RenderDevice::CreateFrameBuffer(UINT width, UINT height,
@@ -502,5 +555,4 @@ DX::RenderContext* DX::RenderDevice::CreateRenderContext() {
 
 void DX::RenderDevice::SubmitCommandList(RenderContext* renderContext) {
   _d3dImmContext->ExecuteCommandList(renderContext->_commandList.Get(), FALSE);
-
 }

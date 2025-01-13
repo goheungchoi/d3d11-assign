@@ -1,5 +1,11 @@
 #include "D3DEngine/Renderer/D3D11Renderer.h"
 
+#include "D3DEngine/EngineCommon.h"
+
+#include <imgui.h>
+#include <imgui_impl_dx11.h>
+#include <imgui_impl_win32.h>
+
 #include "Internal/Resources/RenderDevice.h"
 #include "Internal/Resources/RenderContext.h"
 #include "Internal/Resources/SwapChain.h"
@@ -16,32 +22,40 @@ using namespace DirectX;
 #include "D3DEngine/ResourceManager/ResourceManager.h"
 
 struct D3D11Renderer::Private {
+  DX::RenderContext* _context;
+
   PipelineState* _opaquePipeline;
   PipelineState* _lightPipeline;
+
+	RenderTargetBuffer _positionRT;
+  RenderTargetBuffer _albedoRT;
+  RenderTargetBuffer _normalRT;
+  RenderTargetBuffer _metalRoughnessRT;
+  DepthStensilBuffer _depthBuffer;
 
 	FrameBuffer* _geometryPassFBO;
   FrameBuffer* _lightPassFBO;
 
   RenderPass _geometryPass;
-  RenderPass _lightingPass;
+  RenderPass _lightPass;
+
+	ComPtr<ID3D11SamplerState> _defaultSampler;
+	ComPtr<ID3D11SamplerState> _wrapSampler;
+  ComPtr<ID3D11SamplerState> _clampSampler;
+	ComPtr<ID3D11SamplerState> _pointSampler;
 
 	DX::FrameData _frameData;
 	ComPtr<ID3D11Buffer> _frameDataCB;
-  DX::ObjectData _objectData;
-	ComPtr<ID3D11Buffer> _objectDataCB;
 
-	std::unordered_map<Handle, Handle> meshHandleMap;
 	HandleTable<DX::MeshBuffer> meshHandleTable;
 
-  std::unordered_map<Handle, Handle> materialHandleMap;
 	HandleTable<DX::MaterialInstance> materialHandleTable;
 
-  std::unordered_map<Handle, Handle> textureHandleMap;
   HandleTable<DX::TextureBuffer> textureHandleTable;
 
-	std::unordered_map<Handle, Handle> vsHandleMap;
+	HandleTable<DX::LightData> lightHandleTable;
+
 	HandleTable<ComPtr<ID3D11VertexShader>> vsHandleTable;
-  std::unordered_map<Handle, Handle> psHandleMap;
   HandleTable<ComPtr<ID3D11PixelShader>> psHandleTable;
 };
 
@@ -51,6 +65,13 @@ void D3D11Renderer::Initialize(HWND hWnd, UINT width, UINT height, bool allowTea
   _swapchain = _device->CreateSwapChain(hWnd, width, height, allowTearing);
 
   _m = new D3D11Renderer::Private;
+
+	_m->_context = _device->CreateRenderContext();
+
+	InitShaders();
+  InitPipelineState();
+  InitRenderPass();
+	InitImGui();
 }
 
 void D3D11Renderer::Shutdown() { 
@@ -60,13 +81,19 @@ void D3D11Renderer::Shutdown() {
   delete _device;
 }
 
-void D3D11Renderer::BeginFrame() { 
+void DX::D3D11Renderer::BeginFrame(XMMATRIX view, XMMATRIX proj) {
+  _m->_frameData.view = XMMatrixTranspose(view);
+  _m->_frameData.invView = XMMatrixTranspose(XMMatrixInverse(nullptr, view));
+  _m->_frameData.proj = XMMatrixTranspose(proj);
+  _m->_frameData.invProj = XMMatrixTranspose(XMMatrixInverse(nullptr, proj));
+  _m->_frameData.viewProj = XMMatrixTranspose(XMMatrixMultiply(view, proj));
 
 
-	
 }
 
-void D3D11Renderer::BeginDraw() {}
+void D3D11Renderer::BeginDraw() { 
+	_m->_context->StartCommandList(); 
+}
 
 void D3D11Renderer::DrawMesh(Handle meshHandle, XMMATRIX transform) {
   const MeshData& meshData = AccessMeshData(meshHandle);
@@ -79,12 +106,15 @@ void D3D11Renderer::DrawMesh(Handle meshHandle, XMMATRIX transform) {
 
 }
 
-void DX::D3D11Renderer::DrawLight(const LightData& light) {
-	// TODO:
+void DX::D3D11Renderer::DrawLight(Handle lightHandle) {}
 
+void DX::D3D11Renderer::DrawImGui() {}
+
+
+void D3D11Renderer::EndDraw() { 
+	_m->_context->FinishCommandList();
+  _device->SubmitCommandList(_m->_context);
 }
-
-void D3D11Renderer::EndDraw() {}
 
 void D3D11Renderer::EndFrame() {}
 
@@ -134,9 +164,34 @@ Handle DX::D3D11Renderer::CreateMesh(Handle meshHandle) {
 	return Handle(); 
 }
 
+Handle DX::D3D11Renderer::CreateLight(const DX::LightData* light) {
+  return Handle();
+}
+
 void DX::D3D11Renderer::InitShaders() {
 	
 
+}
+
+void DX::D3D11Renderer::InitSamplers() {
+  // Default sampler
+  _m->_defaultSampler = _device->CreateSamplerState(D3D11_FILTER_ANISOTROPIC,
+                                                    D3D11_TEXTURE_ADDRESS_WRAP);
+  // Wrap sampler
+  _m->_wrapSampler = _device->CreateSamplerState(
+      D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP);
+
+  // Clamp sampler
+  _m->_clampSampler = _device->CreateSamplerState(
+      D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP);
+
+  // Point sampler
+  _m->_pointSampler = _device->CreateSamplerState(
+      D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP);
+}
+
+void DX::D3D11Renderer::InitConstantBuffers() {
+  _m->_frameDataCB = _device->CreateConstantBuffer<DX::FrameData>();
 }
 
 void DX::D3D11Renderer::InitPipelineState() {
@@ -151,7 +206,82 @@ void DX::D3D11Renderer::InitPipelineState() {
   _m->_opaquePipeline =
       builder.IAInputTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
           .IAInputLayout(-1)
-		.VSSetVertexShader
+          .VSSetVertexShader(geometryVS)
+          .RSSetViewport(0, 0, _swapchain->GetWidth(), _swapchain->GetHeight())
+          .RSSetFillMode(D3D11_FILL_SOLID)
+          .RSSetCullMode(D3D11_CULL_BACK)
+          .RSDisableMultisample()
+          .PSSetPixelShader(geometryPS)
+          .OMEnableDepthTesting(D3D11_COMPARISON_GREATER)
+          .OMDisableBlending()
+          .OMSetColorAttachmentFormats(
+              {DXGI_FORMAT_R32G32B32A32_FLOAT, DXGI_FORMAT_R32G32B32A32_FLOAT,
+               DXGI_FORMAT_R32G32B32A32_FLOAT, DXGI_FORMAT_R32G32_FLOAT})
+          .OMSetDepthAttachmentFormat(DXGI_FORMAT_D32_FLOAT)
+          .Build(_device);
+
+	builder.Reset();
+	_m->_lightPipeline =
+      builder.IAInputTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
+          .IAInputLayout(-1)
+          .VSSetVertexShader(lightVS)
+          .RSSetViewport(0, 0, _swapchain->GetWidth(), _swapchain->GetHeight())
+          .RSSetFillMode(D3D11_FILL_SOLID)
+          .RSSetCullMode(D3D11_CULL_FRONT)
+          .RSDisableMultisample()
+          .PSSetPixelShader(lightPS)
+          .OMDisableDepthTesting()
+          .OMEnableAdditiveBlending()
+          .OMSetColorAttachmentFormats(
+              {DXGI_FORMAT_R32G32B32A32_FLOAT, DXGI_FORMAT_R32G32B32A32_FLOAT,
+               DXGI_FORMAT_R32G32B32A32_FLOAT, DXGI_FORMAT_R32G32_FLOAT})
+          .OMSetDepthAttachmentFormat(DXGI_FORMAT_D32_FLOAT)
+          .Build(_device);
 }
 
-void DX::D3D11Renderer::InitRenderPass() {}
+void DX::D3D11Renderer::InitRenderPass() {
+
+	_m->_positionRT = _device->CreateRenderTargetBuffer(
+      _swapchain->GetWidth(), _swapchain->GetHeight(),
+      DXGI_FORMAT_R32G32B32A32_FLOAT);
+
+	_m->_albedoRT = _device->CreateRenderTargetBuffer(
+      _swapchain->GetWidth(), _swapchain->GetHeight(),
+      DXGI_FORMAT_R32G32B32A32_FLOAT);
+
+	_m->_normalRT = _device->CreateRenderTargetBuffer(
+      _swapchain->GetWidth(), _swapchain->GetHeight(),
+      DXGI_FORMAT_R32G32B32A32_FLOAT);
+
+	_m->_metalRoughnessRT = _device->CreateRenderTargetBuffer(
+      _swapchain->GetWidth(), _swapchain->GetHeight(),
+      DXGI_FORMAT_R32G32_FLOAT);
+
+	_m->_depthBuffer = _device->CreateDepthStencilBuffer(
+      _swapchain->GetWidth(), _swapchain->GetHeight(), DXGI_FORMAT_D32_FLOAT);
+
+  _m->_geometryPassFBO = _device->CreateFrameBuffer(
+      _swapchain->GetWidth(), _swapchain->GetHeight(), 1,
+      {_m->_positionRT, _m->_albedoRT, _m->_normalRT, _m->_metalRoughnessRT},
+      _m->_depthBuffer);
+
+}
+
+void DX::D3D11Renderer::InitImGui() {
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+
+  ImGuiIO& io = ImGui::GetIO();
+  (void)io;
+  io.ConfigFlags |=
+      ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+  io.ConfigFlags |=
+      ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+
+  // Setup Dear ImGui style
+  ImGui::StyleColorsDark();
+
+  // Setup Platform/Renderer backends
+  ImGui_ImplWin32_Init(_swapchain->GetWindowHandle());
+  ImGui_ImplDX11_Init(_device->GetDevice(), _device->GetImmediateContext());
+}

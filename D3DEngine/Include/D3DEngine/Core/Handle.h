@@ -84,6 +84,8 @@ class HandleTable {
   std::optional<T> _sentinel{std::nullopt};
 
  public:
+  HandleTable() { IncreaseCapacity(); }
+
   /**
    * @brief Claim a handle
    * @return
@@ -162,7 +164,7 @@ class HandleTable {
    * @return
    */
   bool IsValidHandle(const Handle& handle) const {
-    if (handle == Handle::kInvalidHandle || handle.index < _table.size())
+    if (handle == Handle::kInvalidHandle || handle.index >= _table.size())
       return false;
 
     // To be valid, the version and description has to be the same

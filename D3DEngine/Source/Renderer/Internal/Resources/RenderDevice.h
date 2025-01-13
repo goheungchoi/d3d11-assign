@@ -68,6 +68,24 @@ class RenderDevice {
     return quality;
 	}
 
+  ComPtr<ID3D11Buffer> CreateConstantBuffer(D3D11_USAGE usage, const void* data,
+                                            UINT size) const;
+	template <typename T>
+  ComPtr<ID3D11Buffer> CreateConstantBuffer(
+      D3D11_USAGE usage = D3D11_USAGE_DYNAMIC, const T* data = nullptr) const {
+    static_assert(sizeof(T) == Utility::roundToPowerOfTwo(sizeof(T), 16));
+    return CreateConstantBuffer(usage, data, sizeof(T));
+  }
+
+	void CopyMappedData(ComPtr<ID3D11Buffer>& buffer, const void* data, UINT size);
+  template <typename T>
+  void CopyMappedData(ComPtr<ID3D11Buffer>& buffer, const T* data) {
+    static_assert(sizeof(T) == Utility::roundToPowerOfTwo(sizeof(T), 16));
+    CopyMappedData(buffer, data, sizeof(T));
+  }
+
+  void CopyData(ComPtr<ID3D11Buffer>& buffer, const void* data);
+
 	MeshBuffer CreateMeshBuffer(const MeshData& data);
 
   TextureBuffer CreateTextureBuffer(UINT width, UINT height, DXGI_FORMAT format,
@@ -89,11 +107,13 @@ class RenderDevice {
                                               DXGI_FORMAT format,
                                               UINT samples = 1);
 
-	FrameBuffer CreateFrameBuffer(
+	FrameBuffer* CreateFrameBuffer(
       UINT width, UINT height, UINT samples,
       std::initializer_list<RenderTargetBuffer> colorAttachments,
       std::optional<DepthStensilBuffer> depthAttachment = std::nullopt);
 
+	ComPtr<ID3D11SamplerState> CreateSamplerState(
+      D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode) const;
 
 	class SwapChain* CreateSwapChain(HWND hwnd, UINT width, UINT height, bool allowTearing);
 
@@ -111,7 +131,7 @@ class RenderDevice {
   }
 
 	bool CheckAllowTearingSupport() {
-    bool allowTearing{false};
+    BOOL allowTearing{FALSE};
 
     ComPtr<IDXGIFactory5> factory5;
     HRESULT hr = _dxgiFactory.As(&factory5);
@@ -242,7 +262,7 @@ class RenderDevice {
 		HRESULT hr = E_FAIL;
     if (_dxgiAdapter) {
       hr = D3D11CreateDevice(
-          _dxgiAdapter.Get(), D3D_DRIVER_TYPE_HARDWARE, nullptr, creationFlags,
+          _dxgiAdapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, creationFlags,
           featureLevels, std::size(featureLevels), D3D11_SDK_VERSION,
           device.GetAddressOf(), &_d3dFeatureLevel, context.GetAddressOf());
     }

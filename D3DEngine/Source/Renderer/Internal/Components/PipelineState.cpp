@@ -4,6 +4,37 @@
 
 #include "D3DEngine/ResourceManager/ResourceManager.h"
 
+bool operator==(const DX::PipelineStateAbstract& lhs,
+                const DX::PipelineStateAbstract& rhs) {
+  /*lhs.viewport == rhs.viewport;
+  lhs.scissor == rhs.scissor;
+
+  lhs.topology == rhs.topology;
+  lhs.inputLayout == rhs.inputLayout;
+
+  lhs.fill == rhs.fill;
+  lhs.cull == rhs.cull;
+  lhs.frontClockwise == rhs.frontClockwise;
+  lhs.multisampleCount == rhs.multisampleCount;
+  lhs.depthClipEnabled == rhs.depthClipEnabled;
+  lhs.scissorEnabled == rhs.scissorEnabled;
+
+  lhs.depthEnabled == rhs.depthEnabled;
+  lhs.depthCompOp == rhs.depthCompOp;
+
+  lhs.blendMode == rhs.blendMode;
+
+  lhs.vertexShader == rhs.vertexShader;
+  lhs.pixelShader == rhs.pixelShader;*/
+
+  return memcmp(&lhs, &rhs, sizeof(DX::PipelineStateAbstract)) == 0;
+}
+
+bool operator!=(const DX::PipelineStateAbstract& lhs,
+                const DX::PipelineStateAbstract& rhs) {
+  return !(lhs == rhs);
+}
+
 void DX::PipelineStateBuilder::Reset() { 
 	
 	_stateAbstract = {};
@@ -38,6 +69,8 @@ DX::PipelineStateBuilder& DX::PipelineStateBuilder::IAInputTopology(
 	}
 
   _topology = topology;
+
+	return *this;
 }
 
 DX::PipelineStateBuilder& DX::PipelineStateBuilder::IAInputLayout(
@@ -299,11 +332,15 @@ DX::PipelineStateBuilder& DX::PipelineStateBuilder::OMEnableAlphaBlending() {
 DX::PipelineStateBuilder& DX::PipelineStateBuilder::OMSetColorAttachmentFormats(
     std::initializer_list<DXGI_FORMAT> formats) {
   _colorAttachmentFormats = formats;
+
+	return *this;
 }
 
 DX::PipelineStateBuilder& DX::PipelineStateBuilder::OMSetDepthAttachmentFormat(
     DXGI_FORMAT format) {
   _depthStencilAttachmentFormat = format;
+
+	return *this;
 }
 
 DX::PipelineState* DX::PipelineStateBuilder::Build(class RenderDevice* device) { 

@@ -1,2 +1,61 @@
 #include "ResourcePool.h"
 
+#include "Core/Utils/IOUtils.h"
+
+#include "Utils.h"
+
+#include <d3dcompiler.h>
+
+template<>
+Handle ResourcePool<DX::ShaderData>::LoadImpl(ns::UUID uuid, void* pUser) {
+
+  DX::ShaderData data;
+
+	DX::ShaderType type = *reinterpret_cast<DX::ShaderType*>(pUser);
+  data.type = type;
+
+	fs::path path = GetResourcePath(uuid);
+  std::vector<char> rawFile = ReadFile(path);
+
+	LPCSTR profile;
+  if (type == DX::ShaderType::kVertex) {
+    profile = "vs_5_0";
+  } else if (type == DX::ShaderType::kPixel) {
+    profile = "ps_5_0";
+	}
+	else {
+    return Handle::kInvalidHandle;
+	}
+
+	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined(DEBUG) || defined(_DEBUG)
+  flags |= D3DCOMPILE_DEBUG;
+#endif
+
+	ID3DBlob* shaderBlob = nullptr;
+  ID3DBlob* errorBlob = nullptr;
+  HRESULT hr = D3DCompile(rawFile.data(), rawFile.size(), NULL, NULL,
+                          D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", profile,
+                          flags, 0, &shaderBlob, &errorBlob);
+
+	if (FAILED(hr)) {
+    if (errorBlob) {
+      OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+      errorBlob->Release();
+    }
+
+    if (shaderBlob) shaderBlob->Release();
+
+    return Handle::kInvalidHandle;
+  }    
+
+  data.data.resize(shaderBlob->GetBufferSize());
+
+	memcpy(data.data.data(), shaderBlob->GetBufferPointer(),
+         shaderBlob->GetBufferSize());
+
+	Handle handle = _handleTable.ClaimHandle(std::move(data)); 
+	_uuidMap[uuid] = handle.index;
+	return handle;
+}
+

@@ -48,12 +48,13 @@ class D3D11Renderer : public IRenderer {
 
   void Shutdown() override;
 
-	void BeginFrame() override;
+	void BeginFrame(XMMATRIX view, XMMATRIX proj) override;
   void BeginDraw() override;
 
 	// Resource bindings
   void DrawMesh(Handle renderMeshHandle, XMMATRIX transform) override;
-  void DrawLight(const LightData& light) override;
+  void DrawLight(Handle lightHandle) override;
+  void DrawImGui() override;
 
   void EndDraw() override;
   void EndFrame() override;
@@ -62,14 +63,18 @@ class D3D11Renderer : public IRenderer {
   Handle CreateShader(Handle shaderHandle) override;
   Handle CreateTexture(Handle textureHandle) override;
   Handle CreateMesh(Handle meshHandle) override;
+	Handle CreateLight(const LightData* light) override;
 
  private:
   struct Private;
   Private* _m;
 
 	void InitShaders();
+  void InitSamplers();
+  void InitConstantBuffers();
 	void InitPipelineState();
   void InitRenderPass();
+  void InitImGui();
 };
 
 }  // namespace DX

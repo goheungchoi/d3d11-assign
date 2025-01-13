@@ -5,6 +5,16 @@
 #include <functional>
 
 namespace DX {
+struct PipelineStateAbstract;
+}
+
+bool operator==(const DX::PipelineStateAbstract& lhs,
+                const DX::PipelineStateAbstract& rhs);
+
+bool operator!=(const DX::PipelineStateAbstract& lhs,
+                const DX::PipelineStateAbstract& rhs);
+
+namespace DX {
 
 using StateFlags = uint8_t;
 constexpr bool kDisabled = false;
@@ -202,37 +212,6 @@ class PipelineStateBuilder {
 };
 
 }  // namespace DX
-
-bool operator==(const DX::PipelineStateAbstract& lhs,
-								const DX::PipelineStateAbstract& rhs) {
-  /*lhs.viewport == rhs.viewport;
-  lhs.scissor == rhs.scissor;
-
-  lhs.topology == rhs.topology;
-  lhs.inputLayout == rhs.inputLayout;
-
-  lhs.fill == rhs.fill;
-  lhs.cull == rhs.cull;
-  lhs.frontClockwise == rhs.frontClockwise;
-  lhs.multisampleCount == rhs.multisampleCount;
-  lhs.depthClipEnabled == rhs.depthClipEnabled;
-  lhs.scissorEnabled == rhs.scissorEnabled;
-
-  lhs.depthEnabled == rhs.depthEnabled;
-  lhs.depthCompOp == rhs.depthCompOp;
-
-  lhs.blendMode == rhs.blendMode;
-
-  lhs.vertexShader == rhs.vertexShader;
-  lhs.pixelShader == rhs.pixelShader;*/
-
-	return memcmp(&lhs, &rhs, sizeof(DX::PipelineStateAbstract)) == 0;
-}
-
-bool operator!=(const DX::PipelineStateAbstract& lhs,
-								const DX::PipelineStateAbstract& rhs) {
-  return !(lhs == rhs);
-}
 
 namespace std {
 template<>
