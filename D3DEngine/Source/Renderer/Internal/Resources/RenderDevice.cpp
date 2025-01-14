@@ -11,6 +11,22 @@
 #pragma comment(lib, "dxguid.lib")
 
 namespace {
+// Utility index format getter by its size.
+
+template <typename T>
+constexpr DXGI_FORMAT GetIndexFormat() {
+  if constexpr (sizeof(T) == 1) {
+    return DXGI_FORMAT_R8_UINT;
+  } else if constexpr (sizeof(T) == 2) {
+    return DXGI_FORMAT_R16_UINT;
+  } else if constexpr (sizeof(T) == 4) {
+    return DXGI_FORMAT_R32_UINT;
+  } else {
+    static_assert(false, "Index format not supported.");
+  }
+}
+
+
 // Utility depth format mapper to choose appropriate formats
 // for different kinds of depth views.
 struct DepthFormatMapping {
@@ -97,17 +113,17 @@ DX::MeshBuffer DX::RenderDevice::CreateMeshBuffer(const MeshData& data) {
 
 	mesh.stride = sizeof(Vertex);
   mesh.offset = 0U;
-  mesh.numElements = (UINT)std::size(data.vertices);
-
+  
 	// Create an index buffer.
   D3D11_BUFFER_DESC indexBufferDesc{
       .ByteWidth = (UINT)(sizeof(Index) * std::size(data.indices)),
       .Usage = D3D11_USAGE_IMMUTABLE,
       .BindFlags = D3D11_BIND_INDEX_BUFFER};
 
+	mesh.numIndices = (UINT)std::size(data.indices);
+  mesh.indexFormat = GetIndexFormat<Index>();
 	// Index buffer data
 	D3D11_SUBRESOURCE_DATA indexBufferSubresource{.pSysMem = data.indices.data()};
-
   if (FAILED(_d3dDevice->CreateBuffer(&indexBufferDesc, &indexBufferSubresource,
                                       mesh.indexBuffer.GetAddressOf()))) {
     throw std::runtime_error("Failed to create an index buffer.");
@@ -265,6 +281,29 @@ DX::CubeTextureBuffer DX::RenderDevice::CreateCubeTextureBuffer(
     UINT mipLevels, UINT arrayLayers) {
   // TODO:
 	return CubeTextureBuffer();
+}
+
+DX::CubeTextureBuffer DX::RenderDevice::CreateCubeTextureBuffer(
+    const TextureData& data, D3D11_BIND_FLAG flags) {
+  if (!data.isCubeMap) {
+    throw std::runtime_error("The inputted texture data is not a cubemap.");
+	}
+
+	CubeTextureBuffer cubeTexture;
+	cubeTexture.format = data.format;
+  cubeTexture.width = data.width;
+  cubeTexture.height = data.height;
+  cubeTexture.levels = data.mipLevels;
+  cubeTexture.faces = data.arrayLayers;
+
+	if (FAILED(CreateDDSTextureFromMemory(
+          _d3dDevice.Get(), data.ddsData.data(), data.ddsData.size(),
+          (ID3D11Resource**)cubeTexture.texture.GetAddressOf(),
+          cubeTexture.srv.GetAddressOf()))) {
+    throw std::runtime_error("Failed to create a cubemap texture.");
+  }
+
+  return cubeTexture;
 }
 
 DX::RenderTargetBuffer DX::RenderDevice::CreateRenderTargetBuffer(

@@ -29,9 +29,9 @@ public:
 
   void BeginRendering(const class RenderPass& pass);
 
-	void BindPipelineState(const class PipelineState& pipeline);
+	void BindPipelineState(const class PipelineState* pipeline);
 
-	void DrawMesh(Handle mesh);
+	void DrawMeshBuffer(const DX::MeshBuffer& mesh, const DX::MaterialInstance& mat);
 
 	void EndRendering();
 

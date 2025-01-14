@@ -145,8 +145,8 @@
     <ClInclude Include="UUID.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SharedLib\SharedLib.vcxproj">
-      <Project>{d67b80c2-6ba8-46ef-b896-0b6004a06416}</Project>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{5c0f33e2-d4e1-4e0c-b1fd-3ec94ce4b5a3}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

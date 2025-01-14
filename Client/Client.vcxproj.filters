@@ -27,5 +27,6 @@
 		<ClInclude Include="Include\Config.h">
 			<Filter>Include</Filter>
 		</ClInclude>
+		<None Include="imgui.ini" />
 	</ItemGroup>
 </Project>

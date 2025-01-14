@@ -279,5 +279,8 @@
 		<None Include="Shaders\Geometry_VS.hlsl">
 			<Filter>Shaders</Filter>
 		</None>
+		<ClInclude Include="Include\D3DEngine\Core\Camera.h">
+			<Filter>Include\D3DEngine\Core</Filter>
+		</ClInclude>
 	</ItemGroup>
 </Project>

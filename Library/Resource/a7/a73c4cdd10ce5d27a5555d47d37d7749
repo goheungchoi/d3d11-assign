@@ -1,14 +1,14 @@
 
 Texture2D albedoTexture : register(t0);
-Texture2D normalTexture : register(t1);
-Texture2D metalRoughnessTexture : register(t2);
+Texture2D metalRoughnessTexture : register(t1);
+Texture2D normalTexture : register(t2);
 
 SamplerState defaultSampler : register(s0);
 SamplerState wrapSampler : register(s1);
 SamplerState pointSampler : register(s2);
 SamplerState spBRDF_Sampler : register(s3);
 
-cbuffer ShadingMaterial : register(b0)
+cbuffer ShadingMaterial : register(b3)
 {
 	float4 albedoFactor;
 	float metallicFactor;
@@ -47,10 +47,15 @@ PS_OUTPUT main(PS_INPUT input)
 	
 	float2 metalRoughness = metalRoughnessTexture.Sample(defaultSampler, input.texcoord).rg;
 	
-	output.position = input.worldPosition;
+	/*output.position = input.worldPosition;
 	output.color = albedo;
 	output.normal = float4(N, 0.f);
-	output.metalRoughness = metalRoughness;
+	output.metalRoughness = metalRoughness;*/
+
+  output.position = input.worldPosition;
+  output.color = albedo;
+  output.normal = float4(((1.f + N) / 2.f), 1.f);
+  output.metalRoughness = metalRoughness;
 	
 	return output;
 }

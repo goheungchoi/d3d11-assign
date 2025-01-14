@@ -11,7 +11,7 @@
 #include <QFile>
 #include <QTableView>
 
-#include "Shared/Config/Config.h"
+#include "Common/Config/Config.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -126,7 +126,7 @@ static std::string GetExportPath(std::string path)
   std::string strUUID = GenerateUUIDFromName(path).ToString();
 
   fs::path resourceSubDir =
-      fs::absolute(ns::kResourceDir) / strUUID.substr(0, 2);
+      fs::absolute(kResourceDir) / strUUID.substr(0, 2);
 
   if (!fs::exists(resourceSubDir))
   {
@@ -139,7 +139,7 @@ static std::string GetExportPath(std::string path)
 }
 
 bool AssetManager::excludeAssetFileFromResource(const QString& filePath) {
-  QString relativePath = assetDir.relativeFilePath(filePath);
+  QString relativePath = assetDir.relativeFilePath(filePath).replace('/', '\\');
   ui.assetPathLabel->setText(relativePath);
 
   fs::path fsRelativePath = relativePath.toStdString();
@@ -147,8 +147,8 @@ bool AssetManager::excludeAssetFileFromResource(const QString& filePath) {
   std::replace(strRelativePath.begin(), strRelativePath.end(), '/', '\\');
   UUID uuid = GenerateUUIDFromName(strRelativePath);
 
-  fs::path resDir(ns::kResourceDir);
-	fs::path infoDir(ns::kResourceDir);
+  fs::path resDir(kResourceDir);
+	fs::path infoDir(kResourceDir);
   resDir /= uuid.ToString().substr(0, 2);
 
   json j;
@@ -241,8 +241,8 @@ void AssetManager::onImportButtonClicked() {
 	if (currSelectedAssetIndices.size() > 0)
   {
     QModelIndex selectedIndex = currSelectedAssetIndices.at(0);
-    QString filePath = assetFilesModel->filePath(selectedIndex);
-
+    QString filePath = assetFilesModel->filePath(selectedIndex).replace('/', '\\');
+    
 		QString extension = QFileInfo(filePath).suffix().toLower();
 
 		if (extension == "jpg" || extension == "jpeg" || extension == "png" ||
@@ -329,7 +329,7 @@ void AssetManager::onAssetSelected(const QModelIndex& index) {
   std::replace(strRelativePath.begin(), strRelativePath.end(), '/', '\\');
   UUID uuid = GenerateUUIDFromName(strRelativePath);
 
-	fs::path resDir(ns::kResourceDir);
+	fs::path resDir(kResourceDir);
   resDir /= uuid.ToString().substr(0, 2);
 
 	QString message;

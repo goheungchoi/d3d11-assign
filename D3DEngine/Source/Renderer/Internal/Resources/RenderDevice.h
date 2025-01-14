@@ -12,6 +12,7 @@ class RenderDevice {
   static constexpr UINT kMaxSample{16};
 
   D3D_FEATURE_LEVEL _d3dFeatureLevel{D3D_FEATURE_LEVEL_11_0};
+  int _debugAdapterOrdinal{-1};
 
   ComPtr<IDXGIFactory2> _dxgiFactory;
   ComPtr<IDXGIAdapter1> _dxgiAdapter;
@@ -94,12 +95,14 @@ class RenderDevice {
                                     DXGI_FORMAT format, D3D11_BIND_FLAG flags,
                                     UINT mipLevels = 1);
   TextureBuffer CreateTextureBuffer(const TextureData& data,
-                                    D3D11_BIND_FLAG flags);
+                                    D3D11_BIND_FLAG flags = (D3D11_BIND_FLAG)0);
 
 	CubeTextureBuffer CreateCubeTextureBuffer(UINT width, UINT height,
                                             DXGI_FORMAT format,
                                             D3D11_BIND_FLAG flags,
                                             UINT mipLevels = 1, UINT arrayLayers = 6);
+  CubeTextureBuffer CreateCubeTextureBuffer(const TextureData& data,
+                                            D3D11_BIND_FLAG flags);
 
 	RenderTargetBuffer CreateRenderTargetBuffer(UINT width, UINT height, DXGI_FORMAT format,
                                  UINT samples = 1);
@@ -224,7 +227,36 @@ class RenderDevice {
       }
     }
 
-		_dxgiAdapter = std::move(adapter);
+		if (!adapter) {
+      for (UINT adapterIndex = 0; SUCCEEDED(_dxgiFactory->EnumAdapters1(
+               adapterIndex, adapter.ReleaseAndGetAddressOf()));
+           adapterIndex++) {
+        DXGI_ADAPTER_DESC1 desc;
+        ThrowIfFailed(adapter->GetDesc1(&desc));
+
+        if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
+          // Don't select the Basic Render Driver adapter.
+          continue;
+        }
+
+        if (_debugAdapterOrdinal == -1 ||
+            (_debugAdapterOrdinal == int(adapterIndex))) {
+#ifdef _DEBUG
+          wchar_t buff[256] = {};
+          swprintf_s(buff, L"Direct3D Adapter (%u): VID:%04X, PID:%04X - %ls\n",
+                     adapterIndex, desc.VendorId, desc.DeviceId,
+                     desc.Description);
+          OutputDebugStringW(buff);
+#endif
+          break;
+        }
+      }
+		}
+
+		_dxgiAdapter = adapter;
+    if (!_dxgiAdapter) {
+      throw std::runtime_error("No Direct3D hardware device found!");
+		}
 	}
 
 	void CreateDevice() {

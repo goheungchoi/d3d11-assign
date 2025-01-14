@@ -12,9 +12,9 @@
 //  RenderPass _geometryPass;
 //  RenderPass _lightingPass;
 //
-//  DX::FrameData _frameData;
+//  DX::cbFrameData _frameData;
 //  ComPtr<ID3D11Buffer> _frameDataCB;
-//  DX::ObjectData _objectData;
+//  DX::cbObjectData _objectData;
 //  ComPtr<ID3D11Buffer> _objectDataCB;
 //
 //  std::unordered_map<Handle, Handle> meshHandleMap;
@@ -69,6 +69,7 @@ class D3D11Renderer : public IRenderer {
   struct Private;
   Private* _m;
 
+	void InitEnvMap();
 	void InitShaders();
   void InitSamplers();
   void InitConstantBuffers();

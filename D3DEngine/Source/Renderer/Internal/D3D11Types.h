@@ -7,42 +7,23 @@ namespace DX {
 inline ID3D11UnorderedAccessView* const nullUAV[] = {nullptr};
 inline ID3D11Buffer* const nullBuffer[] = {nullptr};
 
-struct FrameData {
+struct cbFrameData {
   XMMATRIX view, invView;
   XMMATRIX proj, invProj;
   XMMATRIX viewProj;
 };
 
-struct ObjectData {
+struct cbObjectData {
   XMMATRIX world;
 };
 
-enum class MaterialPass : uint8_t {
-	kOpaque,
-	kTransparent,
-	kLight,
-};
-
-struct MaterialInstance {
-  MaterialPass passType;
-
-  class PipelineState* pipeline;
-
-	std::vector<Handle> textureSet;
-  std::vector<ComPtr<ID3D11Buffer>> cbSet;
-};
-
-struct MeshBuffer {
-  ComPtr<ID3D11Buffer> vertexBuffer;
-  ComPtr<ID3D11Buffer> indexBuffer;
-  UINT stride;
-  UINT offset;
-  UINT numElements;
-
-	DX::ObjectData _objectData;
-  ComPtr<ID3D11Buffer> _objectDataCB;
-
-	Handle materialInstance;
+struct cbShadingMaterial {
+  XMVECTOR albedoFactor;
+  float metallicFactor;
+  float roughnessFactor;
+  float emissiveFactor;
+  float alphaCutoff;
+  ////////////////////////
 };
 
 struct TextureBuffer {
@@ -54,7 +35,14 @@ struct TextureBuffer {
   UINT levels;
 };
 
-struct CubeTextureBuffer {};
+struct CubeTextureBuffer {
+  DXGI_FORMAT format;
+  ComPtr<ID3D11Texture2D> texture;
+  ComPtr<ID3D11ShaderResourceView> srv;
+  ComPtr<ID3D11UnorderedAccessView> uav;
+  UINT width, height;
+  UINT levels, faces;
+};
 
 struct DepthStensilBuffer {
   DXGI_FORMAT format;
@@ -70,6 +58,36 @@ struct RenderTargetBuffer {
   ComPtr<ID3D11Texture2D> texture;
   ComPtr<ID3D11RenderTargetView> rtv;
   ComPtr<ID3D11ShaderResourceView> srv;
+};
+
+enum class MaterialPass : uint8_t {
+  kOpaque,
+  kTransparent,
+  kLight,
+};
+
+struct MaterialInstance {
+  MaterialPass passType;
+
+  class PipelineState* pipeline;
+
+	// TODO: std::unordered_map</* slot number */ UINT, DX::TextureBuffer>
+	// TODO: std::unordered_map</* slot number */ UINT, ConstantBuffer>
+  std::vector<DX::TextureBuffer> textureSet;
+  std::vector<ComPtr<ID3D11SamplerState>> samplerSet;
+  std::vector<ComPtr<ID3D11Buffer>> cbSet;
+};
+
+struct MeshBuffer {
+  ComPtr<ID3D11Buffer> vertexBuffer;
+  ComPtr<ID3D11Buffer> indexBuffer;
+  UINT stride;
+  UINT offset;
+  UINT numIndices;
+
+  DXGI_FORMAT indexFormat;
+
+  Handle materialInstance;
 };
 
 }  // namespace DX

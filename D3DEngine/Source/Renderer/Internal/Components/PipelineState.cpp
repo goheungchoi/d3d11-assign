@@ -295,7 +295,8 @@ DX::PipelineStateBuilder& DX::PipelineStateBuilder::OMDisableBlending() {
   _stateAbstract.blendMode = kNoBlend;
 
   _blendDesc.RenderTarget[0].BlendEnable = FALSE;
-  _blendDesc.RenderTarget[0].RenderTargetWriteMask = 0;
+  _blendDesc.RenderTarget[0].RenderTargetWriteMask =
+      D3D11_COLOR_WRITE_ENABLE_ALL;
 	return *this;
 }
 

@@ -1,5 +1,7 @@
 #include "ModelExport.h"
 
+#include <stb_image.h>
+
 #include <magic_enum/magic_enum.hpp>
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
@@ -12,6 +14,10 @@ bool ModelExporter::ExportModel(const char* path, ModelFileFormat fileFormat,
                                 bool preCalculateVertex,
                                 bool extractBones)
 {
+	// Extract bone flag state change
+  _extractBones = extractBones;
+
+	// Get the full path of the model and it's directory
   _fullPath = path;
   _fullDirectory = _fullPath.parent_path();
   if (fs::is_directory(_fullPath))
@@ -55,15 +61,19 @@ bool ModelExporter::ExportModel(const char* path, ModelFileFormat fileFormat,
 	// Get the geometry model path and the model name
   _geoModel.path = _path.string();
   _geoModel.name = pScene->mName.C_Str();
+	// Reserve the space in the node vector
+  _geoModel.nodes.reserve(GetMaxNodeCount(pScene));
+
+	// Extract bones option
+  /*if (_extractBones)
+  {
+    ExtractSkeletalBones(pScene);
+  }*/
 
 	// Process the scene
   ProcessScene(pScene);
 
-	// Extract bones option
-  if (extractBones)
-  {
-    ProcessSkeleton(pScene);
-  }
+	
 
 	// Export the geometry model
   ExportGeometryModel(_geoModel);
@@ -80,6 +90,8 @@ void ModelExporter::ProcessScene(const aiScene* scene) {
   geoNode.myIndex = 0;
   geoNode.firstChild = -1;
   geoNode.nextSibling = -1;
+  memcpy(geoNode.transform, &scene->mRootNode->mTransformation.a1,
+         16 * sizeof(float));
   _geoModel.nodes.push_back(geoNode);
   ProcessNode(_geoModel, _geoModel.nodes[0], scene->mRootNode, scene);
 }
@@ -91,7 +103,7 @@ void ModelExporter::ProcessNode(GeometryModel& geoModel,
 	// Process the meshes of the current geo node.
   for (int i = 0; i < node->mNumMeshes; ++i)
   {
-    aiMesh* mesh = scene->mMeshes[i];
+    aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
     ProcessMesh(geoModel, parentGeoNode, mesh, scene);
   }
 
@@ -110,7 +122,7 @@ void ModelExporter::ProcessNode(GeometryModel& geoModel,
     geoNode.myIndex = geoModel.nodes.size();
     geoNode.firstChild = -1;
     geoNode.nextSibling = i < (node->mNumChildren - 1) ? geoNode.myIndex + 1 : -1;
-    
+    memcpy(geoNode.transform, &node->mTransformation.a1, 16 * sizeof(float));
 		geoModel.nodes.push_back(geoNode);
   }
 
@@ -127,11 +139,23 @@ void ModelExporter::ProcessMesh(GeometryModel& geoModel, GeometryNode& geoNode,
 {
   Mesh geoMesh;
 
+	// Generate the unique name for the mesh
+  unsigned int nameTag{0};
+  std::string meshName = mesh->mName.C_Str() + std::to_string(nameTag);
+  auto it = _meshNameRegistry.find(meshName);
+  while (it != _meshNameRegistry.end())
+  {
+    ++nameTag;
+    meshName = mesh->mName.C_Str() + std::to_string(nameTag);
+    it = _meshNameRegistry.find(meshName);
+	}
+  _meshNameRegistry.insert(meshName);
+
 	// Get the virtual path of the mesh
 	// It should look something like _fullDirectory/mesh_name.mesh
-  geoMesh.path = (_directory / mesh->mName.C_Str()).string() + ".mesh";
+  geoMesh.path = (_directory / meshName).string() + ".mesh";
 	// Get name of the mesh
-  geoMesh.name = mesh->mName.C_Str();
+  geoMesh.name = meshName;
 
 	// Get the AABB
   geoMesh.aabb = AABB{
@@ -150,20 +174,29 @@ void ModelExporter::ProcessMesh(GeometryModel& geoModel, GeometryNode& geoNode,
         .position = {mesh->mVertices[i].x, mesh->mVertices[i].y,
                      mesh->mVertices[i].z, 1.0},
         .normal = {mesh->mNormals[i].x, mesh->mNormals[i].y,
-                   mesh->mNormals[i].z},
-        .tangent = {mesh->mTangents[i].x, mesh->mTangents[i].y,
-                    mesh->mTangents[i].z},
-        .bitangent = {mesh->mBitangents[i].x, mesh->mBitangents[i].y,
-                      mesh->mBitangents[i].z},
+                   mesh->mNormals[i].z}
     };
 
-    if (mesh->HasTextureCoords(i))
+		if (mesh->HasTangentsAndBitangents())
+    {
+      v.tangent[0] = mesh->mTangents[i].x;
+      v.tangent[1] = mesh->mTangents[i].y;
+      v.tangent[2] = mesh->mTangents[i].z;
+
+			v.bitangent[0] = mesh->mBitangents[i].x;
+			v.bitangent[1] = mesh->mBitangents[i].y;
+			v.bitangent[2] = mesh->mBitangents[i].z;
+		}
+
+		// Check if any texture coord set exists
+    if (mesh->HasTextureCoords(0))
     {
       v.texcoord[0] = mesh->mTextureCoords[0][i].x;
       v.texcoord[1] = mesh->mTextureCoords[0][i].y;
     }
 
-    if (mesh->HasVertexColors(i))
+		// Check if any vertex color set exists
+    if (mesh->HasVertexColors(0))
     {
       v.color[0] = mesh->mColors[0][i].r;
       v.color[1] = mesh->mColors[0][i].g;
@@ -209,12 +242,23 @@ void ModelExporter::ProcessMaterial(GeometryModel& geoModel,
 {
   Material geoMat{};
 
+	// Generate the unique name for the mesh
+  unsigned int nameTag{0};
+  std::string materialName = material->GetName().C_Str() + std::to_string(nameTag);
+  auto it = _materialNameRegistry.find(materialName);
+  while (it != _materialNameRegistry.end()) {
+    ++nameTag;
+    materialName = material->GetName().C_Str() + std::to_string(nameTag);
+    it = _materialNameRegistry.find(materialName);
+  }
+  _materialNameRegistry.insert(materialName);
+
 	// Get the virtual path of the material.
 	// It will be _directory/mat_name.mat
-  geoMat.path = (_directory / material->GetName().C_Str()).string() + ".mat";
+  geoMat.path = (_directory / materialName).string() + ".mat";
 
   // Get name
-  geoMat.name = material->GetName().C_Str();
+  geoMat.name = materialName;
 
 	// Need alpha mode before getting the textures.
 	// Get alpha mode
@@ -572,6 +616,7 @@ void ModelExporter::ExportModelTexture(Texture& texture)
   }
   else if (texture.type == aiTextureType_UNKNOWN)
   {
+		// TODO: ARGB -> RGBA
     data.isNormalMap = false;
     data.isCubeMap = false;
 
@@ -588,6 +633,13 @@ void ModelExporter::ExportModelTexture(Texture& texture)
     options.maxMipmapCount = 0;
     options.minMipmapSize = 1;
     options.mipmapFilter = nvtt::MipmapFilter_Box;
+
+		options.swizzleChannels = true;
+    options.swizzles[0] = nvtt::Blue;
+    options.swizzles[1] = nvtt::Green;
+    options.swizzles[2] = nvtt::Red;
+    options.swizzles[3] = nvtt::Zero;
+
     options.useGPU = true;
   }
   else if (texture.type == aiTextureType_NORMALS)
@@ -598,7 +650,7 @@ void ModelExporter::ExportModelTexture(Texture& texture)
     data.colorSpace = ColorSpace::kLinear;
     data.alphaMode = nvtt::AlphaMode_None;
 
-    options.format = ImageFormat::BC5u;
+    options.format = ImageFormat::BC7;
     options.quality = nvtt::Quality_Normal;
 
     options.enableGammaCorrect = false;
@@ -663,6 +715,7 @@ void ModelExporter::ExportModelTexture(Texture& texture)
 
     std::vector<char> input(size);
     memcpy(input.data(), texture.embedded->pcData, size);
+
     exportTextureFromMemory(input, texture.path, exportPath, data, options);
   }
   else
@@ -674,6 +727,8 @@ void ModelExporter::ExportModelTexture(Texture& texture)
 
 std::string ModelExporter::GetExportPath(std::string path)
 {
+  std::replace(path.begin(), path.end(), '/', '\\');
+
   std::string strUUID = GenerateUUIDFromName(path).ToString();
 
   fs::path resourceSubDir = fs::absolute(resourceDir) / strUUID.substr(0, 2);
@@ -805,26 +860,67 @@ void ModelExporter::GenerateModelMaterialInfoFile(Material& geoMat)
   o << std::setw(4) << j << std::endl;
 }
 
-void ModelExporter::ExtractBones(aiMesh* mesh, const aiScene* scene) {
-  std::unordered_map<std::string, bool> necessityMap;
+void ModelExporter::ExtractSkeletonBonesAndWeights(GeometryModel& geoModel,
+                                           Mesh& geoMesh, aiMesh* mesh,
+                                           const aiScene* scene)
+{
+	// Build a necessity map.
+  std::unordered_map<std::string, bool> nodeNecessityMap;
   
-  std::function<void(const aiNode*)> buildNecessityMap =
+  std::function<void(const aiNode*)> buildNodeNecessityMap =
       [&](const aiNode* node) {
-        necessityMap[node->mName.C_Str()] = false;
+        nodeNecessityMap[node->mName.C_Str()] = false;
   
         for (unsigned int i = 0; i < node->mNumChildren; ++i)
         {
-          buildNecessityMap(node->mChildren[i]);
+          buildNodeNecessityMap(node->mChildren[i]);
         }
       };
-  buildNecessityMap(scene->mRootNode);
+  buildNodeNecessityMap(scene->mRootNode);
 
+	// Mark necessary nodes.
+  for (unsigned int i = 0; i < mesh->mNumBones; ++i)
+  {
+    const aiBone* bone = mesh->mBones[i];
+    const std::string boneName = bone->mName.C_Str();
 
+		// Fine the node corresponding to the bone.
+		const aiNode* boneNode = scene->mRootNode->FindNode(bone->mName);
+    while (boneNode)
+    {
+			// Mark the bone node as `true` in the necessity map
+      nodeNecessityMap[boneNode->mName.C_Str()] = true;
+
+			// Mark all of its parents until the mesh's node is found or
+			// the parent of the mesh's node is found.
+			boneNode = boneNode->mParent;
+		}
+	
+	}
 
 
 }
 
-//void ModelExporter::ProcessSkeleton(const aiScene* scene) {
+size_t ModelExporter::GetMaxNodeCount(const aiScene* scene)
+{
+  size_t maxNodeCount{0};
+
+	std::function<void(const aiNode*)> traverseNode = [&](const aiNode* node) {
+    maxNodeCount++;
+
+    for (unsigned int i = 0; i < node->mNumChildren; ++i)
+    {
+      traverseNode(node->mChildren[i]);
+    }
+  };
+
+	traverseNode(scene->mRootNode);
+
+  return maxNodeCount;
+}
+
+//void ModelExporter::ExtractSkeletalBones(const aiScene* scene)
+//{
 //	
 //	std::unordered_map<std::string, bool> necessityMap;
 //
@@ -844,7 +940,9 @@ void ModelExporter::ExtractBones(aiMesh* mesh, const aiScene* scene) {
 //
 //}
 //
-//void ModelExporter::ProcessSkeletonNode(aiNode* node, const aiScene* scene) {
+//void ModelExporter::ProcessSkeletonNode(GeometryModel& geoModel, aiNode* node,
+//                                        const aiScene* scene)
+//{
 //  //// Process the meshes of the current geo node.
 //  //for (int i = 0; i < node->mNumMeshes; ++i)
 //  //{
@@ -859,7 +957,9 @@ void ModelExporter::ExtractBones(aiMesh* mesh, const aiScene* scene) {
 //  }
 //}
 //
-//void ModelExporter::ProcessSkeletonMesh(aiMesh* mesh, const aiScene* scene) {
+//void ModelExporter::ProcessSkeletonMesh(GeometryModel& geoModel, aiMesh* mesh,
+//                                        const aiScene* scene)
+//{
 //
 //
 //}

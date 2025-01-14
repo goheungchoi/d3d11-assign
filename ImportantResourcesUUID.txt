@@ -1,0 +1,9 @@
+4e877b08-f27c-5d00-b121-4e2634d34932 - Textures/BakerEnv.dds
+9fb2174b-b07f-5759-8543-155cfa407954 - Textures/BakerSpecularBRDF_LUT.dds
+bf0f04df-c5e1-566b-81c2-8759817cb808 - Textures/BakerDiffuseIrradiance.dds
+e3b6d205-adf6-54eb-abab-4bbee77d6394 - Textures/BakerSpecularIBL.dds
+
+98884504-d00f-58d4-8de9-af9285b83452 - Geometry_VS.hlsl
+a73c4cdd-10ce-5d27-a555-5d47d37d7749 - Geometry_PS.hlsl
+b2b0de51-7cc9-5165-88fa-3c767c97b4ca - Light_VS.hlsl
+b2b0de51-7cc9-5165-88fa-3c767c97b4ca - Light_PS.hlsl

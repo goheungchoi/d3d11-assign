@@ -400,6 +400,10 @@ bool exportTextureFromMemory(const std::vector<char>& input,
     {
       compressionOptions.setColorWeights(1.f, 1.f, 0);
     }
+    else
+    {
+      compressionOptions.setColorWeights(1.f, 1.f, 1.f, 1.f);
+    }
 
     // Automatically use dds10 if compressing to BC6 or BC7
     if (nvttFormat == nvtt::Format_BC6U || nvttFormat == nvtt::Format_BC6S ||
@@ -443,6 +447,12 @@ bool exportTextureFromMemory(const std::vector<char>& input,
       alphaMode = nvtt::AlphaMode_None;
 
     image.setAlphaMode(alphaMode);
+
+		if (options.swizzleChannels)
+    {
+      image.swizzle(options.swizzles[0], options.swizzles[1],
+                    options.swizzles[2], options.swizzles[3]);
+		}
 
     const int faceCount = multiInputImage ? images.GetFaceCount() : 1;
 
@@ -678,6 +688,11 @@ bool exportTextureFromMemory(const std::vector<char>& input,
         nvtt::AlphaMode alphaMode = data.alphaMode;
         image.setNormalMap(normal);
         image.setAlphaMode(alphaMode);
+        if (options.swizzleChannels)
+        {
+          image.swizzle(options.swizzles[0], options.swizzles[1],
+                        options.swizzles[2], options.swizzles[3]);
+        }
 
         const int faceCount = 6;
 
@@ -1113,6 +1128,10 @@ bool exportTextureFromMemory(const std::vector<char>& input,
         {
           compressionOptions.setColorWeights(1.f, 1.f, 0);
         }
+        else
+        {
+          compressionOptions.setColorWeights(1.f, 1.f, 1.f, 1.f);
+        }
 
         // Automatically use dds10 if compressing to BC6 or BC7
         if (nvttFormat == nvtt::Format_BC6U ||
@@ -1139,6 +1158,12 @@ bool exportTextureFromMemory(const std::vector<char>& input,
           alphaMode = nvtt::AlphaMode_None;
 
         image.setAlphaMode(alphaMode);
+
+				if (options.swizzleChannels)
+        {
+          image.swizzle(options.swizzles[0], options.swizzles[1],
+                        options.swizzles[2], options.swizzles[3]);
+        }
 
         const int faceCount = 6;
 
@@ -1368,6 +1393,10 @@ bool exportTextureFromMemory(const std::vector<char>& input,
         {
           compressionOptions.setColorWeights(1.f, 1.f, 0);
         }
+        else
+        {
+          compressionOptions.setColorWeights(1.f, 1.f, 1.f, 1.f);
+				}
 
         // Automatically use dds10 if compressing to BC6 or BC7
         if (nvttFormat == nvtt::Format_BC6U ||
@@ -1396,6 +1425,17 @@ bool exportTextureFromMemory(const std::vector<char>& input,
           alphaMode = nvtt::AlphaMode_None;
 
         image.setAlphaMode(alphaMode);
+
+				if (options.swizzleChannels)
+        {
+          image.swizzle(options.swizzles[0], options.swizzles[1],
+                        options.swizzles[2], options.swizzles[3]);
+        }
+
+				const float* r = image.channel(0);
+        const float* g = image.channel(1);
+        const float* b = image.channel(2);
+        const float* a = image.channel(3);
 
         const int mip0Width = image.width();
         const int mip0Height = image.height();

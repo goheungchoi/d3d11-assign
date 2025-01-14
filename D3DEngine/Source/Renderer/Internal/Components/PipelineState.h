@@ -127,12 +127,25 @@ class PipelineState {
 
   PipelineStateAbstract GetAbstract() const { return _stateAbstract; }
 
-	D3D11_VIEWPORT GetViewport() const { return _viewport; }
+	const D3D11_VIEWPORT* GetViewport() const { return &_viewport; }
+  const D3D11_RECT* GetScissor() const { return &_scissor; }
 
+	D3D11_PRIMITIVE_TOPOLOGY GetInputTopology() const { return _topology; }
 	ID3D11InputLayout* GetInputLayout() const { return _layout.Get(); }
 
 	ID3D11VertexShader* GetVertexShader() const { return _vs.Get(); }
   ID3D11PixelShader* GetPixelShader() const { return _ps.Get(); }
+
+	ID3D11RasterizerState* GetRasterizerState() const {
+    return _rasterizerState.Get();
+  }
+	ID3D11DepthStencilState* GetDepthStencilState() const {
+    return _depthState.Get();
+  }
+  ID3D11BlendState* GetBlendState() const { 
+		return _blendState.Get();
+	}
+
 	
 	UINT GetColorAttachmentCount() const { 
 		return _colorAttachmentFormats.size();
