@@ -6,39 +6,44 @@
 
 #include <d3dcompiler.h>
 
-template<>
+template <>
 Handle ResourcePool<DX::ShaderData>::LoadImpl(ns::UUID uuid, void* pUser) {
-
   DX::ShaderData data;
 
-	DX::ShaderType type = *reinterpret_cast<DX::ShaderType*>(pUser);
+  // Shader type
+  DX::ShaderType type = *reinterpret_cast<DX::ShaderType*>(pUser);
   data.type = type;
 
-	fs::path path = GetResourcePath(uuid);
+  // Read the raw file
+  fs::path path = GetResourcePath(uuid);
   std::vector<char> rawFile = ReadFile(path);
 
-	LPCSTR profile;
+  // Check the profile
+  LPCSTR profile;
   if (type == DX::ShaderType::kVertex) {
     profile = "vs_5_0";
   } else if (type == DX::ShaderType::kPixel) {
     profile = "ps_5_0";
-	}
-	else {
+  } else if (type == DX::ShaderType::kCompute) {
+    profile = "cs_5_0";
+  } else {
     return Handle::kInvalidHandle;
-	}
+  }
 
-	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+  // Compile the shader
+  UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
 #if defined(DEBUG) || defined(_DEBUG)
   flags |= D3DCOMPILE_DEBUG;
+  flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-	ID3DBlob* shaderBlob = nullptr;
+  ID3DBlob* shaderBlob = nullptr;
   ID3DBlob* errorBlob = nullptr;
   HRESULT hr = D3DCompile(rawFile.data(), rawFile.size(), NULL, NULL,
                           D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", profile,
                           flags, 0, &shaderBlob, &errorBlob);
-
-	if (FAILED(hr)) {
+  // Error handling
+  if (FAILED(hr)) {
     if (errorBlob) {
       OutputDebugStringA((char*)errorBlob->GetBufferPointer());
       errorBlob->Release();
@@ -47,15 +52,18 @@ Handle ResourcePool<DX::ShaderData>::LoadImpl(ns::UUID uuid, void* pUser) {
     if (shaderBlob) shaderBlob->Release();
 
     return Handle::kInvalidHandle;
-  }    
+  }
 
+  // Copy the compiled data
   data.data.resize(shaderBlob->GetBufferSize());
-
-	memcpy(data.data.data(), shaderBlob->GetBufferPointer(),
+  memcpy(data.data.data(), shaderBlob->GetBufferPointer(),
          shaderBlob->GetBufferSize());
 
-	Handle handle = _handleTable.ClaimHandle(std::move(data)); 
-	_uuidMap[uuid] = handle.index;
-	return handle;
-}
+  // Release the shader blob
+  shaderBlob->Release();
 
+  // Claim the handle and map the UUID.
+  Handle handle = _handleTable.ClaimHandle(std::move(data));
+  _uuidMap[uuid] = handle.index;
+  return handle;
+}

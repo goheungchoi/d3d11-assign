@@ -21,9 +21,13 @@ class IRenderer {
   virtual void BeginDraw() = 0;
 
 	// Resource bindings
-  virtual void DrawMesh(Handle meshHandle, XMMATRIX transform) = 0;
-  virtual void DrawLight(Handle lightHandle) = 0;
-  virtual void DrawImGui() = 0;
+  virtual void ScheduleMesh(Handle renderMeshHandle, XMMATRIX transform) = 0;
+  virtual void ScheduleLight(Handle lightHandle, XMVECTOR components) = 0;
+  
+	virtual void DrawOpaqueMeshes() = 0;
+  virtual void DrawShadows() = 0;
+  virtual void DrawLights() = 0;
+	virtual void DrawImGui() = 0;
 
   virtual void EndDraw() = 0;
   virtual void EndFrame() = 0;

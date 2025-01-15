@@ -131,6 +131,8 @@ Handle ResourcePool<DX::ModelData>::LoadImpl(ns::UUID uuid, void* pUser) {
     ProcessGeoNode(model, geoNode, geoModel);
 	}
 
-  return _handleTable.ClaimHandle(std::move(model));
+	Handle handle = _handleTable.ClaimHandle(std::move(model));
+  _uuidMap[uuid] = handle.index;
+  return handle;
 }
 

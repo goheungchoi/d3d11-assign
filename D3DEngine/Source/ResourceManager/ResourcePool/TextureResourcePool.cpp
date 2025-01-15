@@ -47,5 +47,7 @@ Handle ResourcePool<DX::TextureData>::LoadImpl(ns::UUID uuid, void* pUser) {
 		data.ddsData = reinterpret_cast<std::vector<uint8_t>&&>(std::move(rawFile));
   }
 
-  return _handleTable.ClaimHandle(std::move(data));
+	Handle handle = _handleTable.ClaimHandle(std::move(data));
+  _uuidMap[uuid] = handle.index;
+  return handle;
 }

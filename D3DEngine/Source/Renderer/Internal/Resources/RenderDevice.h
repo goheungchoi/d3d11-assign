@@ -106,14 +106,14 @@ class RenderDevice {
 
 	RenderTargetBuffer CreateRenderTargetBuffer(UINT width, UINT height, DXGI_FORMAT format,
                                  UINT samples = 1);
-  DepthStensilBuffer CreateDepthStencilBuffer(UINT width, UINT height,
+  DepthStencilBuffer CreateDepthStencilBuffer(UINT width, UINT height,
                                               DXGI_FORMAT format,
                                               UINT samples = 1);
 
 	FrameBuffer* CreateFrameBuffer(
       UINT width, UINT height, UINT samples,
       std::initializer_list<RenderTargetBuffer> colorAttachments,
-      std::optional<DepthStensilBuffer> depthAttachment = std::nullopt);
+      std::optional<DepthStencilBuffer> depthAttachment = std::nullopt);
 
 	ComPtr<ID3D11SamplerState> CreateSamplerState(
       D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode) const;

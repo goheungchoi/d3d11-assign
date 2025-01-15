@@ -91,6 +91,8 @@ Handle ResourcePool<DX::MeshData>::LoadImpl(ns::UUID uuid, void* pUser)
 	DX::MeshData mesh;
   ProcessMesh(mesh, geoMesh);
 
-	return _handleTable.ClaimHandle(std::move(mesh));
+	Handle handle = _handleTable.ClaimHandle(std::move(mesh));
+  _uuidMap[uuid] = handle.index;
+  return handle;
 }
 

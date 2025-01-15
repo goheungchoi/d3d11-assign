@@ -52,8 +52,12 @@ class D3D11Renderer : public IRenderer {
   void BeginDraw() override;
 
 	// Resource bindings
-  void DrawMesh(Handle renderMeshHandle, XMMATRIX transform) override;
-  void DrawLight(Handle lightHandle) override;
+  void ScheduleMesh(Handle renderMeshHandle, XMMATRIX transform) override;
+  void ScheduleLight(Handle lightHandle, XMVECTOR components) override;
+
+  void DrawOpaqueMeshes() override;
+  void DrawShadows() override;
+  void DrawLights() override;
   void DrawImGui() override;
 
   void EndDraw() override;
@@ -76,6 +80,8 @@ class D3D11Renderer : public IRenderer {
 	void InitPipelineState();
   void InitRenderPass();
   void InitImGui();
+
+
 };
 
 }  // namespace DX

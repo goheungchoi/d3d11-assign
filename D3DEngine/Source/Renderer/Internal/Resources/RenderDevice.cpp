@@ -364,7 +364,7 @@ DX::RenderTargetBuffer DX::RenderDevice::CreateRenderTargetBuffer(
   return renderTarget;
 }
 
-DX::DepthStensilBuffer DX::RenderDevice::CreateDepthStencilBuffer(
+DX::DepthStencilBuffer DX::RenderDevice::CreateDepthStencilBuffer(
     UINT width, UINT height, DXGI_FORMAT format, UINT samples) {
 	
 	UINT depthSampleCountMax = GetMultisampleMaxCount(format);
@@ -374,7 +374,7 @@ DX::DepthStensilBuffer DX::RenderDevice::CreateDepthStencilBuffer(
               << " was inputted." << std::endl;
   }
 
-	DepthStensilBuffer depthBuffer;
+	DepthStencilBuffer depthBuffer;
   depthBuffer.format = format;
   depthBuffer.width = width;
   depthBuffer.height = height;
@@ -428,7 +428,7 @@ DX::DepthStensilBuffer DX::RenderDevice::CreateDepthStencilBuffer(
 DX::FrameBuffer* DX::RenderDevice::CreateFrameBuffer(
     UINT width, UINT height, UINT samples,
     std::initializer_list<RenderTargetBuffer> colorAttachments,
-    std::optional<DepthStensilBuffer> depthAttachment) {
+    std::optional<DepthStencilBuffer> depthAttachment) {
 	// Set width and height of frame buffer.
   DX::FrameBuffer* frameBuf = new DX::FrameBuffer{width, height, samples};
 

@@ -28,18 +28,20 @@ struct D3D11Renderer::Private {
   DX::RenderContext* _context;
 
   PipelineState* _opaquePipeline;
+  PipelineState* _shadowPipeline;
   PipelineState* _lightPipeline;
 
 	RenderTargetBuffer _positionRT;
   RenderTargetBuffer _albedoRT;
   RenderTargetBuffer _normalRT;
   RenderTargetBuffer _metalRoughnessRT;
-  DepthStensilBuffer _depthBuffer;
+  DepthStencilBuffer _depthBuffer;
 
 	FrameBuffer* _geometryPassFBO;
   FrameBuffer* _lightPassFBO;
 
   RenderPass _geometryPass;
+  RenderPass _shadowPass;
   RenderPass _lightPass;
 
 	CubeTextureBuffer _environmentMap;
@@ -63,6 +65,10 @@ struct D3D11Renderer::Private {
 
 	HandleTable<ComPtr<ID3D11VertexShader>> vsHandleTable;
   HandleTable<ComPtr<ID3D11PixelShader>> psHandleTable;
+
+
+	std::vector<std::pair<Handle, XMMATRIX>> scheduledMeshes;
+  std::vector<std::pair<Handle, XMVECTOR>> scheduledLights;
 };
 
 void D3D11Renderer::Initialize(HWND hWnd, UINT width, UINT height, bool allowTearing) {
@@ -101,29 +107,49 @@ void DX::D3D11Renderer::BeginFrame(XMMATRIX view, XMMATRIX proj) {
 void D3D11Renderer::BeginDraw() { 
 	_m->_context->StartCommandList(); 
 
-	_m->_context->BeginRendering(_m->_geometryPass);
+	
 }
 
-void D3D11Renderer::DrawMesh(Handle meshBufHandle, XMMATRIX transform) {
-  auto& meshBuf = _m->meshHandleTable[meshBufHandle];
-  if (meshBuf) {
-    auto& matInstance = _m->materialHandleTable[meshBuf->materialInstance];
-		
-		if (matInstance) {
-      DX::cbObjectData objData{.world = XMMatrixTranspose(transform)};
-      _device->CopyMappedData(matInstance->cbSet[1], &objData);
+// TODO: Separate the material binding.
+void DX::D3D11Renderer::ScheduleMesh(Handle meshBufHandle, XMMATRIX transform) {
+  if (_m->meshHandleTable.IsValidHandle(meshBufHandle)) {
+    _m->scheduledMeshes.push_back({meshBufHandle, transform});
+  }
+}
 
-			// TODO: Use this state change prevention just for now.
-      if (g_prevPipelineState != matInstance->pipeline) {
-				_m->_context->BindPipelineState(matInstance->pipeline);
-        g_prevPipelineState = matInstance->pipeline;
-			}
-			_m->_context->DrawMeshBuffer(meshBuf.value(), matInstance.value());
-		}
+void DX::D3D11Renderer::ScheduleLight(Handle lightHandle, XMVECTOR components) {
+  if (_m->lightHandleTable.IsValidHandle(lightHandle)) {
+		_m->
+	}
+
+}
+
+void DX::D3D11Renderer::DrawOpaqueMeshes() {
+  _m->_context->BeginRendering(_m->_geometryPass);
+
+  for (auto& [meshBufHandle, transform] : _m->scheduledMeshes) {
+    auto& meshBuf = _m->meshHandleTable[meshBufHandle];
+    if (meshBuf) {
+      auto& matInstance = _m->materialHandleTable[meshBuf->materialInstance];
+
+      if (matInstance) {
+        DX::cbObjectData objData{.world = XMMatrixTranspose(transform)};
+        _device->CopyMappedData(matInstance->cbSet[1], &objData);
+
+        // TODO: Use this state change prevention just for now.
+        if (g_prevPipelineState != matInstance->pipeline) {
+          _m->_context->BindPipelineState(matInstance->pipeline);
+          g_prevPipelineState = matInstance->pipeline;
+        }
+        _m->_context->DrawMeshBuffer(meshBuf.value(), matInstance.value());
+      }
+    }
 	}
 }
 
-void DX::D3D11Renderer::DrawLight(Handle lightHandle) {}
+void DX::D3D11Renderer::DrawShadows() {}
+
+void DX::D3D11Renderer::DrawLights() {}
 
 void DX::D3D11Renderer::DrawImGui() {
 	// TODO: Move the back buffer into a separate frame buffer
@@ -264,7 +290,7 @@ Handle DX::D3D11Renderer::CreateMesh(Handle meshHandle) {
 	return meshBufHandle;
 }
 
-Handle DX::D3D11Renderer::CreateLight(const DX::LightData* light) {
+Handle DX::D3D11Renderer::CreateLight(DX::LightType lightType) {
   return Handle();
 }
 
@@ -327,6 +353,11 @@ void DX::D3D11Renderer::InitPipelineState() {
           .Build(_device);
 
 	builder.Reset();
+
+
+
+	builder.Reset();
+
 	_m->_lightPipeline =
       builder.IAInputTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST)
           .IAInputLayout(-1)
@@ -371,6 +402,13 @@ void DX::D3D11Renderer::InitRenderPass() {
       _m->_depthBuffer);
 
 	_m->_geometryPass.BindFrameBuffer(_m->_geometryPassFBO);
+
+	// Shadow pass
+
+
+
+	// Light pass
+
 }
 
 void DX::D3D11Renderer::InitImGui() {
@@ -391,3 +429,4 @@ void DX::D3D11Renderer::InitImGui() {
   ImGui_ImplWin32_Init(_swapchain->GetWindowHandle());
   ImGui_ImplDX11_Init(_device->GetDevice(), _device->GetImmediateContext());
 }
+

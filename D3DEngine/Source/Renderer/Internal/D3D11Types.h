@@ -17,6 +17,19 @@ struct cbObjectData {
   XMMATRIX world;
 };
 
+struct cbLightData {
+  Vector4 components;  // [x,y,z,1] - position, [-x,-y,-z,0] - direction
+  Vector4 radiance;    // r, g, b, intensity
+
+  float spotAngle;
+  float constantAttenuation;
+  float linearAttenuation;
+  float quadraticAttenuation;
+
+  LightType type;
+  bool enabled;
+};
+
 struct cbShadingMaterial {
   XMVECTOR albedoFactor;
   float metallicFactor;
@@ -44,7 +57,7 @@ struct CubeTextureBuffer {
   UINT levels, faces;
 };
 
-struct DepthStensilBuffer {
+struct DepthStencilBuffer {
   DXGI_FORMAT format;
   UINT width, height, samples;
   ComPtr<ID3D11Texture2D> texture;
@@ -88,6 +101,11 @@ struct MeshBuffer {
   DXGI_FORMAT indexFormat;
 
   Handle materialInstance;
+};
+
+struct LightInstance {
+  std::vector<DepthStencilBuffer> shadowMaps;
+  class FrameBuffer* shadowMapFrameBuffer;
 };
 
 }  // namespace DX

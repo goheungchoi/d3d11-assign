@@ -97,5 +97,7 @@ Handle ResourcePool<DX::MaterialData>::LoadImpl(ns::UUID uuid, void* pUser) {
   DX::MaterialData mat;
   ProcessMaterial(mat, geoMat);
 
-	return _handleTable.ClaimHandle(std::move(mat));
+	Handle handle = _handleTable.ClaimHandle(std::move(mat));
+  _uuidMap[uuid] = handle.index;
+  return handle;
 }
