@@ -17,7 +17,7 @@ class Camera {
   float farPlane;
   XMMATRIX proj;
 
-  float moveSpeed{10.f};
+  float moveSpeed{100.f};
   float rotationSpeed{.5f};
 
   float downUpMove{0.f};
@@ -33,7 +33,7 @@ class Camera {
   float roll{0.f};   // around z-axis in radian. Must be 0.f
  public:
   Camera(UINT width, UINT height, float vfov = XM_PI / 2.f,
-         float nearPlane = 0.01f, float farPlane = 10000.f)
+         float nearPlane = 0.01f, float farPlane = 1500.f)
       : vfov{vfov},
         width{width},
         height{height},

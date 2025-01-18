@@ -48,12 +48,12 @@ class D3D11Renderer : public IRenderer {
 
   void Shutdown() override;
 
-	void BeginFrame(XMMATRIX view, XMMATRIX proj) override;
+	void BeginFrame(XMVECTOR eyePosition, XMMATRIX view, XMMATRIX proj) override;
   void BeginDraw() override;
 
 	// Resource bindings
   void ScheduleMesh(Handle renderMeshHandle, XMMATRIX transform) override;
-  void ScheduleLight(Handle lightHandle, XMVECTOR components) override;
+  void ScheduleLight(Handle lightHandle, const DX::LightData* data) override;
 
   void DrawOpaqueMeshes() override;
   void DrawShadows() override;
@@ -64,10 +64,9 @@ class D3D11Renderer : public IRenderer {
   void EndFrame() override;
 
 	// Resource management
-  Handle CreateShader(Handle shaderHandle) override;
   Handle CreateTexture(Handle textureHandle) override;
   Handle CreateMesh(Handle meshHandle) override;
-	Handle CreateLight(const LightData* light) override;
+	Handle CreateLight(uint32_t type) override;
 
  private:
   struct Private;

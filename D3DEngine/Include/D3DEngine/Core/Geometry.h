@@ -147,16 +147,18 @@ struct ModelData {
 enum class LightType : uint32_t { kUndefined = 0, kDirectional, kPoint, kSpot };
 
 struct LightData {
-  Vector4 components;  // [x,y,z,1] - position, [x,y,z,0] - direction
-  Vector4 radiance;    // r, g, b, intensity
+  XMVECTOR components;  // [x,y,z,1] - position, [x,y,z,0] - direction
+  XMVECTOR radiance;    // r, g, b, intensity
 
   float spotAngle;
   float constantAttenuation;
   float linearAttenuation;
   float quadraticAttenuation;
 
-  LightType type;
+	float nearPlane;
+  float farPlane;
   bool enabled;
+  LightType type;
 };
 
 }

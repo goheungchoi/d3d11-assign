@@ -1,3 +1,4 @@
+// Light_PS.hlsl
 
 #define UNDEFINED  0;
 #define DIRECTIONAL 1;
@@ -20,7 +21,7 @@ TextureCube specularTexture : register(t5);
 TextureCube irradianceTexture : register(t6);
 Texture2D specularBRDF_LUT : register(t7);
 
-Texture2D shadowMap : register(t8);
+TextureCube shadowMap : register(t8);
 
 SamplerState defaultSampler : register(s0);
 SamplerState wrapSampler : register(s1);
@@ -38,9 +39,7 @@ cbuffer FrameData : register(b0)
 
 struct LightData
 {
-	matrix lightSpace;
-	
-	float4 components; // [x,y,z,1] - position, [x,y,z,0] - direction
+	float4 position; // [x,y,z,1] - position, [x,y,z,0] - direction
 	float4 radiance; // r, g, b, intensity
 
 	float spotAngle;
@@ -48,12 +47,13 @@ struct LightData
 	float linearAttenuation;
 	float quadraticAttenuation;
 
-	uint type;
+	float nearPlane;
+  float farPlane;
 	bool enabled;
-	uint2 padding;
+	uint type;
 };
 
-cbuffer LightData : register(b1)
+cbuffer LightShadingConstants : register(b2)
 {
 	LightData light;
 	
@@ -63,6 +63,9 @@ cbuffer LightData : register(b1)
 	float gamma;
 	bool useIBL;
 	bool usePCF;
+
+	float screenWidth;
+  float screenHeight;
 };
 
 // Reconstruct view space position from depth
@@ -117,15 +120,31 @@ uint querySpecularTextureLevels()
 	return levels;
 }
 
+float depthToWorldSpaceDistance(float depth, float nearPlane, float farPlane) {
+  // In reversed Z, depth = 1.0 corresponds to near plane, and 0.0 to far plane
+  return (nearPlane * farPlane) / ((farPlane - nearPlane) * depth + nearPlane);
+}
+
 float shadowMapVisibility(float3 P, float3 L, float3 N)
 {
-	float4 PLw = mul(float4(P, 1.0), light.lightSpace);
+	/*float4 PLw = mul(float4(P, 1.0), light.lightSpace);
 	float3 PL = (PLw.xyz / PLw.w) * 0.5 + 0.5;
 	if (PL.z > 1.0 || PL.z < 0.0)
 		return 0.0;
-	float closestDepth = shadowMap.Sample(defaultSampler, PL.xy).r;
+	float closestDepth = shadowMap.Sample(defaultSampler, PL).r;
 	float bias = max(0.005 * (1.0 - dot(N, L)), 0.003);
-	return ((PL.z - bias) > closestDepth) ? 1.0 : 0.0;
+	return ((PL.z - bias) > closestDepth) ? 1.0 : 0.0;*/
+
+	float3 lightToFrag = P - L;
+  float distanceToFrag = length(lightToFrag);
+  float3 directionToFrag = normalize(lightToFrag);
+   
+	float sampledDepth = shadowMap.Sample(pointSampler, directionToFrag).r;
+  float closestDistance =
+      depthToWorldSpaceDistance(sampledDepth, light.nearPlane, light.farPlane);
+
+  // float bias = max(0.005 * (1.0 - dot(N, L)), 0.0003);
+  return ((distanceToFrag - 120.f) > closestDistance) ? 1.0 : 0.0;
 }
 
 float3 Uncharted2ToneMapping(float3 color)
@@ -137,7 +156,7 @@ float3 Uncharted2ToneMapping(float3 color)
 	float E = 0.01; //0.02;
 	float F = 0.30; //0.30;
 	float W = 11.2;
-	float exposure = 2.;
+	float exposure = 1.;
 	color *= exposure;
 	color = ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
 	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
@@ -165,7 +184,7 @@ float4 main(PS_INPUT input) : SV_Target
 	float3 Lo = normalize(eyePosition.xyz - worldPosition.xyz);
 	
 	// Normal
-	float3 N = GBuffer_normal.Sample(pointSampler, input.texcoord);
+	float3 N = GBuffer_normal.Sample(pointSampler, input.texcoord).xyz;
 	
 	float NdotLo = max(0.f, dot(N, Lo));
 	
@@ -177,7 +196,7 @@ float4 main(PS_INPUT input) : SV_Target
 	
 	// Direct lighting
 	float3 directLighting = 0.0;
-	float3 Li = normalize(light.components.xyz - worldPosition.xyz * light.components.w);
+  float3 Li = normalize(light.position.xyz - worldPosition.xyz);
 	
 	float3 Lradiance = light.radiance.rgb * light.radiance.a * light.enabled;
 		
@@ -244,8 +263,8 @@ float4 main(PS_INPUT input) : SV_Target
 	}
 	
 	// Shadow map visibility term
-	float vis = shadowMapVisibility(worldPosition.xyz, Li, N);
-	float3 result = (1.0 - vis) * directLighting + ambientLighting;
+  float vis = shadowMapVisibility(worldPosition.xyz, light.position.xyz, N);
+  float3 result = (1.0 - vis) * directLighting + ambientLighting * 0.1f;
 	
 	result = Uncharted2ToneMapping(exposure*result);
 

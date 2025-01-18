@@ -26,6 +26,37 @@ constexpr DXGI_FORMAT GetIndexFormat() {
   }
 }
 
+UINT GetRowPitch(DXGI_FORMAT format, UINT mipWidth) {
+  switch (format) {
+    // 8 bytes per block (4x4 block size)
+    case DXGI_FORMAT_BC1_UNORM:
+    case DXGI_FORMAT_BC4_UNORM:
+    case DXGI_FORMAT_BC4_SNORM:
+      return std::max(1u, (mipWidth + 3) / 4) * 8;
+
+    // 16 bytes per block (4x4 block size)
+    case DXGI_FORMAT_BC2_UNORM:
+    case DXGI_FORMAT_BC3_UNORM:
+    case DXGI_FORMAT_BC5_UNORM:
+    case DXGI_FORMAT_BC5_SNORM:
+    case DXGI_FORMAT_BC6H_UF16:
+    case DXGI_FORMAT_BC6H_SF16:
+    case DXGI_FORMAT_BC7_UNORM:
+      return std::max(1u, (mipWidth + 3) / 4) * 16;
+
+    // Uncompressed formats (bytesPerPixel)
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R8G8B8A8_SNORM:
+      return mipWidth * 4;
+
+    case DXGI_FORMAT_R32G32B32A32_FLOAT:
+      return mipWidth * 16;
+
+    default:
+      throw std::runtime_error("Unsupported format for row pitch calculation");
+  }
+}
+
 
 // Utility depth format mapper to choose appropriate formats
 // for different kinds of depth views.
@@ -174,7 +205,7 @@ DX::TextureBuffer DX::RenderDevice::CreateTextureBuffer(UINT width, UINT height,
     D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
     uavDesc.Format = format;
     uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-    uavDesc.Texture2D.MipSlice = mipLevels;
+    uavDesc.Texture2D.MipSlice = 0;
     if (FAILED(_d3dDevice->CreateUnorderedAccessView(texture.texture.Get(),
                                                     &uavDesc, &texture.uav))) {
       throw std::runtime_error(
@@ -260,11 +291,14 @@ DX::TextureBuffer DX::RenderDevice::CreateTextureBuffer(const TextureData& data,
     for (UINT i = 0; i < mipLevels; ++i) {
       nv_dds::Subresource& subresource = image.subresource(/* mip */ i);
 
-      UINT mipHeight = image.getHeight(i);
-			UINT mipSize = subresource.data.size();
+   //   UINT mipHeight = image.getHeight(i);
+			//UINT mipSize = subresource.data.size();
 
-			// Calculate row pitch
-      UINT rowPitch = mipSize / mipHeight;
+			//// Calculate row pitch
+   //   UINT rowPitch = mipSize / mipHeight;
+
+			UINT mipWidth = image.getWidth(i);
+      UINT rowPitch = GetRowPitch(data.format, mipWidth);
 			
       _d3dImmContext->UpdateSubresource(texture.texture.Get(),
                                         D3D11CalcSubresource(i, 0, mipLevels),
@@ -274,6 +308,31 @@ DX::TextureBuffer DX::RenderDevice::CreateTextureBuffer(const TextureData& data,
   }
 
   return texture;
+}
+
+ComPtr<ID3D11UnorderedAccessView> DX::RenderDevice::CreateTextureUAV(
+    ID3D11Texture2D* texture, UINT mipSlice) {
+  D3D11_TEXTURE2D_DESC desc;
+  texture->GetDesc(&desc);
+
+  D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+  uavDesc.Format = desc.Format;
+  if (desc.ArraySize == 1) {
+    uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+    uavDesc.Texture2D.MipSlice = mipSlice;
+  } else {
+    uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+    uavDesc.Texture2DArray.MipSlice = mipSlice;
+    uavDesc.Texture2DArray.FirstArraySlice = 0;
+    uavDesc.Texture2DArray.ArraySize = desc.ArraySize;
+  }
+
+	ComPtr<ID3D11UnorderedAccessView> uav;
+  if (FAILED(_d3dDevice->CreateUnorderedAccessView(texture, &uavDesc, &uav))) {
+    throw std::runtime_error("Failed to create texture UAV");
+  }
+	
+  return uav;
 }
 
 DX::CubeTextureBuffer DX::RenderDevice::CreateCubeTextureBuffer(
@@ -308,7 +367,6 @@ DX::CubeTextureBuffer DX::RenderDevice::CreateCubeTextureBuffer(
 
 DX::RenderTargetBuffer DX::RenderDevice::CreateRenderTargetBuffer(
     UINT width, UINT height, DXGI_FORMAT format, UINT samples) {
-	// TODO:
   // Get the maximun sample count of the formats
   UINT colorSampleCountMax = GetMultisampleMaxCount(format);
   if (samples > colorSampleCountMax) {
@@ -420,6 +478,120 @@ DX::DepthStencilBuffer DX::RenderDevice::CreateDepthStencilBuffer(
           depthBuffer.texture.Get(), &srvDesc, &depthBuffer.srv))) {
     throw std::runtime_error(
         "Failed to create DepthBuffer shader resource view");
+  }
+
+  return depthBuffer;
+}
+
+DX::CubeRenderTargetBuffer DX::RenderDevice::CreateCubeRenderTargetBuffer(
+    UINT width, UINT height, DXGI_FORMAT format) {
+
+  CubeRenderTargetBuffer renderTarget;
+  renderTarget.format = format;
+  renderTarget.width = width;
+  renderTarget.height = height;
+  renderTarget.rtvs.resize(6);
+
+	// Create a color texture
+  D3D11_TEXTURE2D_DESC desc{};
+  desc.Width = width;
+  desc.Height = height;
+  desc.MipLevels = 1;
+  desc.ArraySize = 6;
+  desc.SampleDesc.Count = 1;
+  desc.Format = format;
+  desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+  desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+  if (FAILED(
+          _d3dDevice->CreateTexture2D(&desc, nullptr, &renderTarget.texture))) {
+    throw std::runtime_error("Failed to create CubeRenderTarget color texture.");
+  }
+
+  // Create render target view
+  for (int i = 0; i < 6; ++i) {
+    D3D11_RENDER_TARGET_VIEW_DESC rtvDesc{};
+    rtvDesc.Format = format;
+    rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+    rtvDesc.Texture2DArray.MipSlice = 0;
+    rtvDesc.Texture2DArray.FirstArraySlice = i;
+    rtvDesc.Texture2DArray.ArraySize = 1;
+    if (FAILED(_d3dDevice->CreateRenderTargetView(
+            renderTarget.texture.Get(), &rtvDesc, &renderTarget.rtvs[i]))) {
+      throw std::runtime_error(
+          "Failed to create CubeRenderTarget render target view.");
+    }
+  }
+
+  // Create shader resource view
+  D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+  srvDesc.Format = format;
+  srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+  srvDesc.TextureCube.MostDetailedMip = 0;
+  srvDesc.TextureCube.MipLevels = 1;
+  if (FAILED(_d3dDevice->CreateShaderResourceView(
+          renderTarget.texture.Get(), &srvDesc, &renderTarget.srv))) {
+    throw std::runtime_error(
+        "Failed to create CubeRenderTarget shader resource view");
+  }
+
+  return renderTarget;
+}
+
+DX::CubeDepthStencilBuffer DX::RenderDevice::CreateCubeDepthStencilBuffer(
+    UINT width, UINT height, DXGI_FORMAT format) {
+
+  CubeDepthStencilBuffer depthBuffer;
+  depthBuffer.format = format;
+  depthBuffer.width = width;
+  depthBuffer.height = height;
+  depthBuffer.dsvs.resize(6);
+
+  D3D11_TEXTURE2D_DESC desc{};
+  desc.Width = width;
+  desc.Height = height;
+  desc.MipLevels = 1;
+  desc.ArraySize = 6;	// All 6 faces of the cube map
+  desc.SampleDesc.Count = 1;
+
+  // Get the depth mapping
+  auto depthMapping = GetDepthFormatMapping(format);
+
+  // Create depth stencil texture
+  desc.Format = depthMapping.typelessFormat;
+  desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+  desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+  if (FAILED(
+          _d3dDevice->CreateTexture2D(&desc, nullptr, &depthBuffer.texture))) {
+    throw std::runtime_error(
+        "Failed to create CubeDepthBuffer depth-stencil texture");
+  }
+
+  // Create depth stencil view
+  for (int i = 0; i < 6; ++i) {
+    D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+    dsvDesc.Format = depthMapping.dsvFormat;
+    dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+    dsvDesc.Texture2DArray.MipSlice = 0;
+    dsvDesc.Texture2DArray.FirstArraySlice = i;
+    dsvDesc.Texture2DArray.ArraySize = 1;
+    if (FAILED(_d3dDevice->CreateDepthStencilView(
+            depthBuffer.texture.Get(), &dsvDesc, &depthBuffer.dsvs[i]))) {
+      throw std::runtime_error(
+          "Failed to create CubeDepthBuffer depth-stencil view");
+    }
+	}
+  
+
+  // Create shader resource view
+  D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+  srvDesc.Format = depthMapping.srvFormat;
+  srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+  srvDesc.TextureCube.MostDetailedMip = 0;
+  srvDesc.TextureCube.MipLevels = 1;
+  if (FAILED(_d3dDevice->CreateShaderResourceView(
+          depthBuffer.texture.Get(), &srvDesc, &depthBuffer.srv))) {
+    throw std::runtime_error(
+        "Failed to create CubeDepthBuffer shader resource view");
   }
 
   return depthBuffer;

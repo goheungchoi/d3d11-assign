@@ -82,6 +82,47 @@ void DX::RenderContext::DrawMeshBuffer(const DX::MeshBuffer& mesh,
 	_deferredContext->DrawIndexed(mesh.numIndices, 0, 0);
 }
 
+void DX::RenderContext::DrawPointLightShadow(
+    const DX::MeshBuffer& mesh,
+    const DX::PointLightInstance& pointLight, int i) {
+  _deferredContext->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(),
+                                       &mesh.stride, &mesh.offset);
+  _deferredContext->IASetIndexBuffer(mesh.indexBuffer.Get(), mesh.indexFormat,
+                                     0);
+
+  // Bind constant buffer
+  _deferredContext->VSSetConstantBuffers(
+      0, 1, pointLight.pointLightTransforms[i].GetAddressOf());
+
+	_deferredContext->PSSetConstantBuffers(0, 1, pointLight.cameraData.GetAddressOf());
+
+  _deferredContext->DrawIndexed(mesh.numIndices, 0, 0);
+}
+
+void DX::RenderContext::DrawPointLightShading(
+    const DX::MeshBuffer& lightMesh, const DX::PointLightInstance& pointLight) {
+  _deferredContext->IASetVertexBuffers(
+      0, 1, lightMesh.vertexBuffer.GetAddressOf(),
+                                       &lightMesh.stride, &lightMesh.offset);
+  _deferredContext->IASetIndexBuffer(lightMesh.indexBuffer.Get(),
+                                     lightMesh.indexFormat,
+                                     0);
+
+	// Bind VS constant buffers
+  _deferredContext->VSSetConstantBuffers(0, 1,
+                                         pointLight.frameData.GetAddressOf());
+	_deferredContext->VSSetConstantBuffers(1, 1,
+                                         pointLight.objWorld.GetAddressOf());
+
+	// Bind PS constant buffers
+  _deferredContext->PSSetConstantBuffers(0, 1,
+                                         pointLight.frameData.GetAddressOf());
+  _deferredContext->PSSetConstantBuffers(
+      2, 1, pointLight.lightShadingConstant.GetAddressOf());
+
+	_deferredContext->Draw(3, 0);
+}
+
 void DX::RenderContext::EndRendering() {
   _deferredContext->OMSetRenderTargets(0, NULL, NULL);
 }

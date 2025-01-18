@@ -70,15 +70,14 @@ void SwapChain::CreateDXGISwapChain(HWND hwnd, UINT width, UINT height,
 
 void SwapChain::CreateBackBufferView() {
   // Get the back buffer texture
-  ComPtr<ID3D11Texture2D> backBuffer;
-  ThrowIfFailed(_swapchain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)));
+  ThrowIfFailed(_swapchain->GetBuffer(0, IID_PPV_ARGS(&_backBuffer)));
 
   // Create a render target view of the back buffer texture
-  _device.GetDevice()->CreateRenderTargetView(backBuffer.Get(), nullptr,
+  _device.GetDevice()->CreateRenderTargetView(_backBuffer.Get(), nullptr,
                                               &_backBufferRTV);
 
   // Get the description of the backbuffer image
-  backBuffer->GetDesc(&_backbufferDesc);
+  _backBuffer->GetDesc(&_backbufferDesc);
 
   // Get the width and height
   _width = _backbufferDesc.Width;

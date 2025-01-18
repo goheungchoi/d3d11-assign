@@ -16,6 +16,7 @@ class SwapChain {
   ComPtr<IDXGISwapChain1> _swapchain;
 
 	D3D11_TEXTURE2D_DESC _backbufferDesc{};
+  ComPtr<ID3D11Texture2D> _backBuffer;
   ComPtr<ID3D11RenderTargetView> _backBufferRTV;
 
   SwapChain(class RenderDevice& device) : _device{device} {}
@@ -32,7 +33,11 @@ class SwapChain {
 	UINT GetWidth() { return _width; }
   UINT GetHeight() { return _height; }
 	
-	ID3D11RenderTargetView* GetBackBuffer() { return _backBufferRTV.Get(); }
+	const D3D11_TEXTURE2D_DESC& GetBackBufferDesc() const {
+    return _backbufferDesc;
+  }
+	ID3D11Texture2D* GetBackBuffer() { return _backBuffer.Get(); }
+	ID3D11RenderTargetView* GetBackBufferRTV() { return _backBufferRTV.Get(); }
 
 	HRESULT Present() { 
 		HRESULT res;

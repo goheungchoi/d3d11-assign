@@ -33,6 +33,12 @@ public:
 
 	void DrawMeshBuffer(const DX::MeshBuffer& mesh, const DX::MaterialInstance& mat);
 
+	void DrawPointLightShadow(const DX::MeshBuffer& mesh,
+                            const DX::PointLightInstance& pointLight, int i);
+
+	void DrawPointLightShading(const DX::MeshBuffer& lightMesh,
+                             const DX::PointLightInstance& pointLight);
+
 	void EndRendering();
 
 	void FinishCommandList() {

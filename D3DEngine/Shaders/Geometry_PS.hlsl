@@ -1,3 +1,4 @@
+// Geometry_PS.hlsl
 
 Texture2D albedoTexture : register(t0);
 Texture2D metalRoughnessTexture : register(t1);
@@ -47,15 +48,15 @@ PS_OUTPUT main(PS_INPUT input)
 	
 	float2 metalRoughness = metalRoughnessTexture.Sample(defaultSampler, input.texcoord).rg;
 	
-	/*output.position = input.worldPosition;
+	output.position = input.worldPosition;
 	output.color = albedo;
-	output.normal = float4(N, 0.f);
-	output.metalRoughness = metalRoughness;*/
+	output.normal = float4(N, 1.f);
+	output.metalRoughness = metalRoughness;
 
-  output.position = input.position;
+  /*output.position = input.position;
   output.color = albedo;
   output.normal = float4(((1.f + N) / 2.f), 0.f);
-  output.metalRoughness = metalRoughness;
+  output.metalRoughness = metalRoughness;*/
 	
 	return output;
 }

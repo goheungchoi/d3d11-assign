@@ -1,0 +1,18 @@
+// HDR2LDR_CS.hlsl
+
+Texture2D<float4> inputTexture : register(t0);    // Source float texture
+RWTexture2D<uint4> outputTexture : register(u0);  // Target UINT texture
+
+[numthreads(16, 16, 1)] void CSMain(uint3 threadID
+                                    : SV_DispatchThreadID) {
+  float4 color = inputTexture.Load(int3(threadID.xy, 0));
+
+  // Clamp and scale to 0-255 range
+  uint4 outColor;
+  outColor.r = (uint)(saturate(color.r) * 255.0f);
+  outColor.g = (uint)(saturate(color.g) * 255.0f);
+  outColor.b = (uint)(saturate(color.b) * 255.0f);
+  outColor.a = (uint)(saturate(color.a) * 255.0f);
+
+  outputTexture[threadID.xy] = outColor;
+}

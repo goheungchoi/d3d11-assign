@@ -17,17 +17,19 @@ struct cbObjectData {
   XMMATRIX world;
 };
 
-struct cbLightData {
-  Vector4 components;  // [x,y,z,1] - position, [-x,-y,-z,0] - direction
-  Vector4 radiance;    // r, g, b, intensity
+struct cbLightShadingConstants {
+  LightData light;
 
-  float spotAngle;
-  float constantAttenuation;
-  float linearAttenuation;
-  float quadraticAttenuation;
+  XMVECTOR eyePosition;
 
-  LightType type;
-  bool enabled;
+  float exposure;
+  float gamma;
+  UINT useIBL;
+  UINT usePCF;
+
+	float screenWidth;
+  float screenHeight;
+  UINT padding[2];
 };
 
 struct cbShadingMaterial {
@@ -57,6 +59,14 @@ struct CubeTextureBuffer {
   UINT levels, faces;
 };
 
+struct RenderTargetBuffer {
+  DXGI_FORMAT format;
+  UINT width, height, samples;
+  ComPtr<ID3D11Texture2D> texture;
+  ComPtr<ID3D11RenderTargetView> rtv;
+  ComPtr<ID3D11ShaderResourceView> srv;
+};
+
 struct DepthStencilBuffer {
   DXGI_FORMAT format;
   UINT width, height, samples;
@@ -65,11 +75,19 @@ struct DepthStencilBuffer {
   ComPtr<ID3D11ShaderResourceView> srv;
 };
 
-struct RenderTargetBuffer {
+struct CubeRenderTargetBuffer {
   DXGI_FORMAT format;
-  UINT width, height, samples;
+  UINT width, height;
   ComPtr<ID3D11Texture2D> texture;
-  ComPtr<ID3D11RenderTargetView> rtv;
+  std::vector<ComPtr<ID3D11RenderTargetView>> rtvs;
+  ComPtr<ID3D11ShaderResourceView> srv;
+};
+
+struct CubeDepthStencilBuffer {
+  DXGI_FORMAT format;
+  UINT width, height;
+  ComPtr<ID3D11Texture2D> texture;
+  std::vector<ComPtr<ID3D11DepthStencilView>> dsvs;
   ComPtr<ID3D11ShaderResourceView> srv;
 };
 
@@ -103,9 +121,29 @@ struct MeshBuffer {
   Handle materialInstance;
 };
 
-struct LightInstance {
-  std::vector<DepthStencilBuffer> shadowMaps;
-  class FrameBuffer* shadowMapFrameBuffer;
+// Point light shadow map types
+
+struct cbCameraData {
+  float nearPlane;
+  float farPlane;
+  UINT padding[2];
+};
+
+struct cbPointLightTransform {
+  XMMATRIX view;
+  XMMATRIX proj;
+};
+
+struct PointLightInstance {
+  CubeRenderTargetBuffer renderTarget;
+  CubeDepthStencilBuffer shadowMap;
+
+  std::vector<ComPtr<ID3D11Buffer>> pointLightTransforms;
+  ComPtr<ID3D11Buffer> cameraData;
+
+	ComPtr<ID3D11Buffer> frameData;
+  ComPtr<ID3D11Buffer> objWorld;
+  ComPtr<ID3D11Buffer> lightShadingConstant;
 };
 
 }  // namespace DX

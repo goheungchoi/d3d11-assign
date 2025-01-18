@@ -7,7 +7,7 @@
 #include "D3DEngine/Core/Handle.h"
 
 namespace DX {
-class LightData;
+struct LightData;
 }
 
 class IRenderer {
@@ -17,12 +17,13 @@ class IRenderer {
                   bool allowTearing = false) = 0;
   virtual void Shutdown() = 0;
 
-  virtual void BeginFrame(XMMATRIX view, XMMATRIX proj) = 0;
+  virtual void BeginFrame(XMVECTOR eyePosition, XMMATRIX view,
+                          XMMATRIX proj) = 0;
   virtual void BeginDraw() = 0;
 
 	// Resource bindings
   virtual void ScheduleMesh(Handle renderMeshHandle, XMMATRIX transform) = 0;
-  virtual void ScheduleLight(Handle lightHandle, XMVECTOR components) = 0;
+  virtual void ScheduleLight(Handle lightHandle, const DX::LightData* data) = 0;
   
 	virtual void DrawOpaqueMeshes() = 0;
   virtual void DrawShadows() = 0;
@@ -38,8 +39,7 @@ class IRenderer {
 
 
 	// Resource management
-  virtual Handle CreateShader(Handle shaderHandle) = 0;
   virtual Handle CreateTexture(Handle textureHandle) = 0;
   virtual Handle CreateMesh(Handle meshHandle) = 0;
-  virtual Handle CreateLight(const DX::LightData* light) = 0;
+  virtual Handle CreateLight(uint32_t type) = 0;
 };

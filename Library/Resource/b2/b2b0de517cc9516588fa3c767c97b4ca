@@ -1,3 +1,4 @@
+// Light_VS.hlsl
 
 cbuffer FrameData : register(b0)
 {
@@ -25,14 +26,23 @@ struct VS_OUTPUT
 	float2 texcoord : TEXCOORD;
 };
 
-VS_OUTPUT main(VS_INPUT input)
+VS_OUTPUT main(uint vertexID : SV_VertexID)
 {
 	VS_OUTPUT output;
-	output.texcoord = input.texcoord;
-	
-	// NDC position
-	matrix mvp = mul(world, viewProj);
-	output.position = mul(float4(input.position, 1.0), mvp);
+
+    // Hardcoded vertex positions for a full-screen triangle
+  float2 pos[3] = {
+      float2(-1.0f, 1.0f),  // Top-left
+      float2(3.0f, 1.0f),   // Top-right extended to cover full screen
+      float2(-1.0f, -3.0f)    // Bottom-left extended to cover full screen
+  };
+
+  // UVs corresponding to the full screen
+  float2 uv[3] = {float2(0.0f, 0.0f), float2(2.0f, 0.0f), float2(0.0f, 2.0f)};
+
+  // Use vertexID to select the correct triangle corner
+  output.position = float4(pos[vertexID], 0.0f, 1.0f);  // Clip space position
+  output.texcoord = uv[vertexID];  // Texture UV coordinates
 		
 	return output;
 }

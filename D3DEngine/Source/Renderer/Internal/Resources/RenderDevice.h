@@ -97,18 +97,27 @@ class RenderDevice {
   TextureBuffer CreateTextureBuffer(const TextureData& data,
                                     D3D11_BIND_FLAG flags = (D3D11_BIND_FLAG)0);
 
+	ComPtr<ID3D11UnorderedAccessView> CreateTextureUAV(ID3D11Texture2D* texture,
+                                                     UINT mipSlice);
+
 	CubeTextureBuffer CreateCubeTextureBuffer(UINT width, UINT height,
                                             DXGI_FORMAT format,
                                             D3D11_BIND_FLAG flags,
                                             UINT mipLevels = 1, UINT arrayLayers = 6);
-  CubeTextureBuffer CreateCubeTextureBuffer(const TextureData& data,
-                                            D3D11_BIND_FLAG flags);
+  CubeTextureBuffer CreateCubeTextureBuffer(
+      const TextureData& data, D3D11_BIND_FLAG flags = (D3D11_BIND_FLAG)0);
 
 	RenderTargetBuffer CreateRenderTargetBuffer(UINT width, UINT height, DXGI_FORMAT format,
                                  UINT samples = 1);
   DepthStencilBuffer CreateDepthStencilBuffer(UINT width, UINT height,
                                               DXGI_FORMAT format,
                                               UINT samples = 1);
+  CubeRenderTargetBuffer CreateCubeRenderTargetBuffer(UINT width, UINT height,
+                                                      DXGI_FORMAT format);
+  CubeDepthStencilBuffer CreateCubeDepthStencilBuffer(UINT width, UINT height,
+                                                      DXGI_FORMAT format);
+
+
 
 	FrameBuffer* CreateFrameBuffer(
       UINT width, UINT height, UINT samples,
